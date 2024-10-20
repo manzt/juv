@@ -77,7 +77,11 @@ def to_notebook(fp: pathlib.Path) -> tuple[Pep723Meta | None, dict]:
     cells = nb.get("cells", [])
     meta = next(
         (
-            parse_pep723_meta(cell["source"])
+            parse_pep723_meta(
+                "".join(cell["source"])
+                if isinstance(cell["source"], list)
+                else cell["source"]
+            )
             for cell in filter(lambda c: c["cell_type"] == "code", cells)
         ),
         None,
