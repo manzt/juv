@@ -12,6 +12,13 @@ import jupytext
 from nbformat.v4.nbbase import new_code_cell, new_notebook
 
 
+def run_main(argv: list[str], uv_python: str = "3.13") -> None:
+    with patch.dict("os.environ", {"UV_PYTHON": uv_python}), patch.object(
+        sys, "argv", argv
+    ):
+        juv.main()
+
+
 @pytest.fixture
 def sample_script() -> str:
     return """
@@ -266,10 +273,7 @@ def test_split_args_with_pre_args() -> None:
 def test_add_creates_inline_meta(tmp_path: pathlib.Path) -> None:
     nb = tmp_path / "empty.ipynb"
     juv.write_nb(new_notebook(), nb)
-
-    with patch.object(sys, "argv", ["juv", "add", str(nb), "polars==1", "anywidget"]):
-        juv.main()
-
+    run_main(["juv", "add", str(nb), "polars==1", "anywidget"], uv_python="3.11")
     assert strip_ids(nb.read_text()) == snapshot("""\
 {
  "cells": [
@@ -285,7 +289,7 @@ def test_add_creates_inline_meta(tmp_path: pathlib.Path) -> None:
    "outputs": [],
    "source": [
     "# /// script\\n",
-    "# requires-python = \\">=3.12\\"\\n",
+    "# requires-python = \\">=3.11\\"\\n",
     "# dependencies = [\\n",
     "#     \\"anywidget\\",\\n",
     "#     \\"polars==1\\",\\n",
@@ -311,10 +315,7 @@ def test_add_prepends_script_meta(tmp_path: pathlib.Path) -> None:
         ),
         path,
     )
-
-    with patch.object(sys, "argv", ["juv", "add", str(path), "polars==1", "anywidget"]):
-        juv.main()
-
+    run_main(["juv", "add", str(path), "polars==1", "anywidget"], uv_python="3.10")
     assert strip_ids(path.read_text()) == snapshot("""\
 {
  "cells": [
@@ -330,7 +331,7 @@ def test_add_prepends_script_meta(tmp_path: pathlib.Path) -> None:
    "outputs": [],
    "source": [
     "# /// script\\n",
-    "# requires-python = \\">=3.12\\"\\n",
+    "# requires-python = \\">=3.10\\"\\n",
     "# dependencies = [\\n",
     "#     \\"anywidget\\",\\n",
     "#     \\"polars==1\\",\\n",
@@ -369,8 +370,7 @@ print('Hello, numpy!')"""),
         ]
     )
     juv.write_nb(nb, path)
-    with patch.object(sys, "argv", ["juv", "add", str(path), "polars==1", "anywidget"]):
-        juv.main()
+    run_main(["juv", "add", str(path), "polars==1", "anywidget"], uv_python="3.13")
     assert strip_ids(path.read_text()) == snapshot("""\
 {
  "cells": [
@@ -403,8 +403,8 @@ print('Hello, numpy!')"""),
 
 def test_init_creates_notebook_with_inline_meta(tmp_path: pathlib.Path) -> None:
     path = tmp_path / "empty.ipynb"
-    with patch.object(sys, "argv", ["juv", "init", str(path)]):
-        juv.main()
+    run_main(["juv", "init", str(path)], uv_python="3.13")
+
     assert strip_ids(path.read_text()) == snapshot("""\
 {
  "cells": [
@@ -420,7 +420,7 @@ def test_init_creates_notebook_with_inline_meta(tmp_path: pathlib.Path) -> None:
    "outputs": [],
    "source": [
     "# /// script\\n",
-    "# requires-python = \\">=3.12\\"\\n",
+    "# requires-python = \\">=3.13\\"\\n",
     "# dependencies = []\\n",
     "# ///\\n",
     "\\n",
