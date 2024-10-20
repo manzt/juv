@@ -13,12 +13,14 @@ import os
 import typing
 
 import rich
+import jupytext
+from nbformat.v4.nbbase import new_code_cell
 
 
 @dataclasses.dataclass
 class Pep723Meta:
     dependencies: list[str]
-    python_version: str | None
+    requires_python: str | None
 
 
 REGEX = r"(?m)^# /// (?P<type>[a-zA-Z0-9-]+)$\s(?P<content>(^#(| .*)$\s)+)^# ///$"
@@ -41,73 +43,46 @@ def parse_pep723_meta(script: str) -> Pep723Meta | None:
         meta = tomllib.loads(content)
         return Pep723Meta(
             dependencies=meta.get("dependencies", []),
-            python_version=meta.get("requires-python"),
+            requires_python=meta.get("requires-python"),
         )
     else:
         return None
 
 
-def nbcell(source: str, hidden: bool = False) -> dict:
-    return {
-        "cell_type": "code",
-        "execution_count": None,
-        "metadata": {"jupyter": {"source_hidden": hidden}},
-        "outputs": [],
-        "source": source,
-    }
+def load_script_notebook(fp: pathlib.Path) -> dict:
+    script = fp.read_text()
+    inline_meta = None
+    if meta_block := re.search(REGEX, script):
+        inline_meta = meta_block.group(0)
+        script = script.replace(inline_meta, "")
+    nb = jupytext.reads(script.strip())
+    if inline_meta:
+        nb["cells"].insert(
+            0,
+            new_code_cell(inline_meta, metadata={"jupyter": {"source_hidden": True}}),
+        )
+    return nb
 
 
-def script_to_nb(script: str) -> str:
-    """Embeds the a given script as the first cell in a Jupyter notebook."""
-    cells: list[dict] = []
-
-    meta_block = re.search(REGEX, script)
-
-    if meta_block:
-        meta_block = meta_block.group(0)
-        cells.append(nbcell(meta_block, hidden=True))
-        script = script.replace(meta_block, "")
-
-    cells.append(nbcell(script.strip()))
-
-    return json.dumps(
-        obj={
-            "cells": cells,
-            "metadata": {
-                "kernelspec": {
-                    "display_name": "Python 3",
-                    "language": "python",
-                    "name": "python3",
-                }
-            },
-            "nbformat": 4,
-            "nbformat_minor": 5,
-        },
-        indent=2,
-    )
-
-
-def to_notebook(fp: pathlib.Path) -> tuple[Pep723Meta | None, str]:
+def to_notebook(fp: pathlib.Path) -> tuple[Pep723Meta | None, dict]:
     match fp.suffix:
         case ".py":
-            content = fp.read_text()
-            meta = parse_pep723_meta(content)
-            return meta, script_to_nb(content)
+            nb = load_script_notebook(fp)
         case ".ipynb":
-            content = fp.read_text()
-            for cell in json.loads(content).get("cells", []):
-                if cell.get("cell_type") == "code":
-                    source = (
-                        isinstance(cell["source"], list)
-                        and "".join(cell["source"])
-                        or cell["source"]
-                    )
-                    meta = parse_pep723_meta(source)
-                    return meta, content
-
-            return None, content
+            with fp.open() as f:
+                nb = json.load(f)
         case _:
             raise ValueError(f"Unsupported file extension: {fp.suffix}")
+
+    meta = next(
+        (
+            parse_pep723_meta("".join(cell["source"]))
+            for cell in filter(lambda c: c["cell_type"] == "code", nb.get("cells", []))
+        ),
+        None,
+    )
+
+    return meta, nb
 
 
 def assert_uv_available():
@@ -128,42 +103,27 @@ def build_command(
     pre_args: list[str],
     command_version: str | None,
 ) -> list[str]:
-    cmd = ["uvx", "--from", "jupyter-core", "--with", "setuptools"]
+    cmd = ["uvx", "--from=jupyter-core", "--with=setuptools"]
 
     if pep723_meta:
-        if pep723_meta.python_version and not any(
+        # only add --python if not specified by user and present in meta
+        if pep723_meta.requires_python and not any(
             x.startswith("--python") for x in pre_args
         ):
-            cmd.extend(["--python", pep723_meta.python_version])
+            cmd.append(f"--python={pep723_meta.requires_python}")
 
-        for dep in pep723_meta.dependencies:
-            cmd.extend(["--with", dep])
+        cmd.append(f"--with={','.join(pep723_meta.dependencies)}")
 
-    if command == "lab":
-        cmd.extend(
-            [
-                "--with",
-                f"jupyterlab=={command_version}" if command_version else "jupyterlab",
-            ]
-        )
-    elif command == "notebook":
-        cmd.extend(
-            [
-                "--with",
-                f"notebook=={command_version}" if command_version else "notebook",
-            ]
-        )
-    elif command == "nbclassic":
-        cmd.extend(
-            [
-                "--with",
-                f"nbclassic=={command_version}" if command_version else "nbclassic",
-            ]
-        )
+    dependency = {
+        "lab": "jupyterlab",
+        "notebook": "notebook",
+        "nbclassic": "nbclassic",
+    }[command]
 
-    cmd.extend(pre_args)
-
-    cmd.extend(["jupyter", command, str(nb_path)])
+    cmd.append(
+        f"--with={dependency}{'==' + command_version if command_version else ''}"
+    )
+    cmd.extend([*pre_args, "jupyter", command, str(nb_path)])
     return cmd
 
 
@@ -239,11 +199,11 @@ def main() -> None:
         print(f"Error: {file} does not exist.", file=sys.stderr)
         sys.exit(1)
 
-    meta, content = to_notebook(file)
+    meta, nb = to_notebook(file)
 
     if file.suffix == ".py":
         file = file.with_suffix(".ipynb")
-        file.write_text(content)
+        file.write_text(jupytext.writes(nb, fmt="ipynb"))
 
     run_notebook(file, meta, command, uv_args, command_version)
 

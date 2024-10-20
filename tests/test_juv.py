@@ -1,12 +1,14 @@
 import pytest
 from pathlib import Path
-import json
-import tempfile
 import sys
 from unittest.mock import patch
+import pathlib
+import re
 from inline_snapshot import snapshot
 
 import juv
+from juv import Pep723Meta
+import jupytext
 
 
 @pytest.fixture
@@ -42,7 +44,7 @@ def test_parse_pep723_meta(sample_script: str) -> None:
     meta = juv.parse_pep723_meta(sample_script)
     assert isinstance(meta, juv.Pep723Meta)
     assert meta.dependencies == ["numpy", "pandas"]
-    assert meta.python_version == ">=3.8"
+    assert meta.requires_python == ">=3.8"
 
 
 def test_parse_pep723_meta_no_meta() -> None:
@@ -50,65 +52,82 @@ def test_parse_pep723_meta_no_meta() -> None:
     assert juv.parse_pep723_meta(script_without_meta) is None
 
 
-def test_script_to_nb(sample_script: str) -> None:
-    nb_json = juv.script_to_nb(sample_script)
-    nb = json.loads(nb_json)
-
-    assert nb == snapshot(
-        {
-            "cells": [
-                {
-                    "cell_type": "code",
-                    "execution_count": None,
-                    "metadata": {"jupyter": {"source_hidden": True}},
-                    "outputs": [],
-                    "source": """\
-# /// script
-# dependencies = ["numpy", "pandas"]
+def test_to_notebook_script(tmp_path: pathlib.Path):
+    script = tmp_path / "script.py"
+    script.write_text("""# /// script
+# dependencies = ["numpy"]
 # requires-python = ">=3.8"
-# ///\
-""",
-                },
-                {
-                    "cell_type": "code",
-                    "execution_count": None,
-                    "metadata": {"jupyter": {"source_hidden": False}},
-                    "outputs": [],
-                    "source": """\
+# ///
+
+
 import numpy as np
-import pandas as pd
 
-print('Hello, world!')\
+# %%
+print('Hello, numpy!')
+arr = np.array([1, 2, 3])""")
+
+    meta, nb = juv.to_notebook(script)
+    output = jupytext.writes(nb, fmt="ipynb")
+    output = re.sub(r'"id": "[a-zA-Z0-9-]+"', '"id": "<ID>"', output)
+
+    assert (meta, output) == snapshot(
+        (
+            Pep723Meta(dependencies=["numpy"], requires_python=">=3.8"),
+            """\
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "<ID>",
+   "metadata": {
+    "jupyter": {
+     "source_hidden": true
+    }
+   },
+   "outputs": [],
+   "source": [
+    "# /// script\\n",
+    "# dependencies = [\\"numpy\\"]\\n",
+    "# requires-python = \\">=3.8\\"\\n",
+    "# ///"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "<ID>",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numpy as np"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "<ID>",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "print('Hello, numpy!')\\n",
+    "arr = np.array([1, 2, 3])"
+   ]
+  }
+ ],
+ "metadata": {
+  "jupytext": {
+   "cell_metadata_filter": "-all",
+   "main_language": "python",
+   "notebook_metadata_filter": "-all"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}\
 """,
-                },
-            ],
-            "metadata": {
-                "kernelspec": {
-                    "display_name": "Python 3",
-                    "language": "python",
-                    "name": "python3",
-                }
-            },
-            "nbformat": 4,
-            "nbformat_minor": 5,
-        }
+        )
     )
-
-
-@pytest.mark.parametrize("file_ext,expected_cells", [(".py", 2), (".ipynb", 1)])
-def test_to_notebook(file_ext, expected_cells, sample_script, sample_notebook) -> None:
-    with tempfile.NamedTemporaryFile(suffix=file_ext, mode="w+") as tf:
-        if file_ext == ".py":
-            tf.write(sample_script)
-        else:
-            json.dump(sample_notebook, tf)
-        tf.flush()
-
-        meta, content = juv.to_notebook(Path(tf.name))
-
-        assert isinstance(meta, juv.Pep723Meta)
-        nb = json.loads(content)
-        assert len(nb["cells"]) == expected_cells
 
 
 def test_assert_uv_available() -> None:
@@ -120,21 +139,17 @@ def test_assert_uv_available() -> None:
 def test_python_override() -> None:
     assert juv.build_command(
         nb_path=Path("test.ipynb"),
-        pep723_meta=juv.Pep723Meta(dependencies=["numpy"], python_version="3.8"),
+        pep723_meta=Pep723Meta(dependencies=["numpy"], requires_python="3.8"),
         command="nbclassic",
         pre_args=["--with", "polars", "--python", "3.12"],
         command_version=None,
     ) == snapshot(
         [
             "uvx",
-            "--from",
-            "jupyter-core",
-            "--with",
-            "setuptools",
-            "--with",
-            "numpy",
-            "--with",
-            "nbclassic",
+            "--from=jupyter-core",
+            "--with=setuptools",
+            "--with=numpy",
+            "--with=nbclassic",
             "--with",
             "polars",
             "--python",
@@ -149,23 +164,18 @@ def test_python_override() -> None:
 def test_run_nbclassic() -> None:
     assert juv.build_command(
         nb_path=Path("test.ipynb"),
-        pep723_meta=juv.Pep723Meta(dependencies=["numpy"], python_version="3.8"),
+        pep723_meta=Pep723Meta(dependencies=["numpy"], requires_python="3.8"),
         command="nbclassic",
         pre_args=["--with", "polars"],
         command_version=None,
     ) == snapshot(
         [
             "uvx",
-            "--from",
-            "jupyter-core",
-            "--with",
-            "setuptools",
-            "--python",
-            "3.8",
-            "--with",
-            "numpy",
-            "--with",
-            "nbclassic",
+            "--from=jupyter-core",
+            "--with=setuptools",
+            "--python=3.8",
+            "--with=numpy",
+            "--with=nbclassic",
             "--with",
             "polars",
             "jupyter",
@@ -178,23 +188,18 @@ def test_run_nbclassic() -> None:
 def test_run_notebook() -> None:
     assert juv.build_command(
         nb_path=Path("test.ipynb"),
-        pep723_meta=juv.Pep723Meta(dependencies=["numpy"], python_version="3.8"),
+        pep723_meta=Pep723Meta(dependencies=["numpy"], requires_python="3.8"),
         command="notebook",
         pre_args=[],
         command_version="6.4.0",
     ) == snapshot(
         [
             "uvx",
-            "--from",
-            "jupyter-core",
-            "--with",
-            "setuptools",
-            "--python",
-            "3.8",
-            "--with",
-            "numpy",
-            "--with",
-            "notebook==6.4.0",
+            "--from=jupyter-core",
+            "--with=setuptools",
+            "--python=3.8",
+            "--with=numpy",
+            "--with=notebook==6.4.0",
             "jupyter",
             "notebook",
             "test.ipynb",
@@ -205,25 +210,19 @@ def test_run_notebook() -> None:
 def test_run_jlab() -> None:
     assert juv.build_command(
         nb_path=Path("test.ipynb"),
-        pep723_meta=juv.Pep723Meta(dependencies=["numpy"], python_version="3.8"),
+        pep723_meta=Pep723Meta(dependencies=["numpy"], requires_python="3.8"),
         command="lab",
-        pre_args=["--with", "polars"],
+        pre_args=["--with=polars,altair"],
         command_version=None,
     ) == snapshot(
         [
             "uvx",
-            "--from",
-            "jupyter-core",
-            "--with",
-            "setuptools",
-            "--python",
-            "3.8",
-            "--with",
-            "numpy",
-            "--with",
-            "jupyterlab",
-            "--with",
-            "polars",
+            "--from=jupyter-core",
+            "--with=setuptools",
+            "--python=3.8",
+            "--with=numpy",
+            "--with=jupyterlab",
+            "--with=polars,altair",
             "jupyter",
             "lab",
             "test.ipynb",
