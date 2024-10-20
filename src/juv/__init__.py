@@ -19,7 +19,7 @@ import jupytext
 @dataclasses.dataclass
 class Pep723Meta:
     dependencies: list[str]
-    python_version: str | None
+    requires_python: str | None
 
 
 REGEX = r"(?m)^# /// (?P<type>[a-zA-Z0-9-]+)$\s(?P<content>(^#(| .*)$\s)+)^# ///$"
@@ -42,39 +42,31 @@ def parse_pep723_meta(script: str) -> Pep723Meta | None:
         meta = tomllib.loads(content)
         return Pep723Meta(
             dependencies=meta.get("dependencies", []),
-            python_version=meta.get("requires-python"),
+            requires_python=meta.get("requires-python"),
         )
     else:
         return None
 
 
-def to_notebook(fp: pathlib.Path) -> tuple[Pep723Meta | None, str]:
+def to_notebook(fp: pathlib.Path) -> tuple[Pep723Meta | None, dict]:
     match fp.suffix:
         case ".py":
             nb = jupytext.read(fp)
-            nb_str = json.dumps(nb, indent=2)
-            for cell in nb["cells"]:
-                if cell["cell_type"] == "code" and (
-                    meta := parse_pep723_meta(cell["source"])
-                ):
-                    return meta, nb_str
-            return None, nb_str
-
         case ".ipynb":
-            content = fp.read_text()
-            for cell in json.loads(content).get("cells", []):
-                if cell.get("cell_type") == "code":
-                    source = (
-                        isinstance(cell["source"], list)
-                        and "".join(cell["source"])
-                        or cell["source"]
-                    )
-                    meta = parse_pep723_meta(source)
-                    return meta, content
-
-            return None, content
+            with fp.open() as f:
+                nb = json.load(f)
         case _:
             raise ValueError(f"Unsupported file extension: {fp.suffix}")
+
+    cells = nb.get("cells", [])
+    meta = next(
+        (
+            parse_pep723_meta(cell["source"])
+            for cell in filter(lambda c: c["cell_type"] == "code", cells)
+        ),
+        None,
+    )
+    return meta, nb
 
 
 def assert_uv_available():
@@ -98,35 +90,24 @@ def build_command(
     cmd = ["uvx", "--from", "jupyter-core", "--with", "setuptools"]
 
     if pep723_meta:
-        if pep723_meta.python_version and not any(
+        if pep723_meta.requires_python and not any(
             x.startswith("--python") for x in pre_args
         ):
-            cmd.extend(["--python", pep723_meta.python_version])
+            cmd.extend(["--python", pep723_meta.requires_python])
 
         for dep in pep723_meta.dependencies:
             cmd.extend(["--with", dep])
 
-    if command == "lab":
-        cmd.extend(
-            [
-                "--with",
-                f"jupyterlab=={command_version}" if command_version else "jupyterlab",
-            ]
-        )
-    elif command == "notebook":
-        cmd.extend(
-            [
-                "--with",
-                f"notebook=={command_version}" if command_version else "notebook",
-            ]
-        )
-    elif command == "nbclassic":
-        cmd.extend(
-            [
-                "--with",
-                f"nbclassic=={command_version}" if command_version else "nbclassic",
-            ]
-        )
+    dep = {
+        "lab": "jupyterlab",
+        "notebook": "notebook",
+        "nbclassic": "nbclassic",
+    }[command]
+
+    cmd.extend([
+        "--with",
+        f"{dep}=={command_version}" if command_version else dep,
+    ])
 
     cmd.extend(pre_args)
 
@@ -210,7 +191,7 @@ def main() -> None:
 
     if file.suffix == ".py":
         file = file.with_suffix(".ipynb")
-        file.write_text(content)
+        file.write_text(json.dumps(content, indent=2))
 
     run_notebook(file, meta, command, uv_args, command_version)
 
