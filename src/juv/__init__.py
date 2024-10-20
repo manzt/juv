@@ -5,12 +5,13 @@ from __future__ import annotations
 import pathlib
 import re
 import tomllib
-import json
 import dataclasses
 import sys
 import shutil
 import os
 import typing
+import tempfile
+import subprocess
 
 import rich
 import jupytext
@@ -25,7 +26,8 @@ class Pep723Meta:
 
 REGEX = r"(?m)^# /// (?P<type>[a-zA-Z0-9-]+)$\s(?P<content>(^#(| .*)$\s)+)^# ///$"
 
-Command = typing.Literal["lab", "notebook", "nbclassic"]
+Command = typing.Literal["lab", "notebook", "nbclassic", "add"]
+COMMANDS = {"lab", "notebook", "nbclassic", "add"}
 
 
 def parse_pep723_meta(script: str) -> Pep723Meta | None:
@@ -49,6 +51,13 @@ def parse_pep723_meta(script: str) -> Pep723Meta | None:
         return None
 
 
+def nbcell(source: str, hidden: bool = False) -> dict:
+    return new_code_cell(
+        source,
+        metadata={"jupyter": {"source_hidden": hidden}},
+    )
+
+
 def load_script_notebook(fp: pathlib.Path) -> dict:
     script = fp.read_text()
     inline_meta = None
@@ -59,7 +68,7 @@ def load_script_notebook(fp: pathlib.Path) -> dict:
     if inline_meta:
         nb["cells"].insert(
             0,
-            new_code_cell(inline_meta, metadata={"jupyter": {"source_hidden": True}}),
+            nbcell(inline_meta.strip(), hidden=True),
         )
     return nb
 
@@ -69,8 +78,7 @@ def to_notebook(fp: pathlib.Path) -> tuple[Pep723Meta | None, dict]:
         case ".py":
             nb = load_script_notebook(fp)
         case ".ipynb":
-            with fp.open() as f:
-                nb = json.load(f)
+            nb = jupytext.read(fp, fmt="ipynb")
         case _:
             raise ValueError(f"Unsupported file extension: {fp.suffix}")
 
@@ -145,7 +153,7 @@ def run_notebook(
 
 def split_args() -> tuple[list[str], list[str], str | None]:
     for i, arg in enumerate(sys.argv):
-        if arg in ["lab", "notebook", "nbclassic"]:
+        if arg in COMMANDS:
             return sys.argv[1:i], sys.argv[i:], None
 
         if (
@@ -160,8 +168,34 @@ def split_args() -> tuple[list[str], list[str], str | None]:
     return [], sys.argv, None
 
 
+def update_or_add_inline_meta(nb: dict, deps: list[str]) -> None:
+    def includes_inline_meta(cell: dict) -> bool:
+        return cell["cell_type"] == "code" and (
+            re.search(REGEX, "".join(cell["source"])) is not None
+        )
+
+    with tempfile.NamedTemporaryFile(mode="w+", delete=True) as f:
+        cell = next(
+            (cell for cell in nb["cells"] if includes_inline_meta(cell)),
+            None,
+        )
+        if cell is None:
+            nb["cells"].insert(0, nbcell("", hidden=True))
+            cell = nb["cells"][0]
+
+        f.write(cell["source"])
+        f.flush()
+        subprocess.run(["uv", "add", "--quiet", "--script", f.name, *deps])
+        f.seek(0)
+        cell["source"] = f.read()
+
+
 def is_command(command: typing.Any) -> typing.TypeGuard[Command]:
-    return command in ["lab", "notebook", "nbclassic"]
+    return command in COMMANDS
+
+
+def write_nb(nb: dict, file: pathlib.Path) -> None:
+    file.write_text(jupytext.writes(nb, fmt="ipynb"))
 
 
 def main() -> None:
@@ -175,6 +209,7 @@ def main() -> None:
   [cyan]lab[/cyan]: Launch JupyterLab
   [cyan]notebook[/cyan]: Launch Jupyter Notebook
   [cyan]nbclassic[/cyan]: Launch Jupyter Notebook Classic
+  [cyan]add[/cyan]: Add dependencies to the notebook
 
 [b]Examples[/b]:
   uvx juv lab script.py
@@ -201,9 +236,16 @@ def main() -> None:
 
     meta, nb = to_notebook(file)
 
+    if command == "add":
+        assert len(args) > 2, "Missing dependencies"
+        update_or_add_inline_meta(nb, args[2:])
+        write_nb(nb, file.with_suffix(".ipynb"))
+        rich.print(f"Updated [cyan]{file.resolve().absolute()}[/cyan]")
+        return
+
     if file.suffix == ".py":
         file = file.with_suffix(".ipynb")
-        file.write_text(jupytext.writes(nb, fmt="ipynb"))
+        write_nb(nb, file)
 
     run_notebook(file, meta, command, uv_args, command_version)
 
