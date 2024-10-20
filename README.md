@@ -23,15 +23,7 @@ uvx juv
 #   juv --python=3.8 notebook@6.4.0 foo.ipynb
 ```
 
-`juv` has five main commands:
-
-- `juv init` initializes a new notebook
-- `juv add` adds dependencies to an existing notebook
-- `juv lab` launches a Jupyter Lab session
-- `juv notebook` launches a classic notebook session
-- `juv nbclassic` launches a classic notebook session
-
-A script will be converted to a notebook before launching.
+Scripts will be converted to notebooks before launching the Jupyter session.
 
 ```sh
 uvx juv lab script.py # creates script.ipynb
