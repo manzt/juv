@@ -13,6 +13,7 @@ import os
 import typing
 
 import rich
+import jupytext
 
 
 @dataclasses.dataclass
@@ -47,52 +48,18 @@ def parse_pep723_meta(script: str) -> Pep723Meta | None:
         return None
 
 
-def nbcell(source: str, hidden: bool = False) -> dict:
-    return {
-        "cell_type": "code",
-        "execution_count": None,
-        "metadata": {"jupyter": {"source_hidden": hidden}},
-        "outputs": [],
-        "source": source,
-    }
-
-
-def script_to_nb(script: str) -> str:
-    """Embeds the a given script as the first cell in a Jupyter notebook."""
-    cells: list[dict] = []
-
-    meta_block = re.search(REGEX, script)
-
-    if meta_block:
-        meta_block = meta_block.group(0)
-        cells.append(nbcell(meta_block, hidden=True))
-        script = script.replace(meta_block, "")
-
-    cells.append(nbcell(script.strip()))
-
-    return json.dumps(
-        obj={
-            "cells": cells,
-            "metadata": {
-                "kernelspec": {
-                    "display_name": "Python 3",
-                    "language": "python",
-                    "name": "python3",
-                }
-            },
-            "nbformat": 4,
-            "nbformat_minor": 5,
-        },
-        indent=2,
-    )
-
-
 def to_notebook(fp: pathlib.Path) -> tuple[Pep723Meta | None, str]:
     match fp.suffix:
         case ".py":
-            content = fp.read_text()
-            meta = parse_pep723_meta(content)
-            return meta, script_to_nb(content)
+            nb = jupytext.read(fp)
+            nb_str = json.dumps(nb, indent=2)
+            for cell in nb["cells"]:
+                if cell["cell_type"] == "code" and (
+                    meta := parse_pep723_meta(cell["source"])
+                ):
+                    return meta, nb_str
+            return None, nb_str
+
         case ".ipynb":
             content = fp.read_text()
             for cell in json.loads(content).get("cells", []):

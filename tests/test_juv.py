@@ -1,9 +1,9 @@
 import pytest
 from pathlib import Path
-import json
-import tempfile
 import sys
 from unittest.mock import patch
+import pathlib
+import re
 from inline_snapshot import snapshot
 
 import juv
@@ -50,65 +50,63 @@ def test_parse_pep723_meta_no_meta() -> None:
     assert juv.parse_pep723_meta(script_without_meta) is None
 
 
-def test_script_to_nb(sample_script: str) -> None:
-    nb_json = juv.script_to_nb(sample_script)
-    nb = json.loads(nb_json)
-
-    assert nb == snapshot(
-        {
-            "cells": [
-                {
-                    "cell_type": "code",
-                    "execution_count": None,
-                    "metadata": {"jupyter": {"source_hidden": True}},
-                    "outputs": [],
-                    "source": """\
-# /// script
-# dependencies = ["numpy", "pandas"]
+def test_to_notebook_script(tmp_path: pathlib.Path):
+    script = tmp_path / "script.py"
+    script.write_text("""# /// script
+# dependencies = ["numpy"]
 # requires-python = ">=3.8"
-# ///\
-""",
-                },
-                {
-                    "cell_type": "code",
-                    "execution_count": None,
-                    "metadata": {"jupyter": {"source_hidden": False}},
-                    "outputs": [],
-                    "source": """\
+# ///
+
+
 import numpy as np
-import pandas as pd
 
-print('Hello, world!')\
+# %%
+print('Hello, numpy!')
+arr = np.array([1, 2, 3])""")
+
+    meta, output = juv.to_notebook(script)
+    output = re.sub(r'"id": "[a-zA-Z0-9-]+"', '"id": "<ID>"', output)
+
+    assert (meta, output) == snapshot(
+        (
+            juv.Pep723Meta(dependencies=["numpy"], python_version=">=3.8"),
+            """\
+{
+  "nbformat": 4,
+  "nbformat_minor": 5,
+  "metadata": {
+    "jupytext": {
+      "main_language": "python",
+      "notebook_metadata_filter": "-all",
+      "cell_metadata_filter": "-all",
+      "text_representation": {
+        "extension": ".py",
+        "format_name": "percent"
+      }
+    }
+  },
+  "cells": [
+    {
+      "id": "<ID>",
+      "cell_type": "code",
+      "metadata": {},
+      "execution_count": null,
+      "source": "# /// script\\n# dependencies = [\\"numpy\\"]\\n# requires-python = \\">=3.8\\"\\n# ///\\n\\n\\nimport numpy as np",
+      "outputs": []
+    },
+    {
+      "id": "<ID>",
+      "cell_type": "code",
+      "metadata": {},
+      "execution_count": null,
+      "source": "print('Hello, numpy!')\\narr = np.array([1, 2, 3])",
+      "outputs": []
+    }
+  ]
+}\
 """,
-                },
-            ],
-            "metadata": {
-                "kernelspec": {
-                    "display_name": "Python 3",
-                    "language": "python",
-                    "name": "python3",
-                }
-            },
-            "nbformat": 4,
-            "nbformat_minor": 5,
-        }
+        )
     )
-
-
-@pytest.mark.parametrize("file_ext,expected_cells", [(".py", 2), (".ipynb", 1)])
-def test_to_notebook(file_ext, expected_cells, sample_script, sample_notebook) -> None:
-    with tempfile.NamedTemporaryFile(suffix=file_ext, mode="w+") as tf:
-        if file_ext == ".py":
-            tf.write(sample_script)
-        else:
-            json.dump(sample_notebook, tf)
-        tf.flush()
-
-        meta, content = juv.to_notebook(Path(tf.name))
-
-        assert isinstance(meta, juv.Pep723Meta)
-        nb = json.loads(content)
-        assert len(nb["cells"]) == expected_cells
 
 
 def test_assert_uv_available() -> None:
