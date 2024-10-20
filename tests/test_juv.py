@@ -9,6 +9,14 @@ from inline_snapshot import snapshot
 import juv
 from juv import Pep723Meta
 import jupytext
+from nbformat.v4.nbbase import new_code_cell, new_notebook
+
+
+def run_main(argv: list[str], uv_python: str = "3.13") -> None:
+    with patch.dict("os.environ", {"UV_PYTHON": uv_python}), patch.object(
+        sys, "argv", argv
+    ):
+        juv.main()
 
 
 @pytest.fixture
@@ -52,6 +60,10 @@ def test_parse_pep723_meta_no_meta() -> None:
     assert juv.parse_pep723_meta(script_without_meta) is None
 
 
+def strip_ids(output: str) -> str:
+    return re.sub(r'"id": "[a-zA-Z0-9-]+"', '"id": "<ID>"', output)
+
+
 def test_to_notebook_script(tmp_path: pathlib.Path):
     script = tmp_path / "script.py"
     script.write_text("""# /// script
@@ -68,7 +80,7 @@ arr = np.array([1, 2, 3])""")
 
     meta, nb = juv.to_notebook(script)
     output = jupytext.writes(nb, fmt="ipynb")
-    output = re.sub(r'"id": "[a-zA-Z0-9-]+"', '"id": "<ID>"', output)
+    output = strip_ids(output)
 
     assert (meta, output) == snapshot(
         (
@@ -188,7 +200,7 @@ def test_run_nbclassic() -> None:
 def test_run_notebook() -> None:
     assert juv.build_command(
         nb_path=Path("test.ipynb"),
-        pep723_meta=Pep723Meta(dependencies=["numpy"], requires_python="3.8"),
+        pep723_meta=Pep723Meta(dependencies=[], requires_python=None),
         command="notebook",
         pre_args=[],
         command_version="6.4.0",
@@ -197,8 +209,6 @@ def test_run_notebook() -> None:
             "uvx",
             "--from=jupyter-core",
             "--with=setuptools",
-            "--python=3.8",
-            "--with=numpy",
             "--with=notebook==6.4.0",
             "jupyter",
             "notebook",
@@ -258,3 +268,204 @@ def test_split_args_with_pre_args() -> None:
                 None,
             )
         )
+
+
+def test_add_creates_inline_meta(tmp_path: pathlib.Path) -> None:
+    nb = tmp_path / "empty.ipynb"
+    juv.write_nb(new_notebook(), nb)
+    run_main(["juv", "add", str(nb), "polars==1", "anywidget"], uv_python="3.11")
+    assert strip_ids(nb.read_text()) == snapshot("""\
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "<ID>",
+   "metadata": {
+    "jupyter": {
+     "source_hidden": true
+    }
+   },
+   "outputs": [],
+   "source": [
+    "# /// script\\n",
+    "# requires-python = \\">=3.11\\"\\n",
+    "# dependencies = [\\n",
+    "#     \\"anywidget\\",\\n",
+    "#     \\"polars==1\\",\\n",
+    "# ]\\n",
+    "# ///\\n"
+   ]
+  }
+ ],
+ "metadata": {},
+ "nbformat": 4,
+ "nbformat_minor": 5
+}\
+""")
+
+
+def test_add_prepends_script_meta(tmp_path: pathlib.Path) -> None:
+    path = tmp_path / "empty.ipynb"
+    juv.write_nb(
+        new_notebook(
+            cells=[
+                new_code_cell("print('Hello, world!')"),
+            ]
+        ),
+        path,
+    )
+    run_main(["juv", "add", str(path), "polars==1", "anywidget"], uv_python="3.10")
+    assert strip_ids(path.read_text()) == snapshot("""\
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "<ID>",
+   "metadata": {
+    "jupyter": {
+     "source_hidden": true
+    }
+   },
+   "outputs": [],
+   "source": [
+    "# /// script\\n",
+    "# requires-python = \\">=3.10\\"\\n",
+    "# dependencies = [\\n",
+    "#     \\"anywidget\\",\\n",
+    "#     \\"polars==1\\",\\n",
+    "# ]\\n",
+    "# ///\\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "<ID>",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "print('Hello, world!')"
+   ]
+  }
+ ],
+ "metadata": {},
+ "nbformat": 4,
+ "nbformat_minor": 5
+}\
+""")
+
+
+def test_add_updates_existing_meta(tmp_path: pathlib.Path) -> None:
+    path = tmp_path / "empty.ipynb"
+    nb = new_notebook(
+        cells=[
+            new_code_cell("""# /// script
+# dependencies = ["numpy"]
+# requires-python = ">=3.8"
+# ///
+import numpy as np
+print('Hello, numpy!')"""),
+        ]
+    )
+    juv.write_nb(nb, path)
+    run_main(["juv", "add", str(path), "polars==1", "anywidget"], uv_python="3.13")
+    assert strip_ids(path.read_text()) == snapshot("""\
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "<ID>",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# /// script\\n",
+    "# dependencies = [\\n",
+    "#     \\"anywidget\\",\\n",
+    "#     \\"numpy\\",\\n",
+    "#     \\"polars==1\\",\\n",
+    "# ]\\n",
+    "# requires-python = \\">=3.8\\"\\n",
+    "# ///\\n",
+    "import numpy as np\\n",
+    "print('Hello, numpy!')\\n"
+   ]
+  }
+ ],
+ "metadata": {},
+ "nbformat": 4,
+ "nbformat_minor": 5
+}\
+""")
+
+
+def test_init_creates_notebook_with_inline_meta(tmp_path: pathlib.Path) -> None:
+    path = tmp_path / "empty.ipynb"
+    run_main(["juv", "init", str(path)], uv_python="3.13")
+
+    assert strip_ids(path.read_text()) == snapshot("""\
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "<ID>",
+   "metadata": {
+    "jupyter": {
+     "source_hidden": true
+    }
+   },
+   "outputs": [],
+   "source": [
+    "# /// script\\n",
+    "# requires-python = \\">=3.13\\"\\n",
+    "# dependencies = []\\n",
+    "# ///\\n",
+    "\\n",
+    "\\n"
+   ]
+  }
+ ],
+ "metadata": {},
+ "nbformat": 4,
+ "nbformat_minor": 5
+}\
+""")
+
+
+def test_init_creates_notebook_with_specific_python_version(
+    tmp_path: pathlib.Path,
+) -> None:
+    path = tmp_path / "empty.ipynb"
+    with patch.object(sys, "argv", ["juv", "init", str(path), "--python=3.8"]):
+        juv.main()
+    assert strip_ids(path.read_text()) == snapshot("""\
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "<ID>",
+   "metadata": {
+    "jupyter": {
+     "source_hidden": true
+    }
+   },
+   "outputs": [],
+   "source": [
+    "# /// script\\n",
+    "# requires-python = \\">=3.8\\"\\n",
+    "# dependencies = []\\n",
+    "# ///\\n",
+    "\\n",
+    "\\n"
+   ]
+  }
+ ],
+ "metadata": {},
+ "nbformat": 4,
+ "nbformat_minor": 5
+}\
+""")

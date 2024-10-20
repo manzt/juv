@@ -9,25 +9,29 @@ uvx juv
 # Usage: juv [uvx flags] <COMMAND>[@version] [PATH]
 #
 # Commands:
-#   lab: Launch JupyterLab
-#   notebook: Launch Jupyter Notebook
-#   nbclassic: Launch Jupyter Notebook Classic
+#   init: Initialize a new notebook
+#   add: Add dependencies to the notebook
+#   lab: Launch notebook/script in Jupyter Lab
+#   notebook: Launch notebook/script in Jupyter Notebook
+#   nbclassic: Launch notebook/script in Jupyter Notebook Classic
 #
 # Examples:
-#   uvx juv lab script.py
-#   uvx juv nbclassic script.py
-#   uvx juv notebook existing_notebook.ipynb
-#   uvx juv --python=3.8 notebook@6.4.0 script.ipynb
+#   juv init foo.ipynb
+#   juv add foo.ipynb numpy pandas
+#   juv lab foo.ipynb
+#   juv nbclassic script.py
+#   juv --python=3.8 notebook@6.4.0 foo.ipynb
 ```
 
-`juv` has three main commands:
+`juv` has five main commands:
 
+- `juv init` initializes a new notebook
+- `juv add` adds dependencies to an existing notebook
 - `juv lab` launches a Jupyter Lab session
 - `juv notebook` launches a classic notebook session
 - `juv nbclassic` launches a classic notebook session
 
-These commands accept a single argument: the path to the notebook or script to
-launch. A script will be converted to a notebook before launching.
+A script will be converted to a notebook before launching.
 
 ```sh
 uvx juv lab script.py # creates script.ipynb
