@@ -79,15 +79,26 @@ arr = np.array([1, 2, 3])""")
    "cell_type": "code",
    "execution_count": null,
    "id": "<ID>",
-   "metadata": {},
+   "metadata": {
+    "jupyter": {
+     "source_hidden": true
+    }
+   },
    "outputs": [],
    "source": [
     "# /// script\\n",
     "# dependencies = [\\"numpy\\"]\\n",
     "# requires-python = \\">=3.8\\"\\n",
-    "# ///\\n",
-    "\\n",
-    "\\n",
+    "# ///"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "<ID>",
+   "metadata": {},
+   "outputs": [],
+   "source": [
     "import numpy as np"
    ]
   },
@@ -131,7 +142,11 @@ def test_python_override() -> None:
         pre_args=["--with", "polars", "--python", "3.12"],
         command_version=None,
     ) == snapshot([
-        "uvx", "--from=jupyter-core", "--with=setuptools", "--with=numpy", "nbclassic",
+        "uvx",
+        "--from=jupyter-core",
+        "--with=setuptools",
+        "--with=numpy",
+        "--with=nbclassic",
         "--with",
         "polars",
         "--python",
@@ -150,7 +165,12 @@ def test_run_nbclassic() -> None:
         pre_args=["--with", "polars"],
         command_version=None,
     ) == snapshot([
-        "uvx", "--from=jupyter-core", "--with=setuptools", "--python=3.8", "--with=numpy", "nbclassic",
+        "uvx",
+        "--from=jupyter-core",
+        "--with=setuptools",
+        "--python=3.8",
+        "--with=numpy",
+        "--with=nbclassic",
         "--with",
         "polars",
         "jupyter",
@@ -167,7 +187,13 @@ def test_run_notebook() -> None:
         pre_args=[],
         command_version="6.4.0",
     ) == snapshot([
-        "uvx", "--from=jupyter-core", "--with=setuptools", "--python=3.8", "--with=numpy", "--with=notebook==6.4.0", "jupyter",
+        "uvx",
+        "--from=jupyter-core",
+        "--with=setuptools",
+        "--python=3.8",
+        "--with=numpy",
+        "--with=notebook==6.4.0",
+        "jupyter",
         "notebook",
         "test.ipynb",
     ])
@@ -178,12 +204,16 @@ def test_run_jlab() -> None:
         nb_path=Path("test.ipynb"),
         pep723_meta=Pep723Meta(dependencies=["numpy"], requires_python="3.8"),
         command="lab",
-        pre_args=["--with", "polars"],
+        pre_args=["--with=polars,altair"],
         command_version=None,
     ) == snapshot([
-        "uvx", "--from=jupyter-core", "--with=setuptools", "--python=3.8", "--with=numpy", "jupyterlab",
-        "--with",
-        "polars",
+        "uvx",
+        "--from=jupyter-core",
+        "--with=setuptools",
+        "--python=3.8",
+        "--with=numpy",
+        "--with=jupyterlab",
+        "--with=polars,altair",
         "jupyter",
         "lab",
         "test.ipynb",

@@ -14,6 +14,7 @@ import typing
 
 import rich
 import jupytext
+from nbformat.v4.nbbase import new_code_cell
 
 
 @dataclasses.dataclass
@@ -48,10 +49,25 @@ def parse_pep723_meta(script: str) -> Pep723Meta | None:
         return None
 
 
+def load_script_notebook(fp: pathlib.Path) -> dict:
+    script = fp.read_text()
+    inline_meta = None
+    if meta_block := re.search(REGEX, script):
+        inline_meta = meta_block.group(0)
+        script = script.replace(inline_meta, "")
+    nb = jupytext.reads(script.strip())
+    if inline_meta:
+        nb["cells"].insert(
+            0,
+            new_code_cell(inline_meta, metadata={"jupyter": {"source_hidden": True}}),
+        )
+    return nb
+
+
 def to_notebook(fp: pathlib.Path) -> tuple[Pep723Meta | None, dict]:
     match fp.suffix:
         case ".py":
-            nb = jupytext.read(fp)
+            nb = load_script_notebook(fp)
         case ".ipynb":
             with fp.open() as f:
                 nb = json.load(f)
@@ -98,18 +114,16 @@ def build_command(
 
         cmd.append(f"--with={','.join(pep723_meta.dependencies)}")
 
-    dep = {
+    dependency = {
         "lab": "jupyterlab",
         "notebook": "notebook",
         "nbclassic": "nbclassic",
     }[command]
 
     cmd.append(
-        f"--with={dep}=={command_version}" if command_version else dep,
+        f"--with={dependency}{'==' + command_version if command_version else ''}"
     )
-
-    cmd.extend(pre_args)
-    cmd.extend(["jupyter", command, str(nb_path)])
+    cmd.extend([*pre_args, "jupyter", command, str(nb_path)])
     return cmd
 
 
@@ -185,11 +199,11 @@ def main() -> None:
         print(f"Error: {file} does not exist.", file=sys.stderr)
         sys.exit(1)
 
-    meta, content = to_notebook(file)
+    meta, nb = to_notebook(file)
 
     if file.suffix == ".py":
         file = file.with_suffix(".ipynb")
-        file.write_text(json.dumps(content, indent=2))
+        file.write_text(jupytext.writes(nb, fmt="ipynb"))
 
     run_notebook(file, meta, command, uv_args, command_version)
 
