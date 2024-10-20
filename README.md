@@ -4,28 +4,29 @@ A little wrapper around `uv` to launch ephemeral Jupyter notebooks.
 
 ```sh
 uvx juv
-# juv [uvx flags] <command>[@version] <path>
+# A wrapper around uv to launch ephemeral Jupyter notebooks.
+#
+# Usage: juv [uvx flags] <COMMAND>[@version] [PATH]
 #
 # Commands:
-#   lab       Launch JupyterLab
-#   notebook  Launch Jupyter Notebook (classic)
-#
-# Arguments:
-#   path  Path to the Python script or notebook file
+#   lab: Launch JupyterLab
+#   notebook: Launch Jupyter Notebook
+#   nbclassic: Launch Jupyter Notebook Classic
 #
 # Examples:
 #   uvx juv lab script.py
-#   uvx juv notebook@7.2.2 script.ipynb
+#   uvx juv nbclassic script.py
 #   uvx juv notebook existing_notebook.ipynb
-#   uvx juv --with pandas,matplotlib lab new_notebook.ipynb
+#   uvx juv --python=3.8 notebook@6.4.0 script.ipynb
 ```
 
-`juv` has two main commands:
+`juv` has three main commands:
 
 - `juv lab` launches a Jupyter Lab session
 - `juv notebook` launches a classic notebook session
+- `juv nbclassic` launches a classic notebook session
 
-Both commands accept a single argument: the path to the notebook or script to
+These commands accept a single argument: the path to the notebook or script to
 launch. A script will be converted to a notebook before launching.
 
 ```sh
@@ -57,8 +58,8 @@ functionality).
 ## alternatives
 
 `juv` is opinionated and might not suit your preferences. That's ok! `uv` is
-super extensible, and I recommend reading [the
-documentation](https://docs.astral.sh/uv) to learn about its primitives.
+super extensible, and I recommend reading the wonderful
+[documentation](https://docs.astral.sh/uv) to learn about its primitives.
 
 For example, you can achieve a similar workflow using the `--with-requirements`
 flag:
@@ -67,4 +68,5 @@ flag:
 uvx --with-requirements=requirements.txt --from=jupyter-core --with=jupyterlab jupyter lab notebook.ipynb
 ```
 
-While slightly more verbose, and breaking self-containment, this approach works well.
+While slightly more verbose and breaking self-containment, this approach
+totally works and saves you from installing another dependency.

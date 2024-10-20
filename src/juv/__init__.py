@@ -206,6 +206,11 @@ def main() -> None:
 
 [b]Usage[/b]: juv \[uvx flags] <COMMAND>\[@version] \[PATH]
 
+[b]Commands[/b]:
+  [cyan]lab[/cyan]: Launch JupyterLab
+  [cyan]notebook[/cyan]: Launch Jupyter Notebook
+  [cyan]nbclassic[/cyan]: Launch Jupyter Notebook Classic
+
 [b]Examples[/b]:
   uvx juv lab script.py
   uvx juv nbclassic script.py
