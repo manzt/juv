@@ -15,7 +15,7 @@ import subprocess
 
 import rich
 import jupytext
-from nbformat.v4.nbbase import new_code_cell
+from nbformat.v4.nbbase import new_code_cell, new_notebook
 
 
 @dataclasses.dataclass
@@ -26,8 +26,8 @@ class Pep723Meta:
 
 REGEX = r"(?m)^# /// (?P<type>[a-zA-Z0-9-]+)$\s(?P<content>(^#(| .*)$\s)+)^# ///$"
 
-Command = typing.Literal["lab", "notebook", "nbclassic", "add"]
-COMMANDS = {"lab", "notebook", "nbclassic", "add"}
+Command = typing.Literal["lab", "notebook", "nbclassic", "add", "init"]
+COMMANDS = {"lab", "notebook", "nbclassic", "add", "init"}
 
 
 def parse_pep723_meta(script: str) -> Pep723Meta | None:
@@ -174,7 +174,7 @@ def update_or_add_inline_meta(nb: dict, deps: list[str]) -> None:
             re.search(REGEX, "".join(cell["source"])) is not None
         )
 
-    with tempfile.NamedTemporaryFile(mode="w+", delete=True) as f:
+    with tempfile.NamedTemporaryFile(mode="w+", delete=True, suffix=".py") as f:
         cell = next(
             (cell for cell in nb["cells"] if includes_inline_meta(cell)),
             None,
@@ -188,6 +188,14 @@ def update_or_add_inline_meta(nb: dict, deps: list[str]) -> None:
         subprocess.run(["uv", "add", "--quiet", "--script", f.name, *deps])
         f.seek(0)
         cell["source"] = f.read()
+
+
+def init_notebook(uv_args: list[str]) -> dict:
+    with tempfile.NamedTemporaryFile(mode="w+", suffix=".py", delete=True) as f:
+        subprocess.run(["uv", "init", "--quiet", "--script", f.name, *uv_args])
+        f.seek(0)
+        nb = new_notebook(cells=[nbcell(f.read(), hidden=True)])
+    return nb
 
 
 def is_command(command: typing.Any) -> typing.TypeGuard[Command]:
@@ -206,16 +214,18 @@ def main() -> None:
 [b]Usage[/b]: juv \[uvx flags] <COMMAND>\[@version] \[PATH]
 
 [b]Commands[/b]:
-  [cyan]lab[/cyan]: Launch JupyterLab
-  [cyan]notebook[/cyan]: Launch Jupyter Notebook
-  [cyan]nbclassic[/cyan]: Launch Jupyter Notebook Classic
+  [cyan]init[/cyan]: Initialize a new notebook
   [cyan]add[/cyan]: Add dependencies to the notebook
+  [cyan]lab[/cyan]: Launch notebook/script in Jupyter Lab
+  [cyan]notebook[/cyan]: Launch notebook/script in Jupyter Notebook
+  [cyan]nbclassic[/cyan]: Launch notebook/script in Jupyter Notebook Classic
 
 [b]Examples[/b]:
-  uvx juv lab script.py
+  uvx juv init foo.ipynb
+  uv juv add foo.ipynb numpy pandas
+  uvx juv lab foo.ipynb
   uvx juv nbclassic script.py
-  uvx juv notebook existing_notebook.ipynb
-  uvx juv --python=3.8 notebook@6.4.0 script.ipynb"""
+  uvx juv --python=3.8 notebook@6.4.0 foo.ipynb"""
 
     if "-h" in sys.argv or "--help" in sys.argv:
         rich.print(help)
@@ -230,6 +240,19 @@ def main() -> None:
 
     file = pathlib.Path(file)
 
+    if command == "init":
+        if not file.suffix == ".ipynb":
+            rich.print(
+                "File must have a `[cyan].ipynb[/cyan]` extension.", file=sys.stderr
+            )
+            sys.exit(1)
+        nb = init_notebook(args[2:])
+        write_nb(nb, file)
+        rich.print(
+            f"Initialized notebook at `[cyan]{file.resolve().absolute()}[/cyan]`"
+        )
+        return
+
     if not file.exists():
         print(f"Error: {file} does not exist.", file=sys.stderr)
         sys.exit(1)
@@ -240,7 +263,7 @@ def main() -> None:
         assert len(args) > 2, "Missing dependencies"
         update_or_add_inline_meta(nb, args[2:])
         write_nb(nb, file.with_suffix(".ipynb"))
-        rich.print(f"Updated [cyan]{file.resolve().absolute()}[/cyan]")
+        rich.print(f"Updated `[cyan]{file.resolve().absolute()}[/cyan]`")
         return
 
     if file.suffix == ".py":
