@@ -201,7 +201,8 @@ def test_run_notebook() -> None:
         [
             "uvx",
             "--from=jupyter-core",
-            "--with=setuptools", "--with=notebook==6.4.0",
+            "--with=setuptools",
+            "--with=notebook==6.4.0",
             "jupyter",
             "notebook",
             "test.ipynb",

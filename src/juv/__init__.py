@@ -207,6 +207,18 @@ def write_nb(nb: dict, file: pathlib.Path) -> None:
     file.write_text(jupytext.writes(nb, fmt="ipynb"))
 
 
+def get_untitled() -> pathlib.Path:
+    if not pathlib.Path("Untitled.ipynb").exists():
+        return pathlib.Path("Untitled.ipynb")
+
+    for i in range(1, 100):
+        file = pathlib.Path(f"Untitled{i}.ipynb")
+        if not file.exists():
+            return file
+
+    raise ValueError("Could not find an available UntitledX.ipynb")
+
+
 def main() -> None:
     uv_args, args, command_version = split_args()
 
@@ -236,7 +248,7 @@ def main() -> None:
     file = args[1] if len(args) > 1 else None
 
     if command == "init":
-        file = pathlib.Path(file if file else "Untitled.ipynb")
+        file = pathlib.Path(file if file else get_untitled())
         if not file.suffix == ".ipynb":
             rich.print(
                 "File must have a `[cyan].ipynb[/cyan]` extension.", file=sys.stderr
@@ -257,7 +269,7 @@ def main() -> None:
 
     if not file.exists():
         rich.print(
-            f"Error: `[cyan]{file.resolve().absolute}[/cyan]` does not exist.",
+            f"Error: `[cyan]{file.resolve().absolute()}[/cyan]` does not exist.",
             file=sys.stderr,
         )
         sys.exit(1)
