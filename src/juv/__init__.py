@@ -120,7 +120,8 @@ def build_command(
         ):
             cmd.append(f"--python={pep723_meta.requires_python}")
 
-        cmd.append(f"--with={','.join(pep723_meta.dependencies)}")
+        if len(pep723_meta.dependencies) > 0:
+            cmd.append(f"--with={','.join(pep723_meta.dependencies)}")
 
     dependency = {
         "lab": "jupyterlab",
@@ -221,11 +222,11 @@ def main() -> None:
   [cyan]nbclassic[/cyan]: Launch notebook/script in Jupyter Notebook Classic
 
 [b]Examples[/b]:
-  uvx juv init foo.ipynb
-  uv juv add foo.ipynb numpy pandas
-  uvx juv lab foo.ipynb
-  uvx juv nbclassic script.py
-  uvx juv --python=3.8 notebook@6.4.0 foo.ipynb"""
+  juv init foo.ipynb
+  juv add foo.ipynb numpy pandas
+  juv lab foo.ipynb
+  juv nbclassic script.py
+  juv --python=3.8 notebook@6.4.0 foo.ipynb"""
 
     if "-h" in sys.argv or "--help" in sys.argv:
         rich.print(help)
@@ -234,13 +235,8 @@ def main() -> None:
     command = args[0] if args else None
     file = args[1] if len(args) > 1 else None
 
-    if not is_command(command) or not file:
-        rich.print(help)
-        sys.exit(1)
-
-    file = pathlib.Path(file)
-
     if command == "init":
+        file = pathlib.Path(file if file else "Untitled.ipynb")
         if not file.suffix == ".ipynb":
             rich.print(
                 "File must have a `[cyan].ipynb[/cyan]` extension.", file=sys.stderr
@@ -253,8 +249,17 @@ def main() -> None:
         )
         return
 
+    if not is_command(command) or not file:
+        rich.print(help)
+        sys.exit(1)
+
+    file = pathlib.Path(file)
+
     if not file.exists():
-        print(f"Error: {file} does not exist.", file=sys.stderr)
+        rich.print(
+            f"Error: `[cyan]{file.resolve().absolute}[/cyan]` does not exist.",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     meta, nb = to_notebook(file)
@@ -269,6 +274,9 @@ def main() -> None:
     if file.suffix == ".py":
         file = file.with_suffix(".ipynb")
         write_nb(nb, file)
+        rich.print(
+            f"Converted script to notebook `[cyan]{file.resolve().absolute()}[/cyan]`"
+        )
 
     run_notebook(file, meta, command, uv_args, command_version)
 

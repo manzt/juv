@@ -193,7 +193,7 @@ def test_run_nbclassic() -> None:
 def test_run_notebook() -> None:
     assert juv.build_command(
         nb_path=Path("test.ipynb"),
-        pep723_meta=Pep723Meta(dependencies=["numpy"], requires_python="3.8"),
+        pep723_meta=Pep723Meta(dependencies=[], requires_python=None),
         command="notebook",
         pre_args=[],
         command_version="6.4.0",
@@ -201,10 +201,7 @@ def test_run_notebook() -> None:
         [
             "uvx",
             "--from=jupyter-core",
-            "--with=setuptools",
-            "--python=3.8",
-            "--with=numpy",
-            "--with=notebook==6.4.0",
+            "--with=setuptools", "--with=notebook==6.4.0",
             "jupyter",
             "notebook",
             "test.ipynb",
