@@ -87,16 +87,16 @@ def build_command(
     pre_args: list[str],
     command_version: str | None,
 ) -> list[str]:
-    cmd = ["uvx", "--from", "jupyter-core", "--with", "setuptools"]
+    cmd = ["uvx", "--from=jupyter-core", "--with=setuptools"]
 
     if pep723_meta:
+        # only add --python if not specified by user and present in meta
         if pep723_meta.requires_python and not any(
             x.startswith("--python") for x in pre_args
         ):
-            cmd.extend(["--python", pep723_meta.requires_python])
+            cmd.append(f"--python={pep723_meta.requires_python}")
 
-        for dep in pep723_meta.dependencies:
-            cmd.extend(["--with", dep])
+        cmd.append(f"--with={','.join(pep723_meta.dependencies)}")
 
     dep = {
         "lab": "jupyterlab",
@@ -104,13 +104,11 @@ def build_command(
         "nbclassic": "nbclassic",
     }[command]
 
-    cmd.extend([
-        "--with",
-        f"{dep}=={command_version}" if command_version else dep,
-    ])
+    cmd.append(
+        f"--with={dep}=={command_version}" if command_version else dep,
+    )
 
     cmd.extend(pre_args)
-
     cmd.extend(["jupyter", command, str(nb_path)])
     return cmd
 
