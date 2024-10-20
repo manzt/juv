@@ -70,9 +70,10 @@ arr = np.array([1, 2, 3])""")
     output = jupytext.writes(nb, fmt="ipynb")
     output = re.sub(r'"id": "[a-zA-Z0-9-]+"', '"id": "<ID>"', output)
 
-    assert (meta, output) == snapshot((
-        Pep723Meta(dependencies=["numpy"], requires_python=">=3.8"),
-        """\
+    assert (meta, output) == snapshot(
+        (
+            Pep723Meta(dependencies=["numpy"], requires_python=">=3.8"),
+            """\
 {
  "cells": [
   {
@@ -125,7 +126,8 @@ arr = np.array([1, 2, 3])""")
  "nbformat_minor": 5
 }\
 """,
-    ))
+        )
+    )
 
 
 def test_assert_uv_available() -> None:
@@ -141,20 +143,22 @@ def test_python_override() -> None:
         command="nbclassic",
         pre_args=["--with", "polars", "--python", "3.12"],
         command_version=None,
-    ) == snapshot([
-        "uvx",
-        "--from=jupyter-core",
-        "--with=setuptools",
-        "--with=numpy",
-        "--with=nbclassic",
-        "--with",
-        "polars",
-        "--python",
-        "3.12",
-        "jupyter",
-        "nbclassic",
-        "test.ipynb",
-    ])
+    ) == snapshot(
+        [
+            "uvx",
+            "--from=jupyter-core",
+            "--with=setuptools",
+            "--with=numpy",
+            "--with=nbclassic",
+            "--with",
+            "polars",
+            "--python",
+            "3.12",
+            "jupyter",
+            "nbclassic",
+            "test.ipynb",
+        ]
+    )
 
 
 def test_run_nbclassic() -> None:
@@ -164,19 +168,21 @@ def test_run_nbclassic() -> None:
         command="nbclassic",
         pre_args=["--with", "polars"],
         command_version=None,
-    ) == snapshot([
-        "uvx",
-        "--from=jupyter-core",
-        "--with=setuptools",
-        "--python=3.8",
-        "--with=numpy",
-        "--with=nbclassic",
-        "--with",
-        "polars",
-        "jupyter",
-        "nbclassic",
-        "test.ipynb",
-    ])
+    ) == snapshot(
+        [
+            "uvx",
+            "--from=jupyter-core",
+            "--with=setuptools",
+            "--python=3.8",
+            "--with=numpy",
+            "--with=nbclassic",
+            "--with",
+            "polars",
+            "jupyter",
+            "nbclassic",
+            "test.ipynb",
+        ]
+    )
 
 
 def test_run_notebook() -> None:
@@ -186,17 +192,19 @@ def test_run_notebook() -> None:
         command="notebook",
         pre_args=[],
         command_version="6.4.0",
-    ) == snapshot([
-        "uvx",
-        "--from=jupyter-core",
-        "--with=setuptools",
-        "--python=3.8",
-        "--with=numpy",
-        "--with=notebook==6.4.0",
-        "jupyter",
-        "notebook",
-        "test.ipynb",
-    ])
+    ) == snapshot(
+        [
+            "uvx",
+            "--from=jupyter-core",
+            "--with=setuptools",
+            "--python=3.8",
+            "--with=numpy",
+            "--with=notebook==6.4.0",
+            "jupyter",
+            "notebook",
+            "test.ipynb",
+        ]
+    )
 
 
 def test_run_jlab() -> None:
@@ -206,18 +214,20 @@ def test_run_jlab() -> None:
         command="lab",
         pre_args=["--with=polars,altair"],
         command_version=None,
-    ) == snapshot([
-        "uvx",
-        "--from=jupyter-core",
-        "--with=setuptools",
-        "--python=3.8",
-        "--with=numpy",
-        "--with=jupyterlab",
-        "--with=polars,altair",
-        "jupyter",
-        "lab",
-        "test.ipynb",
-    ])
+    ) == snapshot(
+        [
+            "uvx",
+            "--from=jupyter-core",
+            "--with=setuptools",
+            "--python=3.8",
+            "--with=numpy",
+            "--with=jupyterlab",
+            "--with=polars,altair",
+            "jupyter",
+            "lab",
+            "test.ipynb",
+        ]
+    )
 
 
 def test_split_args_no_pre_args() -> None:
@@ -229,18 +239,22 @@ def test_split_args_no_pre_args() -> None:
 def test_split_args_with_command_version() -> None:
     args = ["juv", "notebook@6.4.0", "notebook.ipynb"]
     with patch.object(sys, "argv", args):
-        assert juv.split_args() == snapshot((
-            [],
-            ["notebook", "notebook.ipynb"],
-            "6.4.0",
-        ))
+        assert juv.split_args() == snapshot(
+            (
+                [],
+                ["notebook", "notebook.ipynb"],
+                "6.4.0",
+            )
+        )
 
 
 def test_split_args_with_pre_args() -> None:
     args = ["juv", "--with", "polars", "lab", "script.py"]
     with patch.object(sys, "argv", args):
-        assert juv.split_args() == snapshot((
-            ["--with", "polars"],
-            ["lab", "script.py"],
-            None,
-        ))
+        assert juv.split_args() == snapshot(
+            (
+                ["--with", "polars"],
+                ["lab", "script.py"],
+                None,
+            )
+        )

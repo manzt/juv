@@ -74,18 +74,14 @@ def to_notebook(fp: pathlib.Path) -> tuple[Pep723Meta | None, dict]:
         case _:
             raise ValueError(f"Unsupported file extension: {fp.suffix}")
 
-    cells = nb.get("cells", [])
     meta = next(
         (
-            parse_pep723_meta(
-                "".join(cell["source"])
-                if isinstance(cell["source"], list)
-                else cell["source"]
-            )
-            for cell in filter(lambda c: c["cell_type"] == "code", cells)
+            parse_pep723_meta("".join(cell["source"]))
+            for cell in filter(lambda c: c["cell_type"] == "code", nb.get("cells", []))
         ),
         None,
     )
+
     return meta, nb
 
 
