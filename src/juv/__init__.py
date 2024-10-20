@@ -97,7 +97,12 @@ def to_notebook(fp: pathlib.Path) -> tuple[Pep723Meta | None, str]:
             content = fp.read_text()
             for cell in json.loads(content).get("cells", []):
                 if cell.get("cell_type") == "code":
-                    meta = parse_pep723_meta(cell["source"])
+                    source = (
+                        isinstance(cell["source"], list)
+                        and "".join(cell["source"])
+                        or cell["source"]
+                    )
+                    meta = parse_pep723_meta(source)
                     return meta, content
 
             return None, content
