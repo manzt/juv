@@ -242,7 +242,9 @@ def version() -> None:
 @cli.command()
 def info():
     """Display juv and uv versions."""
-    version()
+    import importlib.metadata
+
+    print(f"juv {importlib.metadata.version('juv')}")
     uv_version = subprocess.run(["uv", "version"], capture_output=True, text=True)
     print(uv_version.stdout)
 
@@ -290,7 +292,6 @@ def add(file: str, requirements: str | None, packages: tuple[str, ...]) -> None:
 @click.option(
     "--notebook",
     "-n",
-    type=click.STRING,
     required=False,
     help="The notebook runner the run environment. [env: JUV_NOTEBOOK=]",
 )
@@ -305,7 +306,6 @@ def run(
     """Launch a notebook or script."""
     runtime = parse_notebook_specifier(notebook)
     path = Path(file)
-
     meta, nb = to_notebook(path)
 
     if path.suffix == ".py":
@@ -317,7 +317,9 @@ def run(
 
     meta = Pep723Meta.from_toml(meta) if meta else None
 
-    uv_flags = list(with_args)
+    uv_flags = []
+    for arg in with_args:
+        uv_flags.extend(["--with", arg])
     if python:
         uv_flags.extend(["--python", python])
 
