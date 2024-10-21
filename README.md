@@ -4,36 +4,53 @@ A little wrapper around `uv` to launch ephemeral Jupyter notebooks.
 
 ```sh
 uvx juv
-# A wrapper around uv to launch ephemeral Jupyter notebooks.
+# Usage: juv [OPTIONS] COMMAND [ARGS]...
 #
-# Usage: juv [uvx flags] <COMMAND>[@version] [PATH]
+#   A wrapper around uv to launch ephemeral Jupyter notebooks.
+#
+# Options:
+#   --help  Show this message and exit.
 #
 # Commands:
-#   init: Initialize a new notebook
-#   add: Add dependencies to the notebook
-#   lab: Launch notebook/script in Jupyter Lab
-#   notebook: Launch notebook/script in Jupyter Notebook
-#   nbclassic: Launch notebook/script in Jupyter Notebook Classic
-#   version: Display juv's version
-#   info: Display juv and uv versions
-#
-# Examples:
-#   juv init foo.ipynb
-#   juv add foo.ipynb numpy pandas
-#   juv lab foo.ipynb
-#   juv nbclassic script.py
-#   juv --python=3.8 notebook@6.4.0 foo.ipynb
+#   add      Add dependencies to the notebook.
+#   info     Display juv and uv versions.
+#   init     Initialize a new notebook.
+#   run      Launch a notebook or script.
+#   version  Display juv's version.
 ```
 
-Scripts will be converted to notebooks before launching the Jupyter session.
+## usage
+
+**juv** should feel familar for `uv` users. The goal is to extend its
+dependencies management to Jupyter notebooks.
 
 ```sh
-uvx juv lab script.py # creates script.ipynb
+# create a notebook
+juv init notebook.ipynb
+juv init --python=3.9 notebook.ipynb # specify a minimum Python version
+
+# add dependencies to the notebook
+juv add notebook.ipynb pandas numpy
+juv add notebook.ipynb --requirements=requirements.txt
+
+# launch the notebook
+juv run notebook.ipynb
+juv run --with=polars notebook.ipynb # additional dependencies for this session (not saved)
+juv run --jupyter=notebook@6.4.0 notebook.ipynb # pick a specific Jupyter frontend
+
+# JUV_JUPYTER env var to set preferred Jupyter frontend (default: lab)
+export JUV_JUPYTER=nbclassic
+juv run notebook.ipynb
 ```
 
-Any flags that are passed prior to the command (e.g., `uvx juv --with=polars
-lab`) will be forwarded to `uvx` as-is. This allows you to specify additional
-dependencies, a different interpreter, etc.
+If a script is provided to `run`, it will be converted to a notebook before
+launching the Jupyter session.
+
+```sh
+uvx juv run script.py
+# Converted script to notebook `script.ipynb`
+# Launching Jupyter session...
+```
 
 ## what
 
