@@ -6,6 +6,7 @@ readme = "README.md"
 authors = [{ name = "Trevor Manz", email = "trevor.j.manz@gmail.com" }]
 requires-python = ">=3.10"
 dependencies = [
+    "click>=8.1.7",
     "jupytext>=1.16.4",
     "rich>=13.9.2",
 ]
