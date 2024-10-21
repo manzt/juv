@@ -248,7 +248,8 @@ def parse_args(args: list[str]) -> Command:
   [cyan]lab[/cyan]: Launch notebook/script in Jupyter Lab
   [cyan]notebook[/cyan]: Launch notebook/script in Jupyter Notebook
   [cyan]nbclassic[/cyan]: Launch notebook/script in Jupyter Notebook Classic
-  [cyan]version[/cyan]: Print version
+  [cyan]version[/cyan]: Display juv's version
+  [cyan]info[/cyan]: Display juv and uv versions
 
 [b]Examples[/b]:
   juv init foo.ipynb

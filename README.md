@@ -14,6 +14,8 @@ uvx juv
 #   lab: Launch notebook/script in Jupyter Lab
 #   notebook: Launch notebook/script in Jupyter Notebook
 #   nbclassic: Launch notebook/script in Jupyter Notebook Classic
+#   version: Display juv's version
+#   info: Display juv and uv versions
 #
 # Examples:
 #   juv init foo.ipynb
