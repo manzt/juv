@@ -17,7 +17,7 @@ import rich
 import jupytext
 from nbformat.v4.nbbase import new_code_cell, new_notebook
 
-from ._sources import resolve_source, RemoteSource, LocalSource
+from ._sources import resolve_source, RemoteSource, LocalSource, StdinSource
 from ._commands import Command, Version, Init, Add, Info, Lab, Notebook, NbClassic
 
 
@@ -246,16 +246,22 @@ def parse_args(args: list[str]) -> Command:
             return Init(path, argv[1:])
         case ("init", LocalSource(file)):
             return Init(file, argv[1:])
-        case ("init", RemoteSource(_)):
+        case ("init", RemoteSource(_) | StdinSource()):
             raise ValueError("Remote sources are not supported for init command")
         case ("add", LocalSource(file)):
             return Add(file, argv[1:])
-        case ("add", RemoteSource(_)):
+        case ("add", RemoteSource(_) | StdinSource()):
             raise ValueError("Remote sources are not supported for add command")
 
     match source:
         case LocalSource(file):
             path = file
+        case StdinSource():
+            with tempfile.NamedTemporaryFile(
+                dir=get_juv_temp_dir(), delete=False, suffix=".ipynb", prefix="juv_"
+            ) as f:
+                path = Path(f.name)
+                path.write_text(sys.stdin.read())
         case RemoteSource(href):
             import urllib.request
 
@@ -270,7 +276,6 @@ def parse_args(args: list[str]) -> Command:
                     write_nb(nb, path)
                 else:
                     path.write_bytes(content)
-
         case _:
             raise ValueError("Must provide a local or remote source")
 

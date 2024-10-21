@@ -4,9 +4,6 @@ from dataclasses import dataclass
 from pathlib import Path
 import typing
 import re
-import tempfile
-import urllib.request
-import urllib.error
 
 
 @dataclass
@@ -34,16 +31,23 @@ class RemoteSource:
 
 
 @dataclass
+class StdinSource: ...
+
+
+@dataclass
 class LocalSource:
     path: Path
 
 
-def resolve_source(src: str) -> RemoteSource | LocalSource | None:
+def resolve_source(src: str) -> RemoteSource | LocalSource | StdinSource | None:
     if src.startswith("http://") or src.startswith("https://"):
         return RemoteSource(src)
 
     if gh := GithubAsset.try_from(src):
         return RemoteSource(gh.url())
+
+    if src == "-":
+        return StdinSource()
 
     path = Path(src)
     if path.exists():
