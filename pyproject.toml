@@ -1,6 +1,6 @@
 [project]
 name = "juv"
-version = "0.1.2"
+version = "0.1.3"
 description = "A little wrapper around `uv` to launch ephemeral Jupyter notebooks."
 readme = "README.md"
 authors = [{ name = "Trevor Manz", email = "trevor.j.manz@gmail.com" }]
