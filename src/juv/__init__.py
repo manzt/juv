@@ -26,6 +26,14 @@ class Pep723Meta:
 
 
 @dataclasses.dataclass
+class Version: ...
+
+
+@dataclasses.dataclass
+class Info: ...
+
+
+@dataclasses.dataclass
 class Init:
     file: Path | None = None
     extra: list[str] = dataclasses.field(default_factory=list)
@@ -60,11 +68,7 @@ class NbClassic:
     kind: typing.ClassVar[typing.Literal["nbclassic"]] = "nbclassic"
 
 
-@dataclasses.dataclass
-class Version: ...
-
-
-Command = Init | Add | Lab | Notebook | NbClassic | Version
+Command = Init | Add | Lab | Notebook | NbClassic | Version | Info
 
 
 REGEX = r"(?m)^# /// (?P<type>[a-zA-Z0-9-]+)$\s(?P<content>(^#(| .*)$\s)+)^# ///$"
@@ -257,6 +261,9 @@ def parse_args(args: list[str]) -> Command:
         rich.print(help)
         sys.exit(0)
 
+    if "--version" in args:
+        return Version()
+
     command, *argv = args
 
     match command.split("@"):
@@ -266,6 +273,8 @@ def parse_args(args: list[str]) -> Command:
             return Add(file=Path(argv[0]), packages=argv[1:])
         case ["version"]:
             return Version()
+        case ["info"]:
+            return Info()
         case ["lab"]:
             return Lab(file=Path(argv[0]))
         case ["lab", version]:
@@ -281,6 +290,18 @@ def parse_args(args: list[str]) -> Command:
         case _:
             rich.print(help)
             sys.exit(1)
+
+
+def run_version():
+    import importlib.metadata
+
+    print(f"juv {importlib.metadata.version('juv')}")
+
+
+def run_info():
+    run_version()
+    uv_version = subprocess.run(["uv", "version"], capture_output=True, text=True)
+    print(uv_version.stdout)
 
 
 def run_init(file: Path | None, extra: list[str]):
@@ -331,12 +352,6 @@ def run_notebook(command: Lab | Notebook | NbClassic, uv_args: list[str]):
         sys.exit(1)
 
 
-def run_version():
-    import importlib.metadata
-
-    print(f"juv {importlib.metadata.version('juv')}")
-
-
 def split_args(argv: list[str]) -> tuple[list[str], list[str]]:
     kinds = [Lab.kind, Notebook.kind, NbClassic.kind, Init.kind, Add.kind]
     for i, arg in enumerate(argv[1:], start=1):
@@ -351,6 +366,8 @@ def main():
     match parse_args(args):
         case Version():
             run_version()
+        case Info():
+            run_info()
         case Init(file, extra):
             run_init(file, extra)
         case Add(file, packages):
