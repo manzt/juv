@@ -195,7 +195,7 @@ def test_run_nbclassic() -> None:
 
 def test_run_notebook() -> None:
     assert juv.create_uv_run_command(
-        command=juv.Notebook(file=Path("test.ipynb"), version="6.4.0"),
+        command=juv.Runtime(file=Path("test.ipynb"), version="6.4.0"),
         pep723_meta=Pep723Meta(dependencies=[], requires_python=None),
         pre_args=[],
     ) == snapshot(

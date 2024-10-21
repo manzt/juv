@@ -191,6 +191,7 @@ name = "juv"
 version = "0.1.5"
 source = { editable = "." }
 dependencies = [
+    { name = "click" },
     { name = "jupytext" },
     { name = "rich" },
 ]
@@ -204,6 +205,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "click", specifier = ">=8.1.7" },
     { name = "jupytext", specifier = ">=1.16.4" },
     { name = "rich", specifier = ">=13.9.2" },
 ]
