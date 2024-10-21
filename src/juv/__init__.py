@@ -149,7 +149,7 @@ def create_uv_run_command(
 
 def update_or_add_inline_meta(
     nb: dict,
-    deps: list[str],
+    deps: typing.Sequence[str],
     dir: pathlib.Path,
     uv_flags: typing.Sequence[str],
 ) -> None:
@@ -188,7 +188,8 @@ def init_notebook(uv_args: list[str], dir: pathlib.Path) -> dict:
     ) as f:
         subprocess.run(["uv", "init", "--quiet", "--script", f.name, *uv_args])
         f.seek(0)
-        nb = new_notebook(cells=[nbcell(f.read().strip(), hidden=True)])
+        contents = f.read().strip()
+        nb = new_notebook(cells=[nbcell(contents, hidden=True)])
     return nb
 
 
@@ -226,19 +227,6 @@ def parse_notebook_specifier(value: str | None) -> Runtime:
     return Runtime(kind, None)
 
 
-def extract_positional_args(args: typing.Sequence[str]) -> tuple[list[str], list[str]]:
-    positional_args = []
-    flags = []
-
-    for arg in args:
-        if arg.startswith("-"):
-            flags.append(arg)
-        else:
-            positional_args.append(arg)
-
-    return positional_args, flags
-
-
 @click.group()
 def cli(): ...
 
@@ -259,36 +247,46 @@ def info():
     print(uv_version.stdout)
 
 
-@cli.command(context_settings=dict(ignore_unknown_options=True))
-@click.argument("args", nargs=-1)
-def init(args: tuple[str, ...]) -> None:
+@cli.command()
+@click.argument("file", type=click.Path(exists=False), required=False)
+@click.option("--python", type=click.STRING, required=False)
+def init(
+    file: str,
+    python: str | None,
+) -> None:
     """Initialize a new notebook."""
-    positional_args, uv_flags = extract_positional_args(list(args))
-    path = Path(positional_args[0]) if positional_args else None
+    path = Path(file) if file else None
     if not path:
         path = get_untitled()
     if not path.suffix == ".ipynb":
         rich.print("File must have a `[cyan].ipynb[/cyan]` extension.", file=sys.stderr)
         sys.exit(1)
-    nb = init_notebook(uv_flags, path.parent)
+    uv_args = []
+    if python:
+        uv_args.extend(["--python", python])
+    nb = init_notebook(uv_args, path.parent)
     write_nb(nb, path)
     rich.print(f"Initialized notebook at `[cyan]{path.resolve().absolute()}[/cyan]`")
 
 
 @cli.command(context_settings=dict(ignore_unknown_options=True))
-@click.argument("args", nargs=-1)
-def add(args: tuple[str, ...]) -> None:
+@click.argument("file", type=click.Path(exists=True), required=True)
+@click.option("--requirements", "-r", type=click.Path(exists=True), required=False)
+@click.argument("packages", nargs=-1)
+def add(file: str, requirements: str | None, packages: tuple[str, ...]) -> None:
     """Add dependencies to the notebook."""
-    positional_args, uv_flags = extract_positional_args(list(args))
-    file, *packages = positional_args
     path = Path(file)
     _, nb = to_notebook(path)
-    update_or_add_inline_meta(nb, packages, path.parent, uv_flags)
+    uv_args = []
+    if requirements:
+        uv_args.extend(["--requirements", requirements])
+    update_or_add_inline_meta(nb, packages, path.parent, uv_args)
     write_nb(nb, path.with_suffix(".ipynb"))
     rich.print(f"Updated `[cyan]{path.resolve().absolute()}[/cyan]`")
 
 
 @cli.command(context_settings=dict(ignore_unknown_options=True))
+@click.argument("file", type=click.Path(exists=True), required=True)
 @click.option(
     "--notebook",
     "-n",
@@ -296,16 +294,17 @@ def add(args: tuple[str, ...]) -> None:
     required=False,
     help="The notebook runner the run environment. [env: JUV_NOTEBOOK=]",
 )
-@click.argument("args", nargs=-1)
-def run(notebook: str | None, args: tuple[str, ...]) -> None:
+@click.option("--with", "with_args", type=click.STRING, multiple=True)
+@click.option("--python", type=click.STRING, required=False)
+def run(
+    file: str,
+    notebook: str | None,
+    with_args: tuple[str, ...],
+    python: str | None,
+) -> None:
     """Launch a notebook or script."""
     runtime = parse_notebook_specifier(notebook)
-    positional_args, uv_flags = extract_positional_args(list(args))
-    path = Path(positional_args[0]) if positional_args else None
-
-    if not path or not path.exists():
-        rich.print("No file specified.", file=sys.stderr)
-        sys.exit(1)
+    path = Path(file)
 
     meta, nb = to_notebook(path)
 
@@ -317,6 +316,10 @@ def run(notebook: str | None, args: tuple[str, ...]) -> None:
         )
 
     meta = Pep723Meta.from_toml(meta) if meta else None
+
+    uv_flags = list(with_args)
+    if python:
+        uv_flags.extend(["--python", python])
 
     cmd = create_uv_run_command(path, runtime, meta, uv_flags)
     try:
