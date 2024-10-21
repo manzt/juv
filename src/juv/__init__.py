@@ -25,6 +25,14 @@ class Pep723Meta:
     dependencies: list[str]
     requires_python: str | None
 
+    @classmethod
+    def from_toml(cls, s: str) -> Pep723Meta:
+        meta = tomllib.loads(s)
+        return cls(
+            dependencies=meta.get("dependencies", []),
+            requires_python=meta.get("requires_python", None),
+        )
+
 
 @dataclasses.dataclass
 class Runtime:
@@ -37,7 +45,7 @@ RuntimeKind = typing.Literal["notebook", "lab", "nbclassic"]
 REGEX = r"(?m)^# /// (?P<type>[a-zA-Z0-9-]+)$\s(?P<content>(^#(| .*)$\s)+)^# ///$"
 
 
-def parse_inline_script_metadata(script: str) -> Pep723Meta | None:
+def parse_inline_script_metadata(script: str) -> str | None:
     name = "script"
     matches = list(
         filter(lambda m: m.group("type") == name, re.finditer(REGEX, script))
@@ -49,11 +57,7 @@ def parse_inline_script_metadata(script: str) -> Pep723Meta | None:
             line[2:] if line.startswith("# ") else line[1:]
             for line in matches[0].group("content").splitlines(keepends=True)
         )
-        meta = tomllib.loads(content)
-        return Pep723Meta(
-            dependencies=meta.get("dependencies", []),
-            requires_python=meta.get("requires-python"),
-        )
+        return content
     else:
         return None
 
@@ -80,7 +84,7 @@ def load_script_notebook(fp: pathlib.Path) -> dict:
     return nb
 
 
-def to_notebook(fp: pathlib.Path) -> tuple[Pep723Meta | None, dict]:
+def to_notebook(fp: pathlib.Path) -> tuple[str | None, dict]:
     match fp.suffix:
         case ".py":
             nb = load_script_notebook(fp)
@@ -166,11 +170,11 @@ def update_or_add_inline_meta(
             nb["cells"].insert(0, nbcell("", hidden=True))
             cell = nb["cells"][0]
 
-        f.write(cell["source"])
+        f.write(cell["source"].strip())
         f.flush()
         subprocess.run(["uv", "add", "--quiet", *uv_flags, "--script", f.name, *deps])
         f.seek(0)
-        cell["source"] = f.read()
+        cell["source"] = f.read().strip()
 
 
 def init_notebook(uv_args: list[str], dir: pathlib.Path) -> dict:
@@ -182,7 +186,7 @@ def init_notebook(uv_args: list[str], dir: pathlib.Path) -> dict:
     ) as f:
         subprocess.run(["uv", "init", "--quiet", "--script", f.name, *uv_args])
         f.seek(0)
-        nb = new_notebook(cells=[nbcell(f.read(), hidden=True)])
+        nb = new_notebook(cells=[nbcell(f.read().strip(), hidden=True)])
     return nb
 
 
@@ -309,6 +313,8 @@ def run(notebook: str | None, args: tuple[str, ...]) -> None:
         rich.print(
             f"Converted script to notebook `[cyan]{path.resolve().absolute()}[/cyan]`"
         )
+
+    meta = Pep723Meta.from_toml(meta) if meta else None
 
     cmd = create_uv_run_command(path, runtime, meta, uv_flags)
     try:
