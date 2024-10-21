@@ -48,27 +48,16 @@ class Add:
 
 
 @dataclasses.dataclass
-class Lab:
+class Run:
     file: Path
-    version: str | None = None
-    kind: typing.ClassVar[typing.Literal["lab"]] = "lab"
+    notebook: typing.Literal["lab", "notebook", "nbclassic"]
+    version: str | None
+    kind: typing.ClassVar[typing.Literal["run"]] = "run"
 
 
-@dataclasses.dataclass
-class Notebook:
-    file: Path
-    version: str | None = None
-    kind: typing.ClassVar[typing.Literal["notebook"]] = "notebook"
+NOTEBOOKS = {"lab", "notebook", "nbclassic"}
 
-
-@dataclasses.dataclass
-class NbClassic:
-    file: Path
-    version: str | None = None
-    kind: typing.ClassVar[typing.Literal["nbclassic"]] = "nbclassic"
-
-
-Command = Init | Add | Lab | Notebook | NbClassic | Version | Info
+Command = Init | Add | Version | Info | Run
 
 
 REGEX = r"(?m)^# /// (?P<type>[a-zA-Z0-9-]+)$\s(?P<content>(^#(| .*)$\s)+)^# ///$"
@@ -149,7 +138,7 @@ def assert_uv_available():
 
 
 def create_uv_run_command(
-    command: Lab | Notebook | NbClassic,
+    cli: Run,
     pep723_meta: Pep723Meta | None,
     pre_args: list[str],
 ) -> list[str]:
@@ -165,15 +154,15 @@ def create_uv_run_command(
         if len(pep723_meta.dependencies) > 0:
             cmd.append(f"--with={','.join(pep723_meta.dependencies)}")
 
-    match command:
-        case Lab(_, version):
-            cmd.append(f"--with=jupyterlab{'==' + version if version else ''}")
-        case Notebook(_, version):
-            cmd.append(f"--with=notebook{'==' + version if version else ''}")
-        case NbClassic(_, version):
-            cmd.append(f"--with=nbclassic{'==' + version if version else ''}")
+    match cli.notebook:
+        case "lab":
+            cmd.append(f"--with=jupyterlab{'==' + cli.version if cli.version else ''}")
+        case "notebook":
+            cmd.append(f"--with=notebook{'==' + cli.version if cli.version else ''}")
+        case "nbclassic":
+            cmd.append(f"--with=nbclassic{'==' + cli.version if cli.version else ''}")
 
-    cmd.extend([*pre_args, "jupyter", command.kind, str(command.file)])
+    cmd.extend([*pre_args, "jupyter", cli.notebook, str(cli.file)])
     return cmd
 
 
@@ -205,7 +194,7 @@ def update_or_add_inline_meta(
         f.flush()
         subprocess.run(["uv", "add", "--quiet", "--script", f.name, *deps])
         f.seek(0)
-        cell["source"] = f.read()
+        cell["source"] = f.read().strip()
 
 
 def init_notebook(uv_args: list[str], dir: pathlib.Path) -> dict:
@@ -217,7 +206,7 @@ def init_notebook(uv_args: list[str], dir: pathlib.Path) -> dict:
     ) as f:
         subprocess.run(["uv", "init", "--quiet", "--script", f.name, *uv_args])
         f.seek(0)
-        nb = new_notebook(cells=[nbcell(f.read(), hidden=True)])
+        nb = new_notebook(cells=[nbcell(f.read().strip(), hidden=True)])
     return nb
 
 
@@ -235,6 +224,22 @@ def get_untitled() -> pathlib.Path:
             return file
 
     raise ValueError("Could not find an available UntitledX.ipynb")
+
+
+def is_notebook(
+    cmd: str,
+) -> typing.TypeGuard[typing.Literal["lab", "notebook", "nbclassic"]]:
+    return cmd in NOTEBOOKS
+
+
+def get_flag(args: list[str], flag: str) -> str | None:
+    # could be --python=3.8 or --python 3.8
+    for i, arg in enumerate(args):
+        if arg == flag:
+            return args[i + 1]
+        if arg.startswith(flag):
+            return arg[len(flag) + 1 :]
+    return None
 
 
 def parse_args(args: list[str]) -> Command:
@@ -267,30 +272,29 @@ def parse_args(args: list[str]) -> Command:
 
     command, *argv = args
 
-    match command.split("@"):
-        case ["init"]:
+    match command:
+        case "init":
             return Init(file=Path(argv[0]) if argv else None, extra=argv[1:])
-        case ["add"]:
+        case "add":
             return Add(file=Path(argv[0]), packages=argv[1:])
-        case ["version"]:
+        case "version":
             return Version()
-        case ["info"]:
+        case "info":
             return Info()
-        case ["lab"]:
-            return Lab(file=Path(argv[0]))
-        case ["lab", version]:
-            return Lab(file=Path(argv[0]), version=version)
-        case ["notebook"]:
-            return Notebook(file=Path(argv[0]))
-        case ["notebook", version]:
-            return Notebook(file=Path(argv[0]), version=version)
-        case ["nbclassic"]:
-            return NbClassic(file=Path(argv[0]))
-        case ["nbclassic", version]:
-            return NbClassic(file=Path(argv[0]), version=version)
-        case _:
-            rich.print(help)
-            sys.exit(1)
+
+    if command == "run":
+        notebook = get_flag(argv, "--notebook") or os.getenv("JUV_NOTEBOOK", "lab")
+    else:
+        notebook = command
+
+    match notebook.split("@"):
+        case [command] if is_notebook(command):
+            return Run(file=Path(argv[0]), notebook=command, version=None)
+        case [command, version] if is_notebook(command):
+            return Run(file=Path(argv[0]), notebook=command, version=version)
+
+    rich.print(help, file=sys.stderr)
+    sys.exit(1)
 
 
 def run_version():
@@ -329,7 +333,7 @@ def run_add(file: Path, packages: list[str]):
     rich.print(f"Updated `[cyan]{file.resolve().absolute()}[/cyan]`")
 
 
-def run_notebook(command: Lab | Notebook | NbClassic, uv_args: list[str]):
+def run_notebook(command: Run, uv_args: list[str]):
     if not command.file.exists():
         rich.print(
             f"Error: `[cyan]{command.file.resolve().absolute()}[/cyan]` does not exist.",
@@ -354,7 +358,7 @@ def run_notebook(command: Lab | Notebook | NbClassic, uv_args: list[str]):
 
 
 def split_args(argv: list[str]) -> tuple[list[str], list[str]]:
-    kinds = [Lab.kind, Notebook.kind, NbClassic.kind, Init.kind, Add.kind]
+    kinds = [Init.kind, Add.kind, Run.kind, *NOTEBOOKS]
     for i, arg in enumerate(argv[1:], start=1):
         if any(arg.startswith(kind) for kind in kinds):
             return argv[1:i], argv[i:]
