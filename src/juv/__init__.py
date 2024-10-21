@@ -238,20 +238,20 @@ def get_untitled() -> pathlib.Path:
 
 
 def parse_args(args: list[str]) -> Command:
-    help = r"""A wrapper around [cyan]uv[/cyan] to launch ephemeral Jupyter notebooks.
+    help = r"""A wrapper around [b cyan]uv[/b cyan] to launch ephemeral Jupyter notebooks.
 
-[b]Usage[/b]: juv \[uvx flags] <COMMAND>\[@version] \[PATH]
+[b green]Usage[/b green]: [cyan][b]juv[/b] \[UVX FLAGS] <COMMAND>\[@VERSION] \[PATH][/cyan]
 
-[b]Commands[/b]:
-  [cyan]init[/cyan]: Initialize a new notebook
-  [cyan]add[/cyan]: Add dependencies to the notebook
-  [cyan]lab[/cyan]: Launch notebook/script in Jupyter Lab
-  [cyan]notebook[/cyan]: Launch notebook/script in Jupyter Notebook
-  [cyan]nbclassic[/cyan]: Launch notebook/script in Jupyter Notebook Classic
-  [cyan]version[/cyan]: Display juv's version
-  [cyan]info[/cyan]: Display juv and uv versions
+[b green]Commands[/b green]:
+  [b cyan]init[/b cyan] Initialize a new notebook
+  [b cyan]add[/b cyan] Add dependencies to the notebook
+  [b cyan]lab[/b cyan] Launch notebook/script in Jupyter Lab
+  [b cyan]notebook[/b cyan] Launch notebook/script in Jupyter Notebook
+  [b cyan]nbclassic[/b cyan] Launch notebook/script in Jupyter Notebook Classic
+  [b cyan]version[/b cyan] Display juv's version
+  [b cyan]info[/b cyan] Display juv and uv versions
 
-[b]Examples[/b]:
+[b green]Examples[/b green]:
   juv init foo.ipynb
   juv add foo.ipynb numpy pandas
   juv lab foo.ipynb
