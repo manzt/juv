@@ -12,63 +12,19 @@ import os
 import tempfile
 import subprocess
 from pathlib import Path
-import typing
 
 import rich
 import jupytext
 from nbformat.v4.nbbase import new_code_cell, new_notebook
+
+from ._sources import resolve_source, RemoteSource, LocalSource
+from ._commands import Command, Version, Init, Add, Info, Lab, Notebook, NbClassic
 
 
 @dataclasses.dataclass
 class Pep723Meta:
     dependencies: list[str]
     requires_python: str | None
-
-
-@dataclasses.dataclass
-class Version: ...
-
-
-@dataclasses.dataclass
-class Info: ...
-
-
-@dataclasses.dataclass
-class Init:
-    file: Path | None = None
-    extra: list[str] = dataclasses.field(default_factory=list)
-    kind: typing.ClassVar[typing.Literal["init"]] = "init"
-
-
-@dataclasses.dataclass
-class Add:
-    file: Path
-    packages: list[str]
-    kind: typing.ClassVar[typing.Literal["add"]] = "add"
-
-
-@dataclasses.dataclass
-class Lab:
-    file: Path
-    version: str | None = None
-    kind: typing.ClassVar[typing.Literal["lab"]] = "lab"
-
-
-@dataclasses.dataclass
-class Notebook:
-    file: Path
-    version: str | None = None
-    kind: typing.ClassVar[typing.Literal["notebook"]] = "notebook"
-
-
-@dataclasses.dataclass
-class NbClassic:
-    file: Path
-    version: str | None = None
-    kind: typing.ClassVar[typing.Literal["nbclassic"]] = "nbclassic"
-
-
-Command = Init | Add | Lab | Notebook | NbClassic | Version | Info
 
 
 REGEX = r"(?m)^# /// (?P<type>[a-zA-Z0-9-]+)$\s(?P<content>(^#(| .*)$\s)+)^# ///$"
@@ -102,8 +58,7 @@ def nbcell(source: str, hidden: bool = False) -> dict:
     )
 
 
-def load_script_notebook(fp: pathlib.Path) -> dict:
-    script = fp.read_text()
+def load_script_notebook(script: str) -> dict:
     inline_meta = None
     if meta_block := re.search(REGEX, script):
         inline_meta = meta_block.group(0)
@@ -120,7 +75,7 @@ def load_script_notebook(fp: pathlib.Path) -> dict:
 def to_notebook(fp: pathlib.Path) -> tuple[Pep723Meta | None, dict]:
     match fp.suffix:
         case ".py":
-            nb = load_script_notebook(fp)
+            nb = load_script_notebook(fp.read_text())
         case ".ipynb":
             nb = jupytext.read(fp, fmt="ipynb")
         case _:
@@ -237,6 +192,12 @@ def get_untitled() -> pathlib.Path:
     raise ValueError("Could not find an available UntitledX.ipynb")
 
 
+def get_juv_temp_dir() -> Path:
+    juv_temp_dir = Path(tempfile.gettempdir()) / "juv"
+    juv_temp_dir.mkdir(parents=True, exist_ok=True)
+    return juv_temp_dir
+
+
 def parse_args(args: list[str]) -> Command:
     help = r"""A wrapper around [cyan]uv[/cyan] to launch ephemeral Jupyter notebooks.
 
@@ -258,6 +219,10 @@ def parse_args(args: list[str]) -> Command:
   juv nbclassic script.py
   juv --python=3.8 notebook@6.4.0 foo.ipynb"""
 
+    if len(args) == 0:
+        rich.print(help)
+        sys.exit(1)
+
     if "-h" in args or "--help" in args or len(args) == 0:
         rich.print(help)
         sys.exit(0)
@@ -267,27 +232,61 @@ def parse_args(args: list[str]) -> Command:
 
     command, *argv = args
 
-    match command.split("@"):
-        case ["init"]:
-            return Init(file=Path(argv[0]) if argv else None, extra=argv[1:])
-        case ["add"]:
-            return Add(file=Path(argv[0]), packages=argv[1:])
-        case ["version"]:
+    match command:
+        case "version":
             return Version()
-        case ["info"]:
+        case "info":
             return Info()
+
+    source = resolve_source(argv[0]) if len(argv) >= 1 else None
+
+    match (command, source):
+        case ("init", None):
+            path = pathlib.Path(argv[0]) if len(argv) >= 1 else None
+            return Init(path, argv[1:])
+        case ("init", LocalSource(file)):
+            return Init(file, argv[1:])
+        case ("init", RemoteSource(_)):
+            raise ValueError("Remote sources are not supported for init command")
+        case ("add", LocalSource(file)):
+            return Add(file, argv[1:])
+        case ("add", RemoteSource(_)):
+            raise ValueError("Remote sources are not supported for add command")
+
+    match source:
+        case LocalSource(file):
+            path = file
+        case RemoteSource(href):
+            import urllib.request
+
+            temp_file = tempfile.NamedTemporaryFile(
+                dir=get_juv_temp_dir(), delete=False, suffix=".ipynb", prefix="juv_"
+            )
+            path = Path(temp_file.name)
+            with urllib.request.urlopen(href) as response:
+                content = response.read().decode("utf-8")
+                if href.endswith(".py"):
+                    nb = load_script_notebook(content)
+                    write_nb(nb, path)
+                else:
+                    path.write_bytes(content)
+
+        case _:
+            raise ValueError("Must provide a local or remote source")
+
+    match command.split("@"):
         case ["lab"]:
-            return Lab(file=Path(argv[0]))
+            return Lab(path)
         case ["lab", version]:
-            return Lab(file=Path(argv[0]), version=version)
+            return Lab(path, version)
         case ["notebook"]:
-            return Notebook(file=Path(argv[0]))
+            return Notebook(path)
         case ["notebook", version]:
-            return Notebook(file=Path(argv[0]), version=version)
+            return Notebook(path, version)
         case ["nbclassic"]:
-            return NbClassic(file=Path(argv[0]))
+            return NbClassic(path)
         case ["nbclassic", version]:
-            return NbClassic(file=Path(argv[0]), version=version)
+            return NbClassic(path, version)
         case _:
             rich.print(help)
             sys.exit(1)
