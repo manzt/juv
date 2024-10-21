@@ -60,7 +60,11 @@ class NbClassic:
     kind: typing.ClassVar[typing.Literal["nbclassic"]] = "nbclassic"
 
 
-Command = Init | Add | Lab | Notebook | NbClassic
+@dataclasses.dataclass
+class Version: ...
+
+
+Command = Init | Add | Lab | Notebook | NbClassic | Version
 
 
 REGEX = r"(?m)^# /// (?P<type>[a-zA-Z0-9-]+)$\s(?P<content>(^#(| .*)$\s)+)^# ///$"
@@ -240,6 +244,7 @@ def parse_args(args: list[str]) -> Command:
   [cyan]lab[/cyan]: Launch notebook/script in Jupyter Lab
   [cyan]notebook[/cyan]: Launch notebook/script in Jupyter Notebook
   [cyan]nbclassic[/cyan]: Launch notebook/script in Jupyter Notebook Classic
+  [cyan]version[/cyan]: Print version
 
 [b]Examples[/b]:
   juv init foo.ipynb
@@ -259,6 +264,8 @@ def parse_args(args: list[str]) -> Command:
             return Init(file=Path(argv[0]) if argv else None, extra=argv[1:])
         case ["add"]:
             return Add(file=Path(argv[0]), packages=argv[1:])
+        case ["version"]:
+            return Version()
         case ["lab"]:
             return Lab(file=Path(argv[0]))
         case ["lab", version]:
@@ -324,6 +331,12 @@ def run_notebook(command: Lab | Notebook | NbClassic, uv_args: list[str]):
         sys.exit(1)
 
 
+def run_version():
+    import importlib.metadata
+
+    print(f"juv {importlib.metadata.version('juv')}")
+
+
 def split_args(argv: list[str]) -> tuple[list[str], list[str]]:
     kinds = [Lab.kind, Notebook.kind, NbClassic.kind, Init.kind, Add.kind]
     for i, arg in enumerate(argv[1:], start=1):
@@ -336,6 +349,8 @@ def main():
     uv_args, args = split_args(sys.argv)
     assert_uv_available()
     match parse_args(args):
+        case Version():
+            run_version()
         case Init(file, extra):
             run_init(file, extra)
         case Add(file, packages):
