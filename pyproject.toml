@@ -4,7 +4,7 @@ version = "0.1.2"
 description = "A little wrapper around `uv` to launch ephemeral Jupyter notebooks."
 readme = "README.md"
 authors = [{ name = "Trevor Manz", email = "trevor.j.manz@gmail.com" }]
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dependencies = [
     "jupytext>=1.16.4",
     "rich>=13.9.2",

@@ -49,7 +49,7 @@ def sample_notebook() -> dict:
 
 
 def test_parse_pep723_meta(sample_script: str) -> None:
-    meta = juv.parse_pep723_meta(sample_script)
+    meta = juv.parse_inline_script_metadata(sample_script)
     assert isinstance(meta, juv.Pep723Meta)
     assert meta.dependencies == ["numpy", "pandas"]
     assert meta.requires_python == ">=3.8"
@@ -57,7 +57,7 @@ def test_parse_pep723_meta(sample_script: str) -> None:
 
 def test_parse_pep723_meta_no_meta() -> None:
     script_without_meta = "print('Hello, world!')"
-    assert juv.parse_pep723_meta(script_without_meta) is None
+    assert juv.parse_inline_script_metadata(script_without_meta) is None
 
 
 def strip_ids(output: str) -> str:
@@ -149,12 +149,10 @@ def test_assert_uv_available() -> None:
 
 
 def test_python_override() -> None:
-    assert juv.build_command(
-        nb_path=Path("test.ipynb"),
+    assert juv.create_uv_run_command(
+        command=juv.NbClassic(file=Path("test.ipynb"), version=None),
         pep723_meta=Pep723Meta(dependencies=["numpy"], requires_python="3.8"),
-        command="nbclassic",
         pre_args=["--with", "polars", "--python", "3.12"],
-        command_version=None,
     ) == snapshot(
         [
             "uvx",
@@ -174,12 +172,10 @@ def test_python_override() -> None:
 
 
 def test_run_nbclassic() -> None:
-    assert juv.build_command(
-        nb_path=Path("test.ipynb"),
+    assert juv.create_uv_run_command(
+        command=juv.NbClassic(file=Path("test.ipynb"), version=None),
         pep723_meta=Pep723Meta(dependencies=["numpy"], requires_python="3.8"),
-        command="nbclassic",
         pre_args=["--with", "polars"],
-        command_version=None,
     ) == snapshot(
         [
             "uvx",
@@ -198,12 +194,10 @@ def test_run_nbclassic() -> None:
 
 
 def test_run_notebook() -> None:
-    assert juv.build_command(
-        nb_path=Path("test.ipynb"),
+    assert juv.create_uv_run_command(
+        command=juv.Notebook(file=Path("test.ipynb"), version="6.4.0"),
         pep723_meta=Pep723Meta(dependencies=[], requires_python=None),
-        command="notebook",
         pre_args=[],
-        command_version="6.4.0",
     ) == snapshot(
         [
             "uvx",
@@ -218,12 +212,10 @@ def test_run_notebook() -> None:
 
 
 def test_run_jlab() -> None:
-    assert juv.build_command(
-        nb_path=Path("test.ipynb"),
+    assert juv.create_uv_run_command(
+        command=juv.Lab(file=Path("test.ipynb"), version=None),
         pep723_meta=Pep723Meta(dependencies=["numpy"], requires_python="3.8"),
-        command="lab",
         pre_args=["--with=polars,altair"],
-        command_version=None,
     ) == snapshot(
         [
             "uvx",
@@ -241,33 +233,30 @@ def test_run_jlab() -> None:
 
 
 def test_split_args_no_pre_args() -> None:
-    args = ["juv", "lab", "script.py"]
-    with patch.object(sys, "argv", args):
-        assert juv.split_args() == snapshot(([], ["lab", "script.py"], None))
+    assert juv.split_args(["juv", "lab", "script.py"]) == snapshot(
+        (
+            [],
+            ["lab", "script.py"],
+        )
+    )
 
 
 def test_split_args_with_command_version() -> None:
-    args = ["juv", "notebook@6.4.0", "notebook.ipynb"]
-    with patch.object(sys, "argv", args):
-        assert juv.split_args() == snapshot(
-            (
-                [],
-                ["notebook", "notebook.ipynb"],
-                "6.4.0",
-            )
+    assert juv.split_args(["juv", "notebook@6.4.0", "notebook.ipynb"]) == snapshot(
+        (
+            [],
+            ["notebook@6.4.0", "notebook.ipynb"],
         )
+    )
 
 
 def test_split_args_with_pre_args() -> None:
-    args = ["juv", "--with", "polars", "lab", "script.py"]
-    with patch.object(sys, "argv", args):
-        assert juv.split_args() == snapshot(
-            (
-                ["--with", "polars"],
-                ["lab", "script.py"],
-                None,
-            )
+    assert juv.split_args(["juv", "--with", "polars", "lab", "script.py"]) == snapshot(
+        (
+            ["--with", "polars"],
+            ["lab", "script.py"],
         )
+    )
 
 
 def test_add_creates_inline_meta(tmp_path: pathlib.Path) -> None:

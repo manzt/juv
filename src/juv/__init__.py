@@ -9,9 +9,10 @@ import dataclasses
 import sys
 import shutil
 import os
-import typing
 import tempfile
 import subprocess
+from pathlib import Path
+import typing
 
 import rich
 import jupytext
@@ -24,13 +25,48 @@ class Pep723Meta:
     requires_python: str | None
 
 
+@dataclasses.dataclass
+class Init:
+    file: Path | None = None
+    extra: list[str] = dataclasses.field(default_factory=list)
+    kind: typing.ClassVar[typing.Literal["init"]] = "init"
+
+
+@dataclasses.dataclass
+class Add:
+    file: Path
+    packages: list[str]
+    kind: typing.ClassVar[typing.Literal["add"]] = "add"
+
+
+@dataclasses.dataclass
+class Lab:
+    file: Path
+    version: str | None = None
+    kind: typing.ClassVar[typing.Literal["lab"]] = "lab"
+
+
+@dataclasses.dataclass
+class Notebook:
+    file: Path
+    version: str | None = None
+    kind: typing.ClassVar[typing.Literal["notebook"]] = "notebook"
+
+
+@dataclasses.dataclass
+class NbClassic:
+    file: Path
+    version: str | None = None
+    kind: typing.ClassVar[typing.Literal["nbclassic"]] = "nbclassic"
+
+
+Command = Init | Add | Lab | Notebook | NbClassic
+
+
 REGEX = r"(?m)^# /// (?P<type>[a-zA-Z0-9-]+)$\s(?P<content>(^#(| .*)$\s)+)^# ///$"
 
-Command = typing.Literal["lab", "notebook", "nbclassic", "add", "init"]
-COMMANDS = {"lab", "notebook", "nbclassic", "add", "init"}
 
-
-def parse_pep723_meta(script: str) -> Pep723Meta | None:
+def parse_inline_script_metadata(script: str) -> Pep723Meta | None:
     name = "script"
     matches = list(
         filter(lambda m: m.group("type") == name, re.finditer(REGEX, script))
@@ -84,7 +120,7 @@ def to_notebook(fp: pathlib.Path) -> tuple[Pep723Meta | None, dict]:
 
     meta = next(
         (
-            parse_pep723_meta("".join(cell["source"]))
+            parse_inline_script_metadata("".join(cell["source"]))
             for cell in filter(lambda c: c["cell_type"] == "code", nb.get("cells", []))
         ),
         None,
@@ -95,21 +131,19 @@ def to_notebook(fp: pathlib.Path) -> tuple[Pep723Meta | None, dict]:
 
 def assert_uv_available():
     if shutil.which("uv") is None:
-        print("Error: 'uv' command not found.", file=sys.stderr)
-        print("Please install 'uv' to run `juv`.", file=sys.stderr)
-        print(
+        rich.print("Error: 'uv' command not found.", file=sys.stderr)
+        rich.print("Please install 'uv' to run `juv`.", file=sys.stderr)
+        rich.print(
             "For more information, visit: https://github.com/astral-sh/uv",
             file=sys.stderr,
         )
         sys.exit(1)
 
 
-def build_command(
-    nb_path: pathlib.Path,
+def create_uv_run_command(
+    command: Lab | Notebook | NbClassic,
     pep723_meta: Pep723Meta | None,
-    command: Command,
     pre_args: list[str],
-    command_version: str | None,
 ) -> list[str]:
     cmd = ["uvx", "--from=jupyter-core", "--with=setuptools"]
 
@@ -123,50 +157,16 @@ def build_command(
         if len(pep723_meta.dependencies) > 0:
             cmd.append(f"--with={','.join(pep723_meta.dependencies)}")
 
-    dependency = {
-        "lab": "jupyterlab",
-        "notebook": "notebook",
-        "nbclassic": "nbclassic",
-    }[command]
+    match command:
+        case Lab(_, version):
+            cmd.append(f"--with=jupyterlab{'==' + version if version else ''}")
+        case Notebook(_, version):
+            cmd.append(f"--with=notebook{'==' + version if version else ''}")
+        case NbClassic(_, version):
+            cmd.append(f"--with=nbclassic{'==' + version if version else ''}")
 
-    cmd.append(
-        f"--with={dependency}{'==' + command_version if command_version else ''}"
-    )
-    cmd.extend([*pre_args, "jupyter", command, str(nb_path)])
+    cmd.extend([*pre_args, "jupyter", command.kind, str(command.file)])
     return cmd
-
-
-def run_notebook(
-    nb_path: pathlib.Path,
-    pep723_meta: Pep723Meta | None,
-    command: Command,
-    pre_args: list[str],
-    command_version: str | None,
-) -> None:
-    assert_uv_available()
-    cmd = build_command(nb_path, pep723_meta, command, pre_args, command_version)
-    try:
-        os.execvp(cmd[0], cmd)
-    except OSError as e:
-        print(f"Error executing {cmd[0]}: {e}", file=sys.stderr)
-        sys.exit(1)
-
-
-def split_args() -> tuple[list[str], list[str], str | None]:
-    for i, arg in enumerate(sys.argv):
-        if arg in COMMANDS:
-            return sys.argv[1:i], sys.argv[i:], None
-
-        if (
-            arg.startswith("lab@")
-            or arg.startswith("notebook@")
-            or arg.startswith("nbclassic@")
-        ):
-            # replace the command with the actual command but get the version
-            command, version = sys.argv[i].split("@", 1)
-            return sys.argv[1:i], [command] + sys.argv[i + 1 :], version
-
-    return [], sys.argv, None
 
 
 def update_or_add_inline_meta(nb: dict, deps: list[str]) -> None:
@@ -199,10 +199,6 @@ def init_notebook(uv_args: list[str]) -> dict:
     return nb
 
 
-def is_command(command: typing.Any) -> typing.TypeGuard[Command]:
-    return command in COMMANDS
-
-
 def write_nb(nb: dict, file: pathlib.Path) -> None:
     file.write_text(jupytext.writes(nb, fmt="ipynb"))
 
@@ -219,9 +215,7 @@ def get_untitled() -> pathlib.Path:
     raise ValueError("Could not find an available UntitledX.ipynb")
 
 
-def main() -> None:
-    uv_args, args, command_version = split_args()
-
+def parse_args(args: list[str]) -> Command:
     help = r"""A wrapper around [cyan]uv[/cyan] to launch ephemeral Jupyter notebooks.
 
 [b]Usage[/b]: juv \[uvx flags] <COMMAND>\[@version] \[PATH]
@@ -240,58 +234,97 @@ def main() -> None:
   juv nbclassic script.py
   juv --python=3.8 notebook@6.4.0 foo.ipynb"""
 
-    if "-h" in sys.argv or "--help" in sys.argv:
+    if "-h" in args or "--help" in args or len(args) == 0:
         rich.print(help)
         sys.exit(0)
 
-    command = args[0] if args else None
-    file = args[1] if len(args) > 1 else None
+    command, *argv = args
 
-    if command == "init":
-        file = pathlib.Path(file if file else get_untitled())
-        if not file.suffix == ".ipynb":
-            rich.print(
-                "File must have a `[cyan].ipynb[/cyan]` extension.", file=sys.stderr
-            )
+    match command.split("@"):
+        case ["init"]:
+            return Init(file=Path(argv[0]) if argv else None, extra=argv[1:])
+        case ["add"]:
+            return Add(file=Path(argv[0]), packages=argv[1:])
+        case ["lab"]:
+            return Lab(file=Path(argv[0]))
+        case ["lab", version]:
+            return Lab(file=Path(argv[0]), version=version)
+        case ["notebook"]:
+            return Notebook(file=Path(argv[0]))
+        case ["notebook", version]:
+            return Notebook(file=Path(argv[0]), version=version)
+        case ["nbclassic"]:
+            return NbClassic(file=Path(argv[0]))
+        case ["nbclassic", version]:
+            return NbClassic(file=Path(argv[0]), version=version)
+        case _:
+            rich.print(help)
             sys.exit(1)
-        nb = init_notebook(args[2:])
-        write_nb(nb, file)
-        rich.print(
-            f"Initialized notebook at `[cyan]{file.resolve().absolute()}[/cyan]`"
-        )
-        return
 
-    if not is_command(command) or not file:
-        rich.print(help)
+
+def run_init(file: Path | None, extra: list[str]):
+    if not file:
+        file = get_untitled()
+    if not file.suffix == ".ipynb":
+        rich.print("File must have a `[cyan].ipynb[/cyan]` extension.", file=sys.stderr)
         sys.exit(1)
+    nb = init_notebook(extra)
+    write_nb(nb, file)
+    rich.print(f"Initialized notebook at `[cyan]{file.resolve().absolute()}[/cyan]")
 
-    file = pathlib.Path(file)
 
+def run_add(file: Path, packages: list[str]):
     if not file.exists():
         rich.print(
             f"Error: `[cyan]{file.resolve().absolute()}[/cyan]` does not exist.",
             file=sys.stderr,
         )
         sys.exit(1)
+    _, nb = to_notebook(file)
+    update_or_add_inline_meta(nb, packages)
+    write_nb(nb, file.with_suffix(".ipynb"))
+    rich.print(f"Updated `[cyan]{file.resolve().absolute()}[/cyan]`")
 
-    meta, nb = to_notebook(file)
 
-    if command == "add":
-        assert len(args) > 2, "Missing dependencies"
-        update_or_add_inline_meta(nb, args[2:])
-        write_nb(nb, file.with_suffix(".ipynb"))
-        rich.print(f"Updated `[cyan]{file.resolve().absolute()}[/cyan]`")
-        return
-
-    if file.suffix == ".py":
-        file = file.with_suffix(".ipynb")
-        write_nb(nb, file)
+def run_notebook(command: Lab | Notebook | NbClassic, uv_args: list[str]):
+    if not command.file.exists():
         rich.print(
-            f"Converted script to notebook `[cyan]{file.resolve().absolute()}[/cyan]`"
+            f"Error: `[cyan]{command.file.resolve().absolute()}[/cyan]` does not exist.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    meta, nb = to_notebook(command.file)
+
+    if command.file.suffix == ".py":
+        command.file = command.file.with_suffix(".ipynb")
+        write_nb(nb, command.file)
+        rich.print(
+            f"Converted script to notebook `[cyan]{command.file.resolve().absolute()}[/cyan]`"
         )
 
-    run_notebook(file, meta, command, uv_args, command_version)
+    cmd = create_uv_run_command(command, meta, uv_args)
+    try:
+        os.execvp(cmd[0], cmd)
+    except OSError as e:
+        print(f"Error executing {cmd[0]}: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
-if __name__ == "__main__":
-    main()
+def split_args(argv: list[str]) -> tuple[list[str], list[str]]:
+    kinds = [Lab.kind, Notebook.kind, NbClassic.kind, Init.kind, Add.kind]
+    for i, arg in enumerate(argv[1:], start=1):
+        if any(arg.startswith(kind) for kind in kinds):
+            return argv[1:i], argv[i:]
+    return [], argv[1:]
+
+
+def main():
+    uv_args, args = split_args(sys.argv)
+    assert_uv_available()
+    match parse_args(args):
+        case Init(file, extra):
+            run_init(file, extra)
+        case Add(file, packages):
+            run_add(file, packages)
+        case notebook_command:
+            run_notebook(notebook_command, uv_args)
