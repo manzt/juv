@@ -36,11 +36,11 @@ class Pep723Meta:
 
 @dataclasses.dataclass
 class Runtime:
-    kind: RuntimeKind
+    name: RuntimeName
     version: str | None = None
 
 
-RuntimeKind = typing.Literal["notebook", "lab", "nbclassic"]
+RuntimeName = typing.Literal["notebook", "lab", "nbclassic"]
 
 REGEX = r"(?m)^# /// (?P<type>[a-zA-Z0-9-]+)$\s(?P<content>(^#(| .*)$\s)+)^# ///$"
 
@@ -117,7 +117,7 @@ def assert_uv_available():
 
 def create_uv_run_command(
     target: pathlib.Path,
-    rt: Runtime,
+    runtime: Runtime,
     pep723_meta: Pep723Meta | None,
     pre_args: list[str],
 ) -> list[str]:
@@ -133,15 +133,17 @@ def create_uv_run_command(
         if len(pep723_meta.dependencies) > 0:
             cmd.append(f"--with={','.join(pep723_meta.dependencies)}")
 
-    match rt.kind:
-        case "lab":
-            cmd.append(f"--with=jupyterlab{'==' + rt.version if rt.version else ''}")
-        case "notebook":
-            cmd.append(f"--with=notebook{'==' + rt.version if rt.version else ''}")
-        case "nbclassic":
-            cmd.append(f"--with=nbclassic{'==' + rt.version if rt.version else ''}")
+    version = runtime.version
 
-    cmd.extend([*pre_args, "jupyter", rt.kind, str(target)])
+    match runtime.name:
+        case "lab":
+            cmd.append(f"--with=jupyterlab{'==' + version if version else ''}")
+        case "notebook":
+            cmd.append(f"--with=notebook{'==' + version if version else ''}")
+        case "nbclassic":
+            cmd.append(f"--with=nbclassic{'==' + version if version else ''}")
+
+    cmd.extend([*pre_args, "jupyter", runtime.name, str(target)])
     return cmd
 
 
@@ -206,7 +208,7 @@ def get_untitled() -> pathlib.Path:
     raise ValueError("Could not find an available UntitledX.ipynb")
 
 
-def is_notebook_kind(kind: str) -> typing.TypeGuard[RuntimeKind]:
+def is_notebook_kind(kind: str) -> typing.TypeGuard[RuntimeName]:
     return kind in ["notebook", "lab", "nbclassic"]
 
 
@@ -270,7 +272,7 @@ def init(args: tuple[str, ...]) -> None:
         sys.exit(1)
     nb = init_notebook(uv_flags, path.parent)
     write_nb(nb, path)
-    rich.print(f"Initialized notebook at `[cyan]{path.resolve().absolute()}[/cyan]")
+    rich.print(f"Initialized notebook at `[cyan]{path.resolve().absolute()}[/cyan]`")
 
 
 @cli.command(context_settings=dict(ignore_unknown_options=True))
@@ -322,27 +324,6 @@ def run(notebook: str | None, args: tuple[str, ...]) -> None:
     except OSError as e:
         print(f"Error executing {cmd[0]}: {e}", file=sys.stderr)
         sys.exit(1)
-
-
-help = r"""A wrapper around [b cyan]uv[/b cyan] to launch ephemeral Jupyter notebooks.
-
-[b green]Usage[/b green]: [cyan][b]juv[/b] \[UVX FLAGS] <COMMAND>\[@VERSION] \[PATH][/cyan]
-
-[b green]Commands[/b green]:
-  [b cyan]init[/b cyan] Initialize a new notebook
-  [b cyan]add[/b cyan] Add dependencies to the notebook
-  [b cyan]lab[/b cyan] Launch notebook/script in Jupyter Lab
-  [b cyan]notebook[/b cyan] Launch notebook/script in Jupyter Notebook
-  [b cyan]nbclassic[/b cyan] Launch notebook/script in Jupyter Notebook Classic
-  [b cyan]version[/b cyan] Display juv's version
-  [b cyan]info[/b cyan] Display juv and uv versions
-
-[b green]Examples[/b green]:
-  juv init foo.ipynb
-  juv add foo.ipynb numpy pandas
-  juv lab foo.ipynb
-  juv nbclassic script.py
-  juv --python=3.8 notebook@6.4.0 foo.ipynb"""
 
 
 def main():
