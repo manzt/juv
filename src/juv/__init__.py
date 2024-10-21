@@ -169,13 +169,22 @@ def create_uv_run_command(
     return cmd
 
 
-def update_or_add_inline_meta(nb: dict, deps: list[str]) -> None:
+def update_or_add_inline_meta(
+    nb: dict,
+    deps: list[str],
+    dir: pathlib.Path,
+) -> None:
     def includes_inline_meta(cell: dict) -> bool:
         return cell["cell_type"] == "code" and (
             re.search(REGEX, "".join(cell["source"])) is not None
         )
 
-    with tempfile.NamedTemporaryFile(mode="w+", delete=True, suffix=".py") as f:
+    with tempfile.NamedTemporaryFile(
+        mode="w+",
+        delete=True,
+        suffix=".py",
+        dir=dir,
+    ) as f:
         cell = next(
             (cell for cell in nb["cells"] if includes_inline_meta(cell)),
             None,
@@ -191,8 +200,13 @@ def update_or_add_inline_meta(nb: dict, deps: list[str]) -> None:
         cell["source"] = f.read()
 
 
-def init_notebook(uv_args: list[str]) -> dict:
-    with tempfile.NamedTemporaryFile(mode="w+", suffix=".py", delete=True) as f:
+def init_notebook(uv_args: list[str], dir: pathlib.Path) -> dict:
+    with tempfile.NamedTemporaryFile(
+        mode="w+",
+        suffix=".py",
+        delete=True,
+        dir=dir,
+    ) as f:
         subprocess.run(["uv", "init", "--quiet", "--script", f.name, *uv_args])
         f.seek(0)
         nb = new_notebook(cells=[nbcell(f.read(), hidden=True)])
@@ -268,7 +282,7 @@ def run_init(file: Path | None, extra: list[str]):
     if not file.suffix == ".ipynb":
         rich.print("File must have a `[cyan].ipynb[/cyan]` extension.", file=sys.stderr)
         sys.exit(1)
-    nb = init_notebook(extra)
+    nb = init_notebook(extra, file.parent)
     write_nb(nb, file)
     rich.print(f"Initialized notebook at `[cyan]{file.resolve().absolute()}[/cyan]")
 
@@ -281,7 +295,7 @@ def run_add(file: Path, packages: list[str]):
         )
         sys.exit(1)
     _, nb = to_notebook(file)
-    update_or_add_inline_meta(nb, packages)
+    update_or_add_inline_meta(nb, packages, file.parent)
     write_nb(nb, file.with_suffix(".ipynb"))
     rich.print(f"Updated `[cyan]{file.resolve().absolute()}[/cyan]`")
 
