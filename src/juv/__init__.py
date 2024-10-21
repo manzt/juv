@@ -214,37 +214,37 @@ def is_notebook_kind(kind: str) -> typing.TypeGuard[RuntimeName]:
 
 
 def parse_notebook_specifier(value: str | None) -> Runtime:
-    match (value or "").split("@"):
+    value = value or os.getenv("JUV_JUPYTER", "lab")
+    match value.split("@"):
         case [kind, version] if is_notebook_kind(kind):
             return Runtime(kind, version)
         case [kind] if is_notebook_kind(kind):
             return Runtime(kind)
 
-    kind = os.getenv("JUV_NOTEBOOK", "lab")
-    if not is_notebook_kind(kind):
-        raise click.BadParameter(f"Invalid notebook kind: {kind}")
+    raise click.BadParameter(f"Invalid runtime specifier: {value}")
 
-    return Runtime(kind, None)
+
+def print_version():
+    import importlib.metadata
+
+    print(f"juv {importlib.metadata.version('juv')}")
 
 
 @click.group()
-def cli(): ...
+def cli():
+    """A wrapper around uv to launch ephemeral Jupyter notebooks."""
 
 
 @cli.command()
 def version() -> None:
     """Display juv's version."""
-    import importlib.metadata
-
-    print(f"juv {importlib.metadata.version('juv')}")
+    print_version()
 
 
 @cli.command()
 def info():
     """Display juv and uv versions."""
-    import importlib.metadata
-
-    print(f"juv {importlib.metadata.version('juv')}")
+    print_version()
     uv_version = subprocess.run(["uv", "version"], capture_output=True, text=True)
     print(uv_version.stdout)
 
@@ -271,7 +271,7 @@ def init(
     rich.print(f"Initialized notebook at `[cyan]{path.resolve().absolute()}[/cyan]`")
 
 
-@cli.command(context_settings=dict(ignore_unknown_options=True))
+@cli.command()
 @click.argument("file", type=click.Path(exists=True), required=True)
 @click.option("--requirements", "-r", type=click.Path(exists=True), required=False)
 @click.argument("packages", nargs=-1)
@@ -287,24 +287,23 @@ def add(file: str, requirements: str | None, packages: tuple[str, ...]) -> None:
     rich.print(f"Updated `[cyan]{path.resolve().absolute()}[/cyan]`")
 
 
-@cli.command(context_settings=dict(ignore_unknown_options=True))
+@cli.command()
 @click.argument("file", type=click.Path(exists=True), required=True)
 @click.option(
-    "--notebook",
-    "-n",
+    "--jupyter",
     required=False,
-    help="The notebook runner the run environment. [env: JUV_NOTEBOOK=]",
+    help="The Jupyter frontend to use. [env: JUV_JUPYTER=]",
 )
 @click.option("--with", "with_args", type=click.STRING, multiple=True)
 @click.option("--python", type=click.STRING, required=False)
 def run(
     file: str,
-    notebook: str | None,
+    jupyter: str | None,
     with_args: tuple[str, ...],
     python: str | None,
 ) -> None:
     """Launch a notebook or script."""
-    runtime = parse_notebook_specifier(notebook)
+    runtime = parse_notebook_specifier(jupyter)
     path = Path(file)
     meta, nb = to_notebook(path)
 
@@ -331,5 +330,24 @@ def run(
         sys.exit(1)
 
 
+def upgrade_legacy_jupyter_command(args: list[str]) -> None:
+    """Check legacy lab/notebook/nbclassic command usage and upgrade to 'run' with deprecation notice."""
+    for i, arg in enumerate(args):
+        if i == 0:
+            continue
+        if (
+            arg.startswith(("lab", "notebook", "nbclassic"))
+            and not args[i - 1].startswith("--")  # Make sure previous arg isn't a flag
+            and not arg.startswith("--")
+        ):
+            rich.print(
+                f"[bold]Warning:[/bold] The command '{arg}' is deprecated. "
+                f"Please use 'run' with `--jupyter={arg}` or set JUV_JUPYTER={arg}"
+            )
+            os.environ["JUV_JUPYTER"] = arg
+            args[i] = "run"
+
+
 def main():
+    upgrade_legacy_jupyter_command(sys.argv)
     cli()
