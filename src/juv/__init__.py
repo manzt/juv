@@ -36,18 +36,6 @@ def version() -> None:
 
 
 @cli.command()
-def info():
-    """Display juv and uv versions."""
-    from ._version import __version__
-
-    import subprocess
-
-    print(f"juv {__version__}")
-    uv_version = subprocess.run(["uv", "version"], capture_output=True, text=True)
-    print(uv_version.stdout)
-
-
-@cli.command()
 @click.argument("file", type=click.Path(exists=False), required=False)
 @click.option("--with", "with_args", type=click.STRING, multiple=True)
 @click.option("--python", type=click.STRING, required=False)
