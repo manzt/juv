@@ -3,20 +3,26 @@ from pathlib import Path
 from unittest.mock import patch
 import pathlib
 import re
+import os
 from inline_snapshot import snapshot
 
-import juv
-from juv import Pep723Meta
 import jupytext
 from nbformat.v4.nbbase import new_code_cell, new_notebook
 
 from click.testing import CliRunner, Result
 
+from juv import cli, assert_uv_available
+from juv._nbconvert import write_ipynb
+from juv._pep723 import parse_inline_script_metadata
+from juv._run import to_notebook, prepare_uvx_args, Runtime, Pep723Meta
+
 
 def invoke(args: list[str], uv_python: str = "3.13") -> Result:
-    runner = CliRunner()
-    with patch.dict("os.environ", {"UV_PYTHON": uv_python}):
-        return runner.invoke(juv.cli, args)
+    return CliRunner().invoke(
+        cli,
+        args,
+        env={**os.environ, "UV_PYTHON": uv_python},
+    )
 
 
 @pytest.fixture
@@ -49,7 +55,7 @@ def sample_notebook() -> dict:
 
 
 def test_parse_pep723_meta(sample_script: str) -> None:
-    meta = juv.parse_inline_script_metadata(sample_script)
+    meta = parse_inline_script_metadata(sample_script)
     assert meta == snapshot("""\
 dependencies = ["numpy", "pandas"]
 requires-python = ">=3.8"
@@ -58,7 +64,7 @@ requires-python = ">=3.8"
 
 def test_parse_pep723_meta_no_meta() -> None:
     script_without_meta = "print('Hello, world!')"
-    assert juv.parse_inline_script_metadata(script_without_meta) is None
+    assert parse_inline_script_metadata(script_without_meta) is None
 
 
 def filter_ids(output: str) -> str:
@@ -79,7 +85,7 @@ import numpy as np
 print('Hello, numpy!')
 arr = np.array([1, 2, 3])""")
 
-    meta, nb = juv.to_notebook(script)
+    meta, nb = to_notebook(script)
     output = jupytext.writes(nb, fmt="ipynb")
     output = filter_ids(output)
 
@@ -149,26 +155,26 @@ requires-python = ">=3.8"
 def test_assert_uv_available() -> None:
     with patch("shutil.which", return_value=None):
         with pytest.raises(SystemExit):
-            juv.assert_uv_available()
+            assert_uv_available()
 
 
 def test_python_override() -> None:
-    assert juv.create_uv_run_command(
+    assert prepare_uvx_args(
         target=Path("test.ipynb"),
-        runtime=juv.Runtime("nbclassic", None),
+        runtime=Runtime("nbclassic", None),
         pep723_meta=Pep723Meta(dependencies=["numpy"], requires_python="3.8"),
-        pre_args=["--with", "polars", "--python", "3.12"],
+        with_args=["polars"],
+        python="3.12",
     ) == snapshot(
         [
-            "uvx",
             "--from=jupyter-core",
             "--with=setuptools",
-            "--with=numpy",
-            "--with=nbclassic",
             "--with",
             "polars",
             "--python",
             "3.12",
+            "--with=numpy",
+            "--with=nbclassic",
             "jupyter",
             "nbclassic",
             "test.ipynb",
@@ -177,21 +183,21 @@ def test_python_override() -> None:
 
 
 def test_run_nbclassic() -> None:
-    assert juv.create_uv_run_command(
+    assert prepare_uvx_args(
         target=Path("test.ipynb"),
-        runtime=juv.Runtime("nbclassic", None),
+        runtime=Runtime("nbclassic", None),
         pep723_meta=Pep723Meta(dependencies=["numpy"], requires_python="3.8"),
-        pre_args=["--with", "polars"],
+        python=None,
+        with_args=["polars"],
     ) == snapshot(
         [
-            "uvx",
             "--from=jupyter-core",
             "--with=setuptools",
+            "--with",
+            "polars",
             "--python=3.8",
             "--with=numpy",
             "--with=nbclassic",
-            "--with",
-            "polars",
             "jupyter",
             "nbclassic",
             "test.ipynb",
@@ -200,14 +206,14 @@ def test_run_nbclassic() -> None:
 
 
 def test_run_notebook() -> None:
-    assert juv.create_uv_run_command(
+    assert prepare_uvx_args(
         target=Path("test.ipynb"),
-        runtime=juv.Runtime("notebook", "6.4.0"),
+        runtime=Runtime("notebook", "6.4.0"),
         pep723_meta=Pep723Meta(dependencies=[], requires_python=None),
-        pre_args=[],
+        with_args=[],
+        python=None,
     ) == snapshot(
         [
-            "uvx",
             "--from=jupyter-core",
             "--with=setuptools",
             "--with=notebook==6.4.0",
@@ -219,20 +225,21 @@ def test_run_notebook() -> None:
 
 
 def test_run_jlab() -> None:
-    assert juv.create_uv_run_command(
+    assert prepare_uvx_args(
         target=Path("test.ipynb"),
-        runtime=juv.Runtime("lab", None),
+        runtime=Runtime("lab", None),
         pep723_meta=Pep723Meta(dependencies=["numpy"], requires_python="3.8"),
-        pre_args=["--with=polars,altair"],
+        python=None,
+        with_args=["polars,altair"],
     ) == snapshot(
         [
-            "uvx",
             "--from=jupyter-core",
             "--with=setuptools",
+            "--with",
+            "polars,altair",
             "--python=3.8",
             "--with=numpy",
             "--with=jupyterlab",
-            "--with=polars,altair",
             "jupyter",
             "lab",
             "test.ipynb",
@@ -249,7 +256,7 @@ def filter_tempfile_ipynb(output: str) -> str:
 
 def test_add_creates_inline_meta(tmp_path: pathlib.Path) -> None:
     nb = tmp_path / "foo.ipynb"
-    juv.write_nb(new_notebook(), nb)
+    write_ipynb(new_notebook(), nb)
     result = invoke(["add", str(nb), "polars==1", "anywidget"], uv_python="3.11")
     assert result.exit_code == 0
     assert filter_tempfile_ipynb(result.stdout) == snapshot("""\
@@ -289,12 +296,8 @@ Updated
 
 def test_add_prepends_script_meta(tmp_path: pathlib.Path) -> None:
     path = tmp_path / "empty.ipynb"
-    juv.write_nb(
-        new_notebook(
-            cells=[
-                new_code_cell("print('Hello, world!')"),
-            ]
-        ),
+    write_ipynb(
+        new_notebook(cells=[new_code_cell("print('Hello, world!')")]),
         path,
     )
     result = invoke(["add", str(path), "polars==1", "anywidget"], uv_python="3.10")
@@ -356,7 +359,7 @@ import numpy as np
 print('Hello, numpy!')"""),
         ]
     )
-    juv.write_nb(nb, path)
+    write_ipynb(nb, path)
     result = invoke(["add", str(path), "polars==1", "anywidget"], uv_python="3.13")
     assert result.exit_code == 0
     assert filter_tempfile_ipynb(result.stdout) == snapshot("""\
@@ -456,6 +459,63 @@ Initialized notebook at
     "# /// script\\n",
     "# requires-python = \\">=3.8\\"\\n",
     "# dependencies = []\\n",
+    "# ///"
+   ]
+  }
+ ],
+ "metadata": {},
+ "nbformat": 4,
+ "nbformat_minor": 5
+}\
+""")
+
+
+def test_init_with_deps(
+    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    result = invoke(
+        [
+            "init",
+            "--with",
+            "rich,requests",
+            "--with=polars==1",
+            "--with=anywidget[dev]",
+            "--with=numpy,pandas>=2",
+        ]
+    )
+    print(result.stdout)
+    assert result.exit_code == 0
+    assert filter_tempfile_ipynb(result.stdout) == snapshot("""\
+Initialized notebook at 
+`<TEMPDIR>/Untitled.ipynb`
+""")
+
+    path = tmp_path / "Untitled.ipynb"
+    assert filter_ids(path.read_text()) == snapshot("""\
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "<ID>",
+   "metadata": {
+    "jupyter": {
+     "source_hidden": true
+    }
+   },
+   "outputs": [],
+   "source": [
+    "# /// script\\n",
+    "# requires-python = \\">=3.13\\"\\n",
+    "# dependencies = [\\n",
+    "#     \\"anywidget[dev]\\",\\n",
+    "#     \\"numpy\\",\\n",
+    "#     \\"pandas>=2\\",\\n",
+    "#     \\"polars==1\\",\\n",
+    "#     \\"requests\\",\\n",
+    "#     \\"rich\\",\\n",
+    "# ]\\n",
     "# ///"
    ]
   }
