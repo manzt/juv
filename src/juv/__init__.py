@@ -95,20 +95,20 @@ def run(
 
 def upgrade_legacy_jupyter_command(args: list[str]) -> None:
     """Check legacy lab/notebook/nbclassic command usage and upgrade to 'run' with deprecation notice."""
-    for i, arg in enumerate(args):
-        if i == 0:
-            continue
+
+    if len(args) >= 2:
+        command = args[1]
         if (
-            arg.startswith(("lab", "notebook", "nbclassic"))
-            and not args[i - 1].startswith("--")  # Make sure previous arg isn't a flag
-            and not arg.startswith("--")
+            command.startswith("lab")
+            or command.startswith("notebook")
+            or command.startswith("nbclassic")
         ):
             rich.print(
-                f"[bold]Warning:[/bold] The command '{arg}' is deprecated. "
-                f"Please use 'run' with `--jupyter={arg}` or set JUV_JUPYTER={arg}"
+                f"[bold]Warning:[/bold] The command '{command}' is deprecated. "
+                f"Please use 'run' with `--jupyter={command}` or set JUV_JUPYTER={command}"
             )
-            os.environ["JUV_JUPYTER"] = arg
-            args[i] = "run"
+            os.environ["JUV_JUPYTER"] = command
+            args[1] = "run"
 
 
 def main():
