@@ -67,18 +67,20 @@ Jupyter notebooks are the de facto standard for data science, yet they suffer
 from a [reproducibility
 crisis](https://leomurta.github.io/papers/pimentel2019a.pdf).
 
-I believe this reproducibility challenge is a clear example of how our tools
-can shape our practices, not some fundamental lack of care for reproducibility.
-In this case, our tools fail to support best practices, in part because 
-dependency management is **hard**. Notebooks are much like one-off Python
-scripts and most often are not a part of a package.
+This issue is a clear example of how our tools shape our practices, not some
+fundamental lack of care for reproducibility. In this case, established tools
+and worflows simply fail to help us fall into the [pit of
+success](https://blog.codinghorror.com/falling-into-the-pit-of-success/) when
+it comes to reproducibility with notebooks, particularly with regard to
+dependency management. Notebooks are much like one-off Python scripts and most
+often are not a part of a package.
 
 Being a "good steward" of notebooks in this context requires discipline (due to
 the manual nature of virtual environments) and knowledge of Python packaging -
-an unreasonable expectation for domain experts who just need to get their work
-done.
+a somewhat unreasonable expectation for domain experts who are focused on
+solving problems, not software engineering.
 
-So, generally you might find a "getting started" guide like:
+You'll often a "getting started" guide in the wild like this:
 
 ```sh
 python -m venv venv
@@ -91,24 +93,24 @@ Four lines of code, where a few things can go wrong. _What version of Python?_
 _What package version(s)?_ _What if we forget to activate the virtual
 environment?_
 
-In my opinion, the gold standard for a "getting started" guide should be a
-**single command** (i.e, no guide).
+The gold standard for a "getting started" guide should be a **single command**
+(i.e, no guide).
 
 ```sh
 <magic tool> run notebook.ipynb
 ```
 
-However, this gold standard has long been out of reach for Jupyter notebooks. Why?
+However, this gold standard has long been out of reach for Jupyter notebooks.
+Why?
 
-First, **virtual environments are a leaky abstraction**, and one deeply
-ingrained in the Python psyche: _create_, _activate_, _install_, _run_. Their
-historical "cost" has forced us to treat them as entities that must be managed
-explicitly. In fact, an entire ecosystem of tooling and best practices are
-oriented around supporting long-lived environments, rather than assumming
-something more ephemeral. End users separately _create_ and then _mutate_
-virtual environments with low-level tools like `pip`. The manual nature and
-overhead of these steps encourages sharing environments across projects - a
-poor practice for reproducibility.
+First, **virtual environments are a leaky abstraction** and deeply ingrained in
+the Python psyche: _create_, _activate_, _install_, _run_. Their historical
+"cost" has forced us to treat them as entities that must be managed explicitly.
+In fact, an entire ecosystem of tooling and best practices are oriented around
+supporting long-lived environments, rather than more ephemeral. End users
+separately _create_ and then _mutate_ virtual environments with low-level tools
+like `pip`. The manual nature and overhead of these steps encourages sharing
+environments across projects - a poor practice for reproducibility.
 
 Second, **only Python packages could historically specify their dependencies**.
 Lots of data science code lives in notebooks, not packages, and there has not
