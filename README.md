@@ -9,6 +9,23 @@ A toolkit for reproducible Jupyter notebooks, powered by [uv](https://docs.astra
 - 🚀 Launch ephemeral sessions for multiple front ends (e.g., JupyterLab, Notebook, NbClassic)
 - ⚡ Powered by [uv](https://docs.astral.sh/uv/) for fast dependency management
 
+## Installation
+
+**juv** requires that you have uv v0.4 or later installed. 
+
+You can install the `juv` cli globally:
+
+```sh
+uv tool install juv
+```
+
+or use the [`uvx`](https://docs.astral.sh/uv/guides/tools/) command to invoke
+it without installing:
+
+```sh
+uvx juv
+```
+
 ## Usage
 
 **juv** should feel familar for `uv` users. The goal is to extend its
