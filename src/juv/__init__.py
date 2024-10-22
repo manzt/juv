@@ -1,4 +1,4 @@
-"""A wrapper around `uv` to launch ephemeral Jupyter notebooks."""
+"""Reproducible Jupyter notebooks, powered by `uv`."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ def assert_uv_available():
 
 @click.group()
 def cli():
-    """A wrapper around uv to launch ephemeral Jupyter npunotebooks."""
+    """Reproducible Jupyter notebooks, powered by `uv`."""
 
 
 @cli.command()

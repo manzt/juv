@@ -1,23 +1,13 @@
 # juv
 
-A little wrapper around `uv` to launch ephemeral Jupyter notebooks.
+A toolkit for reproducible Jupyter notebooks, powered by [uv](https://docs.astral.sh/uv/).
 
-```sh
-uvx juv
-# Usage: juv [OPTIONS] COMMAND [ARGS]...
-#
-#   A wrapper around uv to launch ephemeral Jupyter notebooks.
-#
-# Options:
-#   --help  Show this message and exit.
-#
-# Commands:
-#   add      Add dependencies to the notebook.
-#   info     Display juv and uv versions.
-#   init     Initialize a new notebook.
-#   run      Launch a notebook or script.
-#   version  Display juv's version.
-```
+## features
+
+- 🗂️ Create, manage, and run reproducible notebooks
+- 📌 Pin dependencies with [PEP 723 - inline script metadata](https://peps.python.org/pep-0723)
+- 🚀 Launch ephemeral sessions for multiple front ends (e.g., JupyterLab, Notebook, NbClassic)
+- ⚡ Powered by [uv](https://docs.astral.sh/uv/) for fast dependency management
 
 ## usage
 
@@ -52,7 +42,7 @@ uvx juv run script.py
 # Launching Jupyter session...
 ```
 
-## what
+## why
 
 [PEP 723 (inline script metadata)](https://peps.python.org/pep-0723) allows
 specifying dependencies as comments within Python scripts, enabling
@@ -61,7 +51,7 @@ improve reproducibility in the data science ecosystem, since many analyses are
 shared as standalone code (not packages). However, _a lot_ of data science code
 lives in notebooks (`.ipynb` files), not Python scripts (`.py` files).
 
-`juv` bridges this gap by:
+**juv** bridges this gap by:
 
 - Extending PEP 723-style metadata support from `uv` to Jupyter notebooks
 - Launching Jupyter sessions with the specified dependencies
