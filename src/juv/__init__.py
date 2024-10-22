@@ -1,4 +1,4 @@
-"""Reproducible Jupyter notebooks, powered by `uv`."""
+"""Create, manage, and run reproducible Jupyter notebooks."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ def assert_uv_available():
 
 @click.group()
 def cli():
-    """Reproducible Jupyter notebooks, powered by `uv`."""
+    """Create, manage, and run reproducible Jupyter notebooks."""
 
 
 @cli.command()
