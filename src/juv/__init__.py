@@ -49,15 +49,21 @@ def info():
 
 @cli.command()
 @click.argument("file", type=click.Path(exists=False), required=False)
+@click.option("--with", "with_args", type=click.STRING, multiple=True)
 @click.option("--python", type=click.STRING, required=False)
 def init(
     file: str | None,
+    with_args: tuple[str, ...],
     python: str | None,
 ) -> None:
     """Initialize a new notebook."""
     from ._init import init
 
-    init(path=Path(file) if file else None, python=python)
+    init(
+        path=Path(file) if file else None,
+        python=python,
+        packages=[p for w in with_args for p in w.split(",")],
+    )
 
 
 @cli.command()
