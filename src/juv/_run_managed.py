@@ -63,6 +63,7 @@ def process_output(
     jupyter_version: str | None,
     filename: str,
     output_queue: Queue,
+    clear_console: bool = False,
 ):
     status = console.status("Starting Jupyter Server", spinner="dots")
     status.start()
@@ -80,12 +81,13 @@ def process_output(
         end = time.time()
         elapsed_ms = (end - start) * 1000
 
-        if elapsed_ms < 1000:
-            time_str = f"[b]{elapsed_ms:.1f}[/b] ms"
-        else:
-            time_str = f"[b]{elapsed_ms / 1000:.2f}[/b] s"
-
-        # console.clear()
+        time_str = (
+            f"[b]{elapsed_ms:.0f}[/b] ms"
+            if elapsed_ms < 1000
+            else f"[b]{elapsed_ms / 1000:.1f}[/b] s"
+        )
+        if clear_console:
+            console.clear()
         console.print()
         console.print(
             f"  [green][b]juv[/b] v{__version__}[/green] took {time_str}",
@@ -108,13 +110,9 @@ def process_output(
             no_wrap=True,
         )
 
-    local_url = None
-    direct_url = None
-
-    while True:
+    local_url, direct_url = None, None
+    while local_url is None or direct_url is None:
         line = output_queue.get()
-        if line is None:
-            break
 
         if "http://" in line:
             url = extract_url(line)
@@ -123,10 +121,8 @@ def process_output(
             elif not direct_url:
                 direct_url = format_url(url, path)
 
-        if local_url and direct_url:
-            status.stop()
-            display(local_url, direct_url)
-            break
+    status.stop()
+    display(local_url, direct_url)
 
 
 def run(
@@ -137,13 +133,12 @@ def run(
 ):
     console = Console()
     output_queue = Queue()
-    uv = os.fsdecode(find_uv_bin())
     process = subprocess.Popen(
-        [uv] + args,
+        [os.fsdecode(find_uv_bin())] + args,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
-        text=True,
         preexec_fn=os.setsid,
+        text=True,
     )
     output_thread = Thread(
         target=process_output,
