@@ -379,7 +379,9 @@ def test_init_creates_notebook_with_inline_meta(
     path = tmp_path / "empty.ipynb"
     result = invoke(["init", str(path)], uv_python="3.13")
     assert result.exit_code == 0
-    assert filter_tempfile_ipynb(result.stdout) == snapshot("Initialized notebook at `empty.ipynb`\n")
+    assert filter_tempfile_ipynb(result.stdout) == snapshot(
+        "Initialized notebook at `empty.ipynb`\n"
+    )
     assert filter_ids(path.read_text()) == snapshot("""\
 {
  "cells": [
@@ -416,7 +418,9 @@ def test_init_creates_notebook_with_specific_python_version(
     path = tmp_path / "empty.ipynb"
     result = invoke(["init", str(path), "--python=3.8"])
     assert result.exit_code == 0
-    assert filter_tempfile_ipynb(result.stdout) == snapshot("Initialized notebook at `empty.ipynb`\n")
+    assert filter_tempfile_ipynb(result.stdout) == snapshot(
+        "Initialized notebook at `empty.ipynb`\n"
+    )
     assert filter_ids(path.read_text()) == snapshot("""\
 {
  "cells": [
