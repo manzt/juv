@@ -1,7 +1,7 @@
 [project]
 name = "juv"
 version = "0.2.5"
-description = "A little wrapper around `uv` to launch ephemeral Jupyter notebooks."
+description = "A toolkit for reproducible Jupyter notebooks, powered by uv."
 readme = "README.md"
 authors = [{ name = "Trevor Manz", email = "trevor.j.manz@gmail.com" }]
 requires-python = ">=3.8"
