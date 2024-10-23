@@ -65,7 +65,7 @@ def process_output(
     output_queue: Queue,
     clear_console: bool = False,
 ):
-    status = console.status("Starting Jupyter Server", spinner="dots")
+    status = console.status("Running uv...", spinner="dots")
     status.start()
     start = time.time()
 
@@ -111,8 +111,14 @@ def process_output(
         )
 
     local_url, direct_url = None, None
+    server_started = False
+
     while local_url is None or direct_url is None:
         line = output_queue.get()
+
+        if line.startswith("[") and not server_started:
+            status.update("Jupyter server started", spinner="dots")
+            server_started = True
 
         if "http://" in line:
             url = extract_url(line)
