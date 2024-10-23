@@ -77,7 +77,7 @@ def process_output(
         "nbclassic": f"/notebooks/{filename}",
     }[jupyter]
 
-    def display(local_url: str, direct_url: str):
+    def display(local_url: str):
         end = time.time()
         elapsed_ms = (end - start) * 1000
 
@@ -88,32 +88,21 @@ def process_output(
         )
         if clear_console:
             console.clear()
-        console.print()
         console.print(
-            f"  [green][b]juv[/b] v{__version__}[/green] took {time_str}",
-            highlight=False,
-        )
-        console.print()
-        console.print(
-            f"  [dim][green b]➜[/green b]  [b]jupyter:[/b]   {jupyter} v{version}[/dim]",
-            highlight=False,
-            no_wrap=True,
-        )
-        console.print(
-            f"  [dim][green b]➜[/green b]  [b]local:[/b]     {local_url}[/dim]",
-            highlight=False,
-            no_wrap=True,
-        )
-        console.print(
-            f"  [dim][green b]➜[/green b]  [b]direct:[/b]    {direct_url}[/dim]",
+            f"""
+  [green][b]juv[/b] v{__version__}[/green] [dim]ready in[/dim] [white]{time_str}[/white]
+
+  [green b]➜[/green b]  [b]Local:[/b]    {local_url}
+  [dim][green b]➜[/green b]  [b]Jupyter:[/b]  {jupyter} v{version}[/dim]
+  """,
             highlight=False,
             no_wrap=True,
         )
 
-    local_url, direct_url = None, None
+    local_url = None
     server_started = False
 
-    while local_url is None or direct_url is None:
+    while local_url is None:
         line = output_queue.get()
 
         if line.startswith("[") and not server_started:
@@ -124,11 +113,9 @@ def process_output(
             url = extract_url(line)
             if "localhost" in url and not local_url:
                 local_url = format_url(url, path)
-            elif not direct_url:
-                direct_url = format_url(url, path)
 
     status.stop()
-    display(local_url, direct_url)
+    display(local_url)
 
 
 def run(
