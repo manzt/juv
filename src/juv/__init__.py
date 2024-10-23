@@ -17,7 +17,7 @@ def cli():
 
 
 @cli.command()
-@click.option("--all", is_flag=True, help="Include uv's version.")
+@click.option("--detail", is_flag=True)
 def version(all: bool) -> None:
     """Display juv's version."""
     from ._version import __version__
