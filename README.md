@@ -67,20 +67,19 @@ Jupyter notebooks are the de facto standard for data science, yet they suffer
 from a [reproducibility
 crisis](https://leomurta.github.io/papers/pimentel2019a.pdf).
 
-This issue is a clear example of how our tools shape our practices, not some
-fundamental lack of care for reproducibility. In this case, established tools
-and worflows simply fail to help us fall into the [pit of
-success](https://blog.codinghorror.com/falling-into-the-pit-of-success/) when
-it comes to reproducibility with notebooks, particularly with regard to
-dependency management. Notebooks are much like one-off Python scripts and most
-often are not a part of a package.
+This issue does not stem from a fundamental lack of care for reproducibility.
+Rather, our tools limit us from easily falling into the [pit of
+success](https://blog.codinghorror.com/falling-into-the-pit-of-success) with
+reproducible notebooks - in particular, managing dependencies.
 
-Being a "good steward" of notebooks in this context requires discipline (due to
-the manual nature of virtual environments) and knowledge of Python packaging -
-a somewhat unreasonable expectation for domain experts who are focused on
-solving problems, not software engineering.
+Notebooks are much like one-off Python scripts and therefore do not benefit
+from the same dependency management as packages. Being a "good steward" of
+notebooks in this context requires discipline (due to the manual nature of
+virtual environments) and knowledge of Python packaging - a somewhat
+unreasonable expectation for domain experts who are focused on solving
+problems, not software engineering.
 
-You'll often a "getting started" guide in the wild like this:
+You will often find a "getting started" guide in the wild like this:
 
 ```sh
 python -m venv venv
@@ -93,8 +92,8 @@ Four lines of code, where a few things can go wrong. _What version of Python?_
 _What package version(s)?_ _What if we forget to activate the virtual
 environment?_
 
-The gold standard for a "getting started" guide should be a **single command**
-(i.e, no guide).
+The gold standard for a "getting started" guide is a **single command** (i.e,
+no guide).
 
 ```sh
 <magic tool> run notebook.ipynb
@@ -107,10 +106,10 @@ First, **virtual environments are a leaky abstraction** and deeply ingrained in
 the Python psyche: _create_, _activate_, _install_, _run_. Their historical
 "cost" has forced us to treat them as entities that must be managed explicitly.
 In fact, an entire ecosystem of tooling and best practices are oriented around
-supporting long-lived environments, rather than more ephemeral. End users
-separately _create_ and then _mutate_ virtual environments with low-level tools
-like `pip`. The manual nature and overhead of these steps encourages sharing
-environments across projects - a poor practice for reproducibility.
+supporting long-lived environments, rather than something more ephemeral. End
+users separately _create_ and then _mutate_ virtual environments with low-level
+tools like `pip`. The manual nature and overhead of these steps encourages
+sharing environments across projects.
 
 Second, **only Python packages could historically specify their dependencies**.
 Lots of data science code lives in notebooks, not packages, and there has not
@@ -140,11 +139,11 @@ So, what if:
 This is the vision of **juv**
 
 > [!NOTE]
-> Dependency management is just one reproducibility challenge in notebooks
+> Dependency management is just one challenge for notebook reproducibility
 > (non-linear execution being another). **juv** aims to solve this specific
 > pain point for the existing ecosystem. I'm personally excited for initiatives
 > that [rethink notebooks](https://marimo.io/blog/lessons-learned) from the
-> ground up and make this kind of tool obsolete.
+> ground up and make a tool like **juv** obsolete.
 
 ## How
 
