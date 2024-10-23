@@ -18,12 +18,12 @@ def cli():
 
 @cli.command()
 @click.option("--detail", is_flag=True)
-def version(all: bool) -> None:
+def version(detail: bool) -> None:
     """Display juv's version."""
     from ._version import __version__
 
     print(f"juv {__version__}")
-    if all:
+    if detail:
         from ._uv import uv
 
         result = uv(["version"], check=True)
