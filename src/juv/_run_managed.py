@@ -20,12 +20,14 @@ from ._version import __version__
 from rich.console import Console
 
 
-def get_version(jupyter: str):
+def get_version(jupyter: str, version: str | None):
     with_jupyter = {
         "lab": "--with=jupyterlab",
         "notebook": "--with=notebook",
         "nbclassic": "--with=nbclassic",
     }[jupyter]
+    if version:
+        with_jupyter += f"=={version}"
     result = subprocess.run(
         [
             os.fsdecode(find_uv_bin()),
@@ -58,6 +60,7 @@ def format_url(url: str, path: str) -> str:
 def process_output(
     console: Console,
     jupyter: str,
+    jupyter_version: str | None,
     filename: str,
     output_queue: Queue,
 ):
@@ -65,7 +68,7 @@ def process_output(
     status.start()
     start = time.time()
 
-    version = get_version(jupyter)
+    version = get_version(jupyter, jupyter_version)
 
     path = {
         "lab": f"/tree/{filename}",
@@ -82,7 +85,7 @@ def process_output(
         else:
             time_str = f"[b]{elapsed_ms / 1000:.2f}[/b] s"
 
-        console.clear()
+        # console.clear()
         console.print()
         console.print(
             f"  [green][b]juv[/b] v{__version__}[/green] took {time_str}",
@@ -92,14 +95,17 @@ def process_output(
         console.print(
             f"  [dim][green b]➜[/green b]  [b]jupyter:[/b]   {jupyter} v{version}[/dim]",
             highlight=False,
+            no_wrap=True,
         )
         console.print(
             f"  [dim][green b]➜[/green b]  [b]local:[/b]     {local_url}[/dim]",
             highlight=False,
+            no_wrap=True,
         )
         console.print(
             f"  [dim][green b]➜[/green b]  [b]direct:[/b]    {direct_url}[/dim]",
             highlight=False,
+            no_wrap=True,
         )
 
     local_url = None
@@ -127,6 +133,7 @@ def run(
     args: list[str],
     filename: str,
     jupyter: typing.Literal["lab", "notebook", "nbclassic"],
+    jupyter_verison: str | None,
 ):
     console = Console()
     output_queue = Queue()
@@ -140,7 +147,7 @@ def run(
     )
     output_thread = Thread(
         target=process_output,
-        args=(console, jupyter, filename, output_queue),
+        args=(console, jupyter, jupyter_verison, filename, output_queue),
     )
     output_thread.start()
 

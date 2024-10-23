@@ -147,7 +147,7 @@ def run(
     if os.environ.get("JUV_RUN_MODE") == "managed":
         from ._run_managed import run as run_managed
 
-        run_managed(args, path.name, runtime.name)
+        run_managed(args, path.name, runtime.name, runtime.version)
     else:
         from uv import find_uv_bin
 
