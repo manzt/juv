@@ -1,5 +1,7 @@
 # juv
 
+![version](https://img.shields.io/pypi/v/juv.svg?labelColor=0273B7&color=0C3141)]
+
 A toolkit for reproducible Jupyter notebooks, powered by [uv](https://docs.astral.sh/uv/).
 
 ## Features
