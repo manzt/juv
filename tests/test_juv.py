@@ -462,7 +462,7 @@ def test_init_with_deps(
         ],
     )
     assert result.exit_code == 0
-    assert filter_tempfile_ipynb(result.stdout) == snapshot("Initialized notebook at `Untitled.ipynb`\n")
+    assert result.stdout == snapshot("Initialized notebook at `Untitled.ipynb`\n")
 
     path = tmp_path / "Untitled.ipynb"
     assert filter_ids(path.read_text()) == snapshot("""\
