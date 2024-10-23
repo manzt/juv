@@ -86,41 +86,38 @@ def to_notebook(fp: Path) -> tuple[str | None, dict]:
     return meta, nb
 
 
-def prepare_uvx_args(
+def prepare_uv_tool_run_args(
     target: Path,
     runtime: Runtime,
-    pep723_meta: Pep723Meta | None,
+    meta: Pep723Meta,
     python: str | None,
-    with_args: typing.Sequence[str],
+    extra_with_args: typing.Sequence[str],
 ) -> list[str]:
-    args = ["tool", "run", "--with=setuptools"]
+    jupyter_dependency = {
+        "notebook": "notebook",
+        "lab": "jupyterlab",
+        "nbclassic": "nbclassic",
+    }[runtime.name]
 
-    for with_arg in with_args:
-        args.append(f"--with={with_arg}")
+    if runtime.version:
+        jupyter_dependency += f"=={runtime.version}"
 
-    if python:
-        args.append(f"--python={python}")
+    juv_with_args = ["setuptools", jupyter_dependency]
 
-    if pep723_meta:
-        # only add --python if not specified by user and present in meta
-        if pep723_meta.requires_python and not python:
-            args.append(f"--python={pep723_meta.requires_python}")
+    if meta.requires_python and python is None:
+        python = meta.requires_python
 
-        if len(pep723_meta.dependencies) > 0:
-            args.append(f"--with={','.join(pep723_meta.dependencies)}")
-
-    version = runtime.version
-
-    match runtime.name:
-        case "lab":
-            args.append(f"--with=jupyterlab{'==' + version if version else ''}")
-        case "notebook":
-            args.append(f"--with=notebook{'==' + version if version else ''}")
-        case "nbclassic":
-            args.append(f"--with=nbclassic{'==' + version if version else ''}")
-
-    args.extend(["--from=jupyter-core", "jupyter", runtime.name, str(target)])
-    return args
+    return [
+        "tool",
+        "run",
+        *([f"--python={python}"] if python else []),
+        "--with=" + ",".join(juv_with_args),
+        *(["--with=" + ",".join(meta.dependencies)] if meta.dependencies else []),
+        *(["--with=" + ",".join(extra_with_args)] if extra_with_args else []),
+        "jupyter",
+        runtime.name,
+        str(target),
+    ]
 
 
 def run(
@@ -130,7 +127,6 @@ def run(
     with_args: typing.Sequence[str],
 ) -> None:
     """Launch a notebook or script."""
-    runtime = parse_notebook_specifier(jupyter)
     meta, nb = to_notebook(path)
 
     if path.suffix == ".py":
@@ -140,11 +136,16 @@ def run(
             f"Converted script to notebook `[cyan]{path.resolve().absolute()}[/cyan]`"
         )
 
-    meta = Pep723Meta.from_toml(meta) if meta else None
     uv = os.fsdecode(find_uv_bin())
-
+    args = prepare_uv_tool_run_args(
+        target=path,
+        runtime=parse_notebook_specifier(jupyter),
+        meta=Pep723Meta.from_toml(meta) if meta else Pep723Meta([], None),
+        python=python,
+        extra_with_args=with_args,
+    )
     try:
-        os.execvp(uv, prepare_uvx_args(path, runtime, meta, python, with_args))
+        os.execvp(uv, args)
     except OSError as e:
         rich.print(f"Error executing [cyan]uvx[/cyan]: {e}", file=sys.stderr)
         sys.exit(1)
