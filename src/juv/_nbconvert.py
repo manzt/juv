@@ -1,10 +1,15 @@
-from pathlib import Path
-import jupytext
+from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+import jupytext
 import nbformat.v4.nbbase as nb
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
-def code_cell(source: str, hidden: bool = False) -> dict:
+
+def code_cell(source: str, *, hidden: bool = False) -> dict:
     return nb.new_code_cell(
         source,
         metadata={"jupyter": {"source_hidden": hidden}},

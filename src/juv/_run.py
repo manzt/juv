@@ -1,17 +1,18 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
-from pathlib import Path
-import typing
-import tomllib
 import sys
+import typing
+from dataclasses import dataclass
 
-import rich
 import jupytext
+import rich
 
-from ._nbconvert import write_ipynb, code_cell
-from ._pep723 import parse_inline_script_metadata, extract_inline_meta
+from ._nbconvert import code_cell, write_ipynb
+from ._pep723 import extract_inline_meta, parse_inline_script_metadata
+
+if typing.TYPE_CHECKING:
+    from pathlib import Path
 
 
 @dataclass
@@ -21,7 +22,12 @@ class Pep723Meta:
 
     @classmethod
     def from_toml(cls, s: str) -> Pep723Meta:
-        meta = tomllib.loads(s)
+        # tomllib introduced in 3.11
+        if sys.version_info < (3, 11):
+            import toml
+        else:
+            import tomllib as toml
+        meta = toml.loads(s)
         return cls(
             dependencies=meta.get("dependencies", []),
             requires_python=meta.get("requires_python", None),
@@ -38,18 +44,22 @@ RuntimeName = typing.Literal["notebook", "lab", "nbclassic"]
 
 
 def is_notebook_kind(kind: str) -> typing.TypeGuard[RuntimeName]:
-    return kind in ["notebook", "lab", "nbclassic"]
+    return kind in {"notebook", "lab", "nbclassic"}
 
 
 def parse_notebook_specifier(value: str | None) -> Runtime:
     value = value or os.getenv("JUV_JUPYTER", "lab")
-    match value.split("@"):
-        case [kind, version] if is_notebook_kind(kind):
-            return Runtime(kind, version)
-        case [kind] if is_notebook_kind(kind):
-            return Runtime(kind)
 
-    raise ValueError(f"Invalid runtime specifier: {value}")
+    parts = value.split("@")
+
+    if len(parts) == 2 and is_notebook_kind(parts[0]):  # noqa: PLR2004
+        return Runtime(parts[0], parts[1])
+
+    if len(parts) == 1 and is_notebook_kind(parts[0]):
+        return Runtime(parts[0])
+
+    msg = f"Invalid runtime specifier: {value}"
+    raise ValueError(msg)
 
 
 def load_script_notebook(fp: Path) -> dict:
@@ -66,13 +76,13 @@ def load_script_notebook(fp: Path) -> dict:
 
 
 def to_notebook(fp: Path) -> tuple[str | None, dict]:
-    match fp.suffix:
-        case ".py":
-            nb = load_script_notebook(fp)
-        case ".ipynb":
-            nb = jupytext.read(fp, fmt="ipynb")
-        case _:
-            raise ValueError(f"Unsupported file extension: {fp.suffix}")
+    if fp.suffix == ".py":
+        nb = load_script_notebook(fp)
+    elif fp.suffix == ".ipynb":
+        nb = jupytext.read(fp, fmt="ipynb")
+    else:
+        msg = f"Unsupported file extension: {fp.suffix}"
+        raise ValueError(msg)
 
     meta = next(
         (
@@ -133,7 +143,7 @@ def run(
         path = path.with_suffix(".ipynb")
         write_ipynb(nb, path)
         rich.print(
-            f"Converted script to notebook `[cyan]{path.resolve().absolute()}[/cyan]`"
+            f"Converted script to notebook `[cyan]{path.resolve().absolute()}[/cyan]`",
         )
 
     args = prepare_uv_tool_run_args(
@@ -153,7 +163,7 @@ def run(
 
         uv = os.fsdecode(find_uv_bin())
         try:
-            os.execvp(uv, args)
+            os.execvp(uv, args)  # noqa: S606
         except OSError as e:
             rich.print(f"Error executing [cyan]uvx[/cyan]: {e}", file=sys.stderr)
             sys.exit(1)

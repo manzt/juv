@@ -9,10 +9,9 @@ on:
       - main
 
 jobs:
+
   Lint:
     runs-on: macos-14
-    if: github.repository == 'manzt/juv'
-
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
@@ -23,12 +22,28 @@ jobs:
           uv run ruff check
 
   Test:
-    runs-on: macos-14
-    if: github.repository == 'manzt/juv'
-
+    name: Python ${{ matrix.python-version }} / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          # TODO: Add Windows support
+          # - windows-latest
+        python-version:
+          - "3.8"
+          - "3.9"
+          - "3.10"
+          - "3.11"
+          - "3.12"
+          - "3.13"
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
         with:
           version: "0.4.x"
       - run: uv run pytest
+        env:
+          UV_PYTHON: ${{ matrix.python-version }}

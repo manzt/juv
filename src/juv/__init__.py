@@ -2,32 +2,32 @@
 
 from __future__ import annotations
 
-import sys
 import os
+import sys
 from pathlib import Path
-import click
 
+import click
 import rich
 
 
 @click.group()
 @click.version_option()
-def cli():
+def cli() -> None:
     """Create, manage, and run reproducible Jupyter notebooks."""
 
 
 @cli.command()
 @click.option("--detail", is_flag=True)
-def version(detail: bool) -> None:
+def version(*, detail: bool) -> None:
     """Display juv's version."""
     from ._version import __version__
 
-    print(f"juv {__version__}")
+    print(f"juv v{__version__}")  # noqa: T201
+
     if detail:
         from ._uv import uv
 
-        result = uv(["version"], check=True)
-        print(result.stdout.decode().strip())
+        uv(["version"], check=True)
 
 
 @cli.command()
@@ -42,11 +42,13 @@ def init(
     """Initialize a new notebook."""
     from ._init import init
 
-    init(
+    path = init(
         path=Path(file) if file else None,
         python=python,
         packages=[p for w in with_args for p in w.split(",")],
     )
+    path = os.path.relpath(path.resolve(), Path.cwd())
+    rich.print(f"Initialized notebook at `[cyan]{path}[/cyan]`")
 
 
 @cli.command()
@@ -58,7 +60,8 @@ def add(file: str, requirements: str | None, packages: tuple[str, ...]) -> None:
     from ._add import add
 
     add(path=Path(file), packages=packages, requirements=requirements)
-    rich.print(f"Updated `[cyan]{Path(file).resolve().absolute()}[/cyan]`")
+    path = os.path.relpath(Path(file).resolve(), Path.cwd())
+    rich.print(f"Updated `[cyan]{path}[/cyan]`")
 
 
 @cli.command()
@@ -77,7 +80,6 @@ def run(
     python: str | None,
 ) -> None:
     """Launch a notebook or script."""
-
     from ._run import run
 
     run(
@@ -89,23 +91,20 @@ def run(
 
 
 def upgrade_legacy_jupyter_command(args: list[str]) -> None:
-    """Check legacy lab/notebook/nbclassic command usage and upgrade to 'run' with deprecation notice."""
-
-    if len(args) >= 2:
+    """Check legacy command usage and upgrade to 'run' with deprecation notice."""
+    if len(args) >= 2:  # noqa: PLR2004
         command = args[1]
-        if (
-            command.startswith("lab")
-            or command.startswith("notebook")
-            or command.startswith("nbclassic")
-        ):
+        if command.startswith(("lab", "notebook", "nbclassic")):
             rich.print(
                 f"[bold]Warning:[/bold] The command '{command}' is deprecated. "
-                f"Please use 'run' with `--jupyter={command}` or set JUV_JUPYTER={command}"
+                f"Please use 'run' with `--jupyter={command}` "
+                f"or set JUV_JUPYTER={command}",
             )
             os.environ["JUV_JUPYTER"] = command
             args[1] = "run"
 
 
-def main():
+def main() -> None:
+    """Run the CLI."""
     upgrade_legacy_jupyter_command(sys.argv)
     cli()
