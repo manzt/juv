@@ -12,8 +12,10 @@ from queue import Queue
 from threading import Thread
 import os
 import typing
+import time
 
 from uv import find_uv_bin
+from ._version import __version__
 
 from rich.console import Console
 
@@ -53,24 +55,55 @@ def format_url(url: str, path: str) -> str:
     return f"[cyan]{re.sub(r':\d+', r'[b]\g<0>[/b]', url.rstrip("/tree"))}{path}[/cyan]"
 
 
-def process_output(console: Console, jupyter: str, filename: str, output_queue: Queue):
+def process_output(
+    console: Console,
+    jupyter: str,
+    filename: str,
+    output_queue: Queue,
+):
+    status = console.status("Starting Jupyter Server", spinner="dots")
+    status.start()
+    start = time.time()
+
     version = get_version(jupyter)
-    name = f"jupyter {jupyter}".upper()
-
-    console.clear()
-    version_str = f" v{version}" if version else ""
-    console.print()
-    console.print(f"  [green][b]{name}[/b]{version_str}[/green]")
-    console.print()
-
-    local_url = False
-    direct_url = False
 
     path = {
         "lab": f"/tree/{filename}",
         "notebook": f"/notebooks/{filename}",
         "nbclassic": f"/notebooks/{filename}",
     }[jupyter]
+
+    def display(local_url: str, direct_url: str):
+        end = time.time()
+        elapsed_ms = (end - start) * 1000
+
+        if elapsed_ms < 1000:
+            time_str = f"[b]{elapsed_ms:.1f}[/b] ms"
+        else:
+            time_str = f"[b]{elapsed_ms / 1000:.2f}[/b] s"
+
+        console.clear()
+        console.print()
+        console.print(
+            f"  [green][b]juv[/b] v{__version__}[/green] took {time_str}",
+            highlight=False,
+        )
+        console.print()
+        console.print(
+            f"  [dim][green b]➜[/green b]  [b]jupyter:[/b]   {jupyter} v{version}[/dim]",
+            highlight=False,
+        )
+        console.print(
+            f"  [dim][green b]➜[/green b]  [b]local:[/b]     {local_url}[/dim]",
+            highlight=False,
+        )
+        console.print(
+            f"  [dim][green b]➜[/green b]  [b]direct:[/b]    {direct_url}[/dim]",
+            highlight=False,
+        )
+
+    local_url = None
+    direct_url = None
 
     while True:
         line = output_queue.get()
@@ -80,15 +113,14 @@ def process_output(console: Console, jupyter: str, filename: str, output_queue: 
         if "http://" in line:
             url = extract_url(line)
             if "localhost" in url and not local_url:
-                console.print(
-                    f"  [green b]➜[/green b]  [b]Local:[/b]   {format_url(url, path)}"
-                )
-                local_url = True
+                local_url = format_url(url, path)
             elif not direct_url:
-                console.print(
-                    f"  [dim][green b]➜[/green b]  [b]Direct:[/b]  {format_url(url, path)}[/dim]"
-                )
-                direct_url = True
+                direct_url = format_url(url, path)
+
+        if local_url and direct_url:
+            status.stop()
+            display(local_url, direct_url)
+            break
 
 
 def run(
@@ -107,21 +139,16 @@ def run(
         preexec_fn=os.setsid,
     )
     output_thread = Thread(
-        target=process_output, args=(console, jupyter, filename, output_queue)
+        target=process_output,
+        args=(console, jupyter, filename, output_queue),
     )
     output_thread.start()
-
-    status = console.status("Starting Jupyter Server", spinner="dots")
-    status.start()
 
     try:
         while True and process.stdout:
             line = process.stdout.readline()
             if not line and process.poll() is not None:
                 break
-            if line and status:
-                status.stop()
-                status = None
             output_queue.put(line)
     except KeyboardInterrupt:
         with console.status("Shutting down..."):
