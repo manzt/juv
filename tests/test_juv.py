@@ -167,14 +167,12 @@ def test_python_override() -> None:
         python="3.12",
     ) == snapshot(
         [
-            "--from=jupyter-core",
             "--with=setuptools",
-            "--with",
-            "polars",
-            "--python",
-            "3.12",
+            "--with=polars",
+            "--python=3.12",
             "--with=numpy",
             "--with=nbclassic",
+            "--from=jupyter-core",
             "jupyter",
             "nbclassic",
             "test.ipynb",
@@ -191,13 +189,12 @@ def test_run_nbclassic() -> None:
         with_args=["polars"],
     ) == snapshot(
         [
-            "--from=jupyter-core",
             "--with=setuptools",
-            "--with",
-            "polars",
+            "--with=polars",
             "--python=3.8",
             "--with=numpy",
             "--with=nbclassic",
+            "--from=jupyter-core",
             "jupyter",
             "nbclassic",
             "test.ipynb",
@@ -214,9 +211,9 @@ def test_run_notebook() -> None:
         python=None,
     ) == snapshot(
         [
-            "--from=jupyter-core",
             "--with=setuptools",
             "--with=notebook==6.4.0",
+            "--from=jupyter-core",
             "jupyter",
             "notebook",
             "test.ipynb",
@@ -233,13 +230,12 @@ def test_run_jlab() -> None:
         with_args=["polars,altair"],
     ) == snapshot(
         [
-            "--from=jupyter-core",
             "--with=setuptools",
-            "--with",
-            "polars,altair",
+            "--with=polars,altair",
             "--python=3.8",
             "--with=numpy",
             "--with=jupyterlab",
+            "--from=jupyter-core",
             "jupyter",
             "lab",
             "test.ipynb",

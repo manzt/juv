@@ -92,13 +92,13 @@ def prepare_uvx_args(
     python: str | None,
     with_args: typing.Sequence[str],
 ) -> list[str]:
-    args = ["--from=jupyter-core", "--with=setuptools"]
+    args = ["--with=setuptools"]
 
     for with_arg in with_args:
-        args.extend(["--with", with_arg])
+        args.append(f"--with={with_arg}")
 
     if python:
-        args.extend(["--python", python])
+        args.append(f"--python={python}")
 
     if pep723_meta:
         # only add --python if not specified by user and present in meta
@@ -118,7 +118,7 @@ def prepare_uvx_args(
         case "nbclassic":
             args.append(f"--with=nbclassic{'==' + version if version else ''}")
 
-    args.extend(["jupyter", runtime.name, str(target)])
+    args.extend(["--from=jupyter-core", "jupyter", runtime.name, str(target)])
     return args
 
 
