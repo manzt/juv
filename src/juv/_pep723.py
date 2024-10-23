@@ -9,7 +9,7 @@ def parse_inline_script_metadata(script: str) -> str | None:
     """Parse PEP 723 metadata from an inline script."""
     name = "script"
     matches = list(
-        filter(lambda m: m.group("type") == name, re.finditer(REGEX, script))
+        filter(lambda m: m.group("type") == name, re.finditer(REGEX, script)),
     )
     if len(matches) > 1:
         msg = f"Multiple {name} blocks found"

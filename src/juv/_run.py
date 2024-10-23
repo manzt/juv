@@ -40,7 +40,7 @@ RuntimeName = typing.Literal["notebook", "lab", "nbclassic"]
 
 
 def is_notebook_kind(kind: str) -> typing.TypeGuard[RuntimeName]:
-    return kind in ["notebook", "lab", "nbclassic"]
+    return kind in {"notebook", "lab", "nbclassic"}
 
 
 def parse_notebook_specifier(value: str | None) -> Runtime:
@@ -137,7 +137,7 @@ def run(
         path = path.with_suffix(".ipynb")
         write_ipynb(nb, path)
         rich.print(
-            f"Converted script to notebook `[cyan]{path.resolve().absolute()}[/cyan]`"
+            f"Converted script to notebook `[cyan]{path.resolve().absolute()}[/cyan]`",
         )
 
     args = prepare_uv_tool_run_args(
@@ -157,7 +157,7 @@ def run(
 
         uv = os.fsdecode(find_uv_bin())
         try:
-            os.execvp(uv, args)
+            os.execvp(uv, args)  # noqa: S606
         except OSError as e:
             rich.print(f"Error executing [cyan]uvx[/cyan]: {e}", file=sys.stderr)
             sys.exit(1)

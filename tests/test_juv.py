@@ -40,20 +40,6 @@ print('Hello, world!')
 """
 
 
-@pytest.fixture
-def sample_notebook() -> dict:
-    return {
-        "cells": [
-            {
-                "cell_type": "code",
-                "source": "# /// script\n# dependencies = [\"pandas\"]\n# ///\n\nimport pandas as pd\nprint('Hello, pandas!')",
-            }
-        ],
-        "nbformat": 4,
-        "nbformat_minor": 5,
-    }
-
-
 def test_parse_pep723_meta(sample_script: str) -> None:
     meta = parse_inline_script_metadata(sample_script)
     assert meta == snapshot("""\
@@ -148,7 +134,7 @@ requires-python = ">=3.8"
  "nbformat_minor": 5
 }\
 """,
-        )
+        ),
     )
 
 
@@ -170,7 +156,7 @@ def test_python_override() -> None:
             "jupyter",
             "nbclassic",
             "test.ipynb",
-        ]
+        ],
     )
 
 
@@ -192,7 +178,7 @@ def test_run_nbclassic() -> None:
             "jupyter",
             "nbclassic",
             "test.ipynb",
-        ]
+        ],
     )
 
 
@@ -211,7 +197,7 @@ def test_run_notebook() -> None:
             "jupyter",
             "notebook",
             "test.ipynb",
-        ]
+        ],
     )
 
 
@@ -233,7 +219,7 @@ def test_run_jlab() -> None:
             "jupyter",
             "lab",
             "test.ipynb",
-        ]
+        ],
     )
 
 
@@ -250,7 +236,7 @@ def test_add_creates_inline_meta(tmp_path: pathlib.Path) -> None:
     result = invoke(["add", str(nb), "polars==1", "anywidget"], uv_python="3.11")
     assert result.exit_code == 0
     assert filter_tempfile_ipynb(result.stdout) == snapshot("""\
-Updated
+Updated 
 `<TEMPDIR>/foo.ipynb`
 """)
     assert filter_ids(nb.read_text()) == snapshot("""\
@@ -293,7 +279,7 @@ def test_add_prepends_script_meta(tmp_path: pathlib.Path) -> None:
     result = invoke(["add", str(path), "polars==1", "anywidget"], uv_python="3.10")
     assert result.exit_code == 0
     assert filter_tempfile_ipynb(result.stdout) == snapshot("""\
-Updated
+Updated 
 `<TEMPDIR>/empty.ipynb`
 """)
     assert filter_ids(path.read_text()) == snapshot("""\
@@ -347,13 +333,13 @@ def test_add_updates_existing_meta(tmp_path: pathlib.Path) -> None:
 # ///
 import numpy as np
 print('Hello, numpy!')"""),
-        ]
+        ],
     )
     write_ipynb(nb, path)
     result = invoke(["add", str(path), "polars==1", "anywidget"], uv_python="3.13")
     assert result.exit_code == 0
     assert filter_tempfile_ipynb(result.stdout) == snapshot("""\
-Updated
+Updated 
 `<TEMPDIR>/empty.ipynb`
 """)
     assert filter_ids(path.read_text()) == snapshot("""\
@@ -391,7 +377,7 @@ def test_init_creates_notebook_with_inline_meta(tmp_path: pathlib.Path) -> None:
     result = invoke(["init", str(path)], uv_python="3.13")
     assert result.exit_code == 0
     assert filter_tempfile_ipynb(result.stdout) == snapshot("""\
-Initialized notebook at
+Initialized notebook at 
 `<TEMPDIR>/empty.ipynb`
 """)
     assert filter_ids(path.read_text()) == snapshot("""\
@@ -429,7 +415,7 @@ def test_init_creates_notebook_with_specific_python_version(
     result = invoke(["init", str(path), "--python=3.8"])
     assert result.exit_code == 0
     assert filter_tempfile_ipynb(result.stdout) == snapshot("""\
-Initialized notebook at
+Initialized notebook at 
 `<TEMPDIR>/empty.ipynb`
 """)
     assert filter_ids(path.read_text()) == snapshot("""\
@@ -461,7 +447,8 @@ Initialized notebook at
 
 
 def test_init_with_deps(
-    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.chdir(tmp_path)
     result = invoke(
@@ -472,11 +459,11 @@ def test_init_with_deps(
             "--with=polars==1",
             "--with=anywidget[dev]",
             "--with=numpy,pandas>=2",
-        ]
+        ],
     )
     assert result.exit_code == 0
     assert filter_tempfile_ipynb(result.stdout) == snapshot("""\
-Initialized notebook at
+Initialized notebook at 
 `<TEMPDIR>/Untitled.ipynb`
 """)
 

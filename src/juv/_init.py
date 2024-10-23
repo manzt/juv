@@ -11,12 +11,14 @@ from ._nbconvert import code_cell, new_notebook, write_ipynb
 from ._uv import uv
 
 
-def new_notebook_with_inline_metadata(dir: Path, python: str | None = None) -> dict:
+def new_notebook_with_inline_metadata(
+    directory: Path, python: str | None = None,
+) -> dict:
     """Create a new notebook with inline metadata.
 
     Parameters
     ----------
-    dir : pathlib.Path
+    directory : pathlib.Path
         A directory for uv to run `uv init` in. This is used so that we can
         defer the selection of Python (if not specified) to uv.
     python : str, optional
@@ -33,7 +35,8 @@ def new_notebook_with_inline_metadata(dir: Path, python: str | None = None) -> d
         mode="w+",
         suffix=".py",
         delete=True,
-        dir=dir,
+        dir=directory,
+        encoding="utf-8",
     ) as f:
         uv(
             ["init", *(["--python", python] if python else []), "--script", f.name],
@@ -43,14 +46,13 @@ def new_notebook_with_inline_metadata(dir: Path, python: str | None = None) -> d
         return new_notebook(cells=[code_cell(contents, hidden=True)])
 
 
-
-def get_first_non_conflicting_untitled_ipynb(dir: Path) -> Path:
-    if not (dir / "Untitled.ipynb").exists():
-        return dir / "Untitled.ipynb"
+def get_first_non_conflicting_untitled_ipynb(directory: Path) -> Path:
+    if not (directory / "Untitled.ipynb").exists():
+        return directory / "Untitled.ipynb"
 
     for i in range(1, 100):
-        if not (dir / f"Untitled{i}.ipynb").exists():
-            return dir / f"Untitled{i}.ipynb"
+        if not (directory / f"Untitled{i}.ipynb").exists():
+            return directory / f"Untitled{i}.ipynb"
 
     msg = "Could not find an available UntitledX.ipynb"
     raise ValueError(msg)

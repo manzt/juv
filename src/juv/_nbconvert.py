@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-def code_cell(source: str, hidden: bool = False) -> dict:
+def code_cell(source: str, *, hidden: bool = False) -> dict:
     return nb.new_code_cell(
         source,
         metadata={"jupyter": {"source_hidden": hidden}},

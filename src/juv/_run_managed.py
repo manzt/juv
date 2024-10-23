@@ -1,8 +1,10 @@
-"""Experimental UI wrapper for Jupyter commands that provides a minimal, consistent terminal interface.
+"""Experimental UI wrapper that provides a minimal, consistent terminal interface.
 
-Manages the Jupyter process lifecycle (rather than replacing the process) and displays formatted URLs,
-while handling graceful shutdown. Supports Jupyter Lab, Notebook, and NBClassic variants.
+Manages the Jupyter process lifecycle (rather than replacing the process)
+and displays formatted URLs, while handling graceful shutdown.
+Supports Jupyter Lab, Notebook, and NBClassic variants.
 """
+
 from __future__ import annotations
 
 import os
@@ -20,7 +22,7 @@ from uv import find_uv_bin
 from ._version import __version__
 
 
-def get_version(jupyter: str, version: str | None):
+def get_version(jupyter: str, version: str | None) -> str:
     with_jupyter = {
         "lab": "--with=jupyterlab",
         "notebook": "--with=notebook",
@@ -28,7 +30,7 @@ def get_version(jupyter: str, version: str | None):
     }[jupyter]
     if version:
         with_jupyter += f"=={version}"
-    result = subprocess.run(
+    result = subprocess.run(  # noqa: S603
         [
             os.fsdecode(find_uv_bin()),
             "tool",
@@ -39,15 +41,15 @@ def get_version(jupyter: str, version: str | None):
             "--version",
         ],
         capture_output=True,
-        text=True, check=False,
+        text=True,
+        check=False,
     )
     return result.stdout.strip()
 
 
 def extract_url(log_line: str) -> str:
     match = re.search(r"http://[^\s]+", log_line)
-    assert match, f"URL not found in log line: {log_line}"
-    return match.group(0)
+    return "" if not match else match.group(0)
 
 
 def format_url(url: str, path: str) -> str:
@@ -63,7 +65,6 @@ def process_output(
     jupyter_version: str | None,
     filename: str,
     output_queue: Queue,
-    clear_console: bool = False,
 ) -> None:
     status = console.status("Running uv...", spinner="dots")
     status.start()
@@ -83,11 +84,10 @@ def process_output(
 
         time_str = (
             f"[b]{elapsed_ms:.0f}[/b] ms"
-            if elapsed_ms < 1000
+            if elapsed_ms < 1000  # noqa: PLR2004
             else f"[b]{elapsed_ms / 1000:.1f}[/b] s"
         )
-        if clear_console:
-            console.clear()
+
         console.print(
             f"""
   [green][b]juv[/b] v{__version__}[/green] [dim]ready in[/dim] [white]{time_str}[/white]
@@ -126,11 +126,11 @@ def run(
 ) -> None:
     console = Console()
     output_queue = Queue()
-    process = subprocess.Popen(
+    process = subprocess.Popen(  # noqa: S603
         [os.fsdecode(find_uv_bin()), *args],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
-        preexec_fn=os.setsid,
+        preexec_fn=os.setsid,  # noqa: PLW1509
         text=True,
     )
     output_thread = Thread(

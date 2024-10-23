@@ -28,16 +28,17 @@ line-length = 88
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
-    "D401",   # First line should be in imperative mood (remove to opt in)
-    "COM812", # Missing trailing comma (conflicts with ruff format)
-    "ISC001", # Import sorting (conflicts with ruff format)
+    "D211",   # No blank line before section (conflicts with D203)
+    "D213",   # Multi-line docstring summary should start at the second line
     "FIX002", # Fixable issue
+    "S404",   # Allow imports of subprocess
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*.py" = [
     "D",      # No docstrings in tests
     "S101",   # Use of assert
-    "B018",   # "useless expression", for accessing the Foo._repr_mimbundle_ descriptor
     "SLF001", # Access private member
+    "W291",   # Trailing whitespace
+    "INP001", # Allow implicit namespace
 ]

@@ -18,9 +18,11 @@ def cli() -> None:
 
 @cli.command()
 @click.option("--detail", is_flag=True)
-def version(detail: bool) -> None:
+def version(*, detail: bool) -> None:
     """Display juv's version."""
     from ._version import __version__
+
+    print(f"juv v{__version__}")  # noqa: T201
 
     if detail:
         from ._uv import uv
@@ -86,20 +88,20 @@ def run(
 
 
 def upgrade_legacy_jupyter_command(args: list[str]) -> None:
-    """Check legacy lab/notebook/nbclassic command usage and upgrade to 'run' with deprecation notice."""
-    if len(args) >= 2:
+    """Check legacy command usage and upgrade to 'run' with deprecation notice."""
+    if len(args) >= 2:  # noqa: PLR2004
         command = args[1]
-        if (
-            command.startswith(("lab", "notebook", "nbclassic"))
-        ):
+        if command.startswith(("lab", "notebook", "nbclassic")):
             rich.print(
                 f"[bold]Warning:[/bold] The command '{command}' is deprecated. "
-                f"Please use 'run' with `--jupyter={command}` or set JUV_JUPYTER={command}"
+                f"Please use 'run' with `--jupyter={command}` "
+                f"or set JUV_JUPYTER={command}",
             )
             os.environ["JUV_JUPYTER"] = command
             args[1] = "run"
 
 
 def main() -> None:
+    """Run the CLI."""
     upgrade_legacy_jupyter_command(sys.argv)
     cli()
