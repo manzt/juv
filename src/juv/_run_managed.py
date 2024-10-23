@@ -13,6 +13,7 @@ from threading import Thread
 import os
 import typing
 
+from uv import find_uv_bin
 
 from rich.console import Console
 
@@ -25,9 +26,9 @@ def get_version(jupyter: str):
     }[jupyter]
     result = subprocess.run(
         [
-            "uvx",
-            "--quiet",
-            "--from=jupyter-core",
+            os.fsdecode(find_uv_bin()),
+            "tool",
+            "run",
             with_jupyter,
             "jupyter",
             jupyter,
@@ -91,14 +92,15 @@ def process_output(console: Console, jupyter: str, filename: str, output_queue: 
 
 
 def run(
-    uvx_args: list[str],
+    args: list[str],
     filename: str,
     jupyter: typing.Literal["lab", "notebook", "nbclassic"],
 ):
     console = Console()
     output_queue = Queue()
+    uv = os.fsdecode(find_uv_bin())
     process = subprocess.Popen(
-        ["uvx"] + uvx_args,
+        [uv] + args,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
