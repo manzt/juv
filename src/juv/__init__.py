@@ -6,33 +6,28 @@ import sys
 import os
 from pathlib import Path
 import click
-import shutil
 
 import rich
 
 
-def assert_uv_available():
-    if shutil.which("uv") is None:
-        rich.print("Error: 'uv' command not found.", file=sys.stderr)
-        rich.print("Please install 'uv' to run `juv`.", file=sys.stderr)
-        rich.print(
-            "For more information, visit: https://github.com/astral-sh/uv",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-
 @click.group()
+@click.version_option()
 def cli():
     """Create, manage, and run reproducible Jupyter notebooks."""
 
 
 @cli.command()
-def version() -> None:
+@click.option("--all", is_flag=True, help="Include uv's version.")
+def version(all: bool) -> None:
     """Display juv's version."""
     from ._version import __version__
 
     print(f"juv {__version__}")
+    if all:
+        from ._uv import uv
+
+        result = uv(["version"], check=True)
+        print(result.stdout.decode().strip())
 
 
 @cli.command()

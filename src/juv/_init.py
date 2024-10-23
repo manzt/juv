@@ -38,7 +38,6 @@ def new_notebook_with_inline_metadata(dir: Path, python: str | None = None) -> d
             ["init", *(["--python", python] if python else []), "--script", f.name],
             check=True,
         )
-        f.seek(0)
         contents = f.read().strip()
         notebook = new_notebook(cells=[code_cell(contents, hidden=True)])
 

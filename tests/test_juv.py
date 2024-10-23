@@ -1,6 +1,5 @@
 import pytest
 from pathlib import Path
-from unittest.mock import patch
 import pathlib
 import re
 import os
@@ -11,7 +10,7 @@ from nbformat.v4.nbbase import new_code_cell, new_notebook
 
 from click.testing import CliRunner, Result
 
-from juv import cli, assert_uv_available
+from juv import cli
 from juv._nbconvert import write_ipynb
 from juv._pep723 import parse_inline_script_metadata
 from juv._run import to_notebook, prepare_uvx_args, Runtime, Pep723Meta
@@ -89,13 +88,12 @@ arr = np.array([1, 2, 3])""")
     output = jupytext.writes(nb, fmt="ipynb")
     output = filter_ids(output)
 
-    assert (meta, output) == snapshot(
-        (
-            """\
+    assert (meta, output) == snapshot((
+        """\
 dependencies = ["numpy"]
 requires-python = ">=3.8"
 """,
-            """\
+        """\
 {
  "cells": [
   {
@@ -148,14 +146,7 @@ requires-python = ">=3.8"
  "nbformat_minor": 5
 }\
 """,
-        )
-    )
-
-
-def test_assert_uv_available() -> None:
-    with patch("shutil.which", return_value=None):
-        with pytest.raises(SystemExit):
-            assert_uv_available()
+    ))
 
 
 def test_python_override() -> None:
@@ -165,19 +156,17 @@ def test_python_override() -> None:
         pep723_meta=Pep723Meta(dependencies=["numpy"], requires_python="3.8"),
         with_args=["polars"],
         python="3.12",
-    ) == snapshot(
-        [
-            "--with=setuptools",
-            "--with=polars",
-            "--python=3.12",
-            "--with=numpy",
-            "--with=nbclassic",
-            "--from=jupyter-core",
-            "jupyter",
-            "nbclassic",
-            "test.ipynb",
-        ]
-    )
+    ) == snapshot([
+        "--with=setuptools",
+        "--with=polars",
+        "--python=3.12",
+        "--with=numpy",
+        "--with=nbclassic",
+        "--from=jupyter-core",
+        "jupyter",
+        "nbclassic",
+        "test.ipynb",
+    ])
 
 
 def test_run_nbclassic() -> None:
@@ -187,19 +176,17 @@ def test_run_nbclassic() -> None:
         pep723_meta=Pep723Meta(dependencies=["numpy"], requires_python="3.8"),
         python=None,
         with_args=["polars"],
-    ) == snapshot(
-        [
-            "--with=setuptools",
-            "--with=polars",
-            "--python=3.8",
-            "--with=numpy",
-            "--with=nbclassic",
-            "--from=jupyter-core",
-            "jupyter",
-            "nbclassic",
-            "test.ipynb",
-        ]
-    )
+    ) == snapshot([
+        "--with=setuptools",
+        "--with=polars",
+        "--python=3.8",
+        "--with=numpy",
+        "--with=nbclassic",
+        "--from=jupyter-core",
+        "jupyter",
+        "nbclassic",
+        "test.ipynb",
+    ])
 
 
 def test_run_notebook() -> None:
@@ -209,16 +196,14 @@ def test_run_notebook() -> None:
         pep723_meta=Pep723Meta(dependencies=[], requires_python=None),
         with_args=[],
         python=None,
-    ) == snapshot(
-        [
-            "--with=setuptools",
-            "--with=notebook==6.4.0",
-            "--from=jupyter-core",
-            "jupyter",
-            "notebook",
-            "test.ipynb",
-        ]
-    )
+    ) == snapshot([
+        "--with=setuptools",
+        "--with=notebook==6.4.0",
+        "--from=jupyter-core",
+        "jupyter",
+        "notebook",
+        "test.ipynb",
+    ])
 
 
 def test_run_jlab() -> None:
@@ -228,19 +213,17 @@ def test_run_jlab() -> None:
         pep723_meta=Pep723Meta(dependencies=["numpy"], requires_python="3.8"),
         python=None,
         with_args=["polars,altair"],
-    ) == snapshot(
-        [
-            "--with=setuptools",
-            "--with=polars,altair",
-            "--python=3.8",
-            "--with=numpy",
-            "--with=jupyterlab",
-            "--from=jupyter-core",
-            "jupyter",
-            "lab",
-            "test.ipynb",
-        ]
-    )
+    ) == snapshot([
+        "--with=setuptools",
+        "--with=polars,altair",
+        "--python=3.8",
+        "--with=numpy",
+        "--with=jupyterlab",
+        "--from=jupyter-core",
+        "jupyter",
+        "lab",
+        "test.ipynb",
+    ])
 
 
 def filter_tempfile_ipynb(output: str) -> str:
@@ -470,16 +453,14 @@ def test_init_with_deps(
     tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.chdir(tmp_path)
-    result = invoke(
-        [
-            "init",
-            "--with",
-            "rich,requests",
-            "--with=polars==1",
-            "--with=anywidget[dev]",
-            "--with=numpy,pandas>=2",
-        ]
-    )
+    result = invoke([
+        "init",
+        "--with",
+        "rich,requests",
+        "--with=polars==1",
+        "--with=anywidget[dev]",
+        "--with=numpy,pandas>=2",
+    ])
     print(result.stdout)
     assert result.exit_code == 0
     assert filter_tempfile_ipynb(result.stdout) == snapshot("""\
