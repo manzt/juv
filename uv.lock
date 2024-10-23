@@ -198,6 +198,7 @@ dependencies = [
     { name = "click" },
     { name = "jupytext" },
     { name = "rich" },
+    { name = "toml" },
     { name = "uv" },
 ]
 
@@ -213,6 +214,7 @@ requires-dist = [
     { name = "click", specifier = ">=8.1.7" },
     { name = "jupytext", specifier = ">=1.16.4" },
     { name = "rich", specifier = ">=13.9.2" },
+    { name = "toml", specifier = ">=0.10.2" },
     { name = "uv", specifier = ">=0.4.25" },
 ]
 

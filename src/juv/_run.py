@@ -7,7 +7,6 @@ from dataclasses import dataclass
 
 import jupytext
 import rich
-import tomllib
 
 from ._nbconvert import code_cell, write_ipynb
 from ._pep723 import extract_inline_meta, parse_inline_script_metadata
@@ -23,7 +22,12 @@ class Pep723Meta:
 
     @classmethod
     def from_toml(cls, s: str) -> Pep723Meta:
-        meta = tomllib.loads(s)
+        # tomllib introduced in 3.11
+        if sys.version_info < (3, 11):
+            import toml
+        else:
+            import tomllib as toml
+        meta = toml.loads(s)
         return cls(
             dependencies=meta.get("dependencies", []),
             requires_python=meta.get("requires_python", None),
