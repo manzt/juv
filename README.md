@@ -11,16 +11,16 @@ A toolkit for reproducible Jupyter notebooks, powered by [uv](https://docs.astra
 
 ## Installation
 
-**juv** requires that you have uv v0.4 or later installed. 
-
-You can install the `juv` cli globally:
+**juv** is published to the Python Package Index (PyPI) and can be installed
+globally with `uv` or `pipx` (recommended):
 
 ```sh
 uv tool install juv
+# or pipx install juv
 ```
 
-or use the [`uvx`](https://docs.astral.sh/uv/guides/tools/) command to invoke
-it without installing:
+You can also use the [`uvx`](https://docs.astral.sh/uv/guides/tools/) command
+to invoke it without installing:
 
 ```sh
 uvx juv
