@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from pathlib import Path
 import tempfile
-import subprocess
 import typing
 import sys
 
 import rich
 
 from ._nbconvert import new_notebook, code_cell, write_ipynb
+from ._uv import uv
 
 
 def new_notebook_with_inline_metadata(dir: Path, python: str | None = None) -> dict:
@@ -34,12 +34,10 @@ def new_notebook_with_inline_metadata(dir: Path, python: str | None = None) -> d
         delete=True,
         dir=dir,
     ) as f:
-        cmd = ["uv", "init", "--quiet"]
-        if python:
-            cmd.extend(["--python", python])
-        cmd.extend(["--script", f.name])
-
-        subprocess.run(cmd)
+        uv(
+            ["init", *(["--python", python] if python else []), "--script", f.name],
+            check=True,
+        )
         f.seek(0)
         contents = f.read().strip()
         notebook = new_notebook(cells=[code_cell(contents, hidden=True)])

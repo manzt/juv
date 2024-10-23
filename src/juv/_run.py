@@ -12,6 +12,7 @@ import jupytext
 
 from ._nbconvert import write_ipynb, code_cell
 from ._pep723 import parse_inline_script_metadata, extract_inline_meta
+from uv import find_uv_bin
 
 
 @dataclass
@@ -92,7 +93,7 @@ def prepare_uvx_args(
     python: str | None,
     with_args: typing.Sequence[str],
 ) -> list[str]:
-    args = ["--with=setuptools"]
+    args = ["tool", "run", "--with=setuptools"]
 
     for with_arg in with_args:
         args.append(f"--with={with_arg}")
@@ -140,9 +141,10 @@ def run(
         )
 
     meta = Pep723Meta.from_toml(meta) if meta else None
+    uv = os.fsdecode(find_uv_bin())
 
     try:
-        os.execvp("uvx", prepare_uvx_args(path, runtime, meta, python, with_args))
+        os.execvp(uv, prepare_uvx_args(path, runtime, meta, python, with_args))
     except OSError as e:
         rich.print(f"Error executing [cyan]uvx[/cyan]: {e}", file=sys.stderr)
         sys.exit(1)
