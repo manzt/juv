@@ -7,7 +7,7 @@ from pathlib import Path
 
 import rich
 
-from ._nbconvert import code_cell, new_notebook, write_ipynb
+from ._nbutils import code_cell, new_notebook, write_ipynb
 from ._uv import uv
 
 
@@ -44,7 +44,7 @@ def new_notebook_with_inline_metadata(
             check=True,
         )
         contents = f.read().strip()
-        return new_notebook(cells=[code_cell(contents, hidden=True)])
+        return new_notebook(cells=[code_cell(contents, hidden=True), code_cell("")])
 
 
 def get_first_non_conflicting_untitled_ipynb(directory: Path) -> Path:

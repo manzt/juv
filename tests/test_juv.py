@@ -12,7 +12,7 @@ from inline_snapshot import snapshot
 from nbformat.v4.nbbase import new_code_cell, new_notebook
 
 from juv import cli
-from juv._nbconvert import write_ipynb
+from juv._nbutils import write_ipynb
 from juv._pep723 import parse_inline_script_metadata
 from juv._run import Pep723Meta, Runtime, prepare_uv_tool_run_args, to_notebook
 
@@ -401,6 +401,14 @@ def test_init_creates_notebook_with_inline_meta(
     "# dependencies = []\\n",
     "# ///"
    ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "<ID>",
+   "metadata": {},
+   "outputs": [],
+   "source": []
   }
  ],
  "metadata": {},
@@ -440,6 +448,14 @@ def test_init_creates_notebook_with_specific_python_version(
     "# dependencies = []\\n",
     "# ///"
    ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "<ID>",
+   "metadata": {},
+   "outputs": [],
+   "source": []
   }
  ],
  "metadata": {},
@@ -494,6 +510,14 @@ def test_init_with_deps(
     "# ]\\n",
     "# ///"
    ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "<ID>",
+   "metadata": {},
+   "outputs": [],
+   "source": []
   }
  ],
  "metadata": {},

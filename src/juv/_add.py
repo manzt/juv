@@ -5,7 +5,7 @@ import typing
 
 import jupytext
 
-from ._nbconvert import code_cell, write_ipynb
+from ._nbutils import code_cell, write_ipynb
 from ._pep723 import includes_inline_metadata
 from ._uv import uv
 
