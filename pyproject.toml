@@ -5,12 +5,27 @@ description = "A little wrapper around `uv` to launch ephemeral Jupyter notebook
 readme = "README.md"
 authors = [{ name = "Trevor Manz", email = "trevor.j.manz@gmail.com" }]
 requires-python = ">=3.8"
+license = { text = "MIT" }
 dependencies = [
     "click>=8.1.7",
     "jupytext>=1.16.4",
     "rich>=13.9.2",
     "toml>=0.10.2; python_version < '3.11'",
     "uv>=0.4.25",
+]
+classifiers = [
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3 :: Only",
 ]
 
 [project.scripts]

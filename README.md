@@ -1,5 +1,10 @@
 # juv
 
+[![version](https://img.shields.io/pypi/v/juv.svg?labelColor=0273B7&color=0C3141)](https://pypi.org/pypi/juv)
+[![license](https://img.shields.io/pypi/l/juv.svg)](https://github.com/manzt/juv/blob/main/LICENSE)
+[![python versions](https://img.shields.io/pypi/pyversions/juv.svg)](https://pypi.python.org/pypi/juv)
+[![Actions status](https://github.com/manzt/juv/actions/workflows/ci.yml/badge.svg)](https://github.com/manzt/juv/actions)
+
 A toolkit for reproducible Jupyter notebooks, powered by [uv](https://docs.astral.sh/uv/).
 
 ## Features
