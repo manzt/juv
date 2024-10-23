@@ -45,11 +45,14 @@ def is_notebook_kind(kind: str) -> typing.TypeGuard[RuntimeName]:
 
 def parse_notebook_specifier(value: str | None) -> Runtime:
     value = value or os.getenv("JUV_JUPYTER", "lab")
-    match value.split("@"):
-        case [kind, version] if is_notebook_kind(kind):
-            return Runtime(kind, version)
-        case [kind] if is_notebook_kind(kind):
-            return Runtime(kind)
+
+    parts = value.split("@")
+
+    if len(parts) == 2 and is_notebook_kind(parts[0]):  # noqa: PLR2004
+        return Runtime(parts[0], parts[1])
+
+    if len(parts) == 1 and is_notebook_kind(parts[0]):
+        return Runtime(parts[0])
 
     msg = f"Invalid runtime specifier: {value}"
     raise ValueError(msg)
@@ -69,14 +72,13 @@ def load_script_notebook(fp: Path) -> dict:
 
 
 def to_notebook(fp: Path) -> tuple[str | None, dict]:
-    match fp.suffix:
-        case ".py":
-            nb = load_script_notebook(fp)
-        case ".ipynb":
-            nb = jupytext.read(fp, fmt="ipynb")
-        case _:
-            msg = f"Unsupported file extension: {fp.suffix}"
-            raise ValueError(msg)
+    if fp.suffix == ".py":
+        nb = load_script_notebook(fp)
+    elif fp.suffix == ".ipynb":
+        nb = jupytext.read(fp, fmt="ipynb")
+    else:
+        msg = f"Unsupported file extension: {fp.suffix}"
+        raise ValueError(msg)
 
     meta = next(
         (
@@ -149,11 +151,11 @@ def run(
     )
 
     if os.environ.get("JUV_RUN_MODE") == "managed":
-        from ._run_managed import run as run_managed
+        from ._run_managed import run as run_managed  # noqa: PLC0415
 
         run_managed(args, path.name, runtime.name, runtime.version)
     else:
-        from uv import find_uv_bin
+        from uv import find_uv_bin  # noqa: PLC0415
 
         uv = os.fsdecode(find_uv_bin())
         try:
