@@ -55,8 +55,10 @@ def extract_url(log_line: str) -> str:
 def format_url(url: str, path: str) -> str:
     if "?" in url:
         url, query = url.split("?", 1)
-        return format_url(url.rstrip("/tree"), path) + f"[dim]?{query}[/dim]"
-    return f"[cyan]{re.sub(r':\d+', r'[b]\g<0>[/b]', url.rstrip("/tree"))}{path}[/cyan]"
+        url = url.removesuffix("/tree")
+        return format_url(url, path) + f"[dim]?{query}[/dim]"
+    url = url.removesuffix("/tree")
+    return f"[cyan]{re.sub(r':\d+', r'[b]\g<0>[/b]', url)}{path}[/cyan]"
 
 
 def process_output(
