@@ -3,6 +3,7 @@
 Manages the Jupyter process lifecycle (rather than replacing the process) and displays formatted URLs,
 while handling graceful shutdown. Supports Jupyter Lab, Notebook, and NBClassic variants.
 """
+from __future__ import annotations
 
 import os
 import re
@@ -63,7 +64,7 @@ def process_output(
     filename: str,
     output_queue: Queue,
     clear_console: bool = False,
-):
+) -> None:
     status = console.status("Running uv...", spinner="dots")
     status.start()
     start = time.time()
@@ -76,7 +77,7 @@ def process_output(
         "nbclassic": f"/notebooks/{filename}",
     }[jupyter]
 
-    def display(local_url: str):
+    def display(local_url: str) -> None:
         end = time.time()
         elapsed_ms = (end - start) * 1000
 
@@ -122,11 +123,11 @@ def run(
     filename: str,
     jupyter: typing.Literal["lab", "notebook", "nbclassic"],
     jupyter_verison: str | None,
-):
+) -> None:
     console = Console()
     output_queue = Queue()
     process = subprocess.Popen(
-        [os.fsdecode(find_uv_bin())] + args,
+        [os.fsdecode(find_uv_bin()), *args],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         preexec_fn=os.setsid,

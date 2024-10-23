@@ -40,9 +40,8 @@ def new_notebook_with_inline_metadata(dir: Path, python: str | None = None) -> d
             check=True,
         )
         contents = f.read().strip()
-        notebook = new_notebook(cells=[code_cell(contents, hidden=True)])
+        return new_notebook(cells=[code_cell(contents, hidden=True)])
 
-    return notebook
 
 
 def get_first_non_conflicting_untitled_ipynb(dir: Path) -> Path:
@@ -53,7 +52,8 @@ def get_first_non_conflicting_untitled_ipynb(dir: Path) -> Path:
         if not (dir / f"Untitled{i}.ipynb").exists():
             return dir / f"Untitled{i}.ipynb"
 
-    raise ValueError("Could not find an available UntitledX.ipynb")
+    msg = "Could not find an available UntitledX.ipynb"
+    raise ValueError(msg)
 
 
 def init(

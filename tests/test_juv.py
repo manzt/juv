@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import pathlib
 import re
@@ -69,7 +71,7 @@ def filter_ids(output: str) -> str:
     return re.sub(r'"id": "[a-zA-Z0-9-]+"', '"id": "<ID>"', output)
 
 
-def test_to_notebook_script(tmp_path: pathlib.Path):
+def test_to_notebook_script(tmp_path: pathlib.Path) -> None:
     script = tmp_path / "script.py"
     script.write_text("""# /// script
 # dependencies = ["numpy"]
@@ -248,7 +250,7 @@ def test_add_creates_inline_meta(tmp_path: pathlib.Path) -> None:
     result = invoke(["add", str(nb), "polars==1", "anywidget"], uv_python="3.11")
     assert result.exit_code == 0
     assert filter_tempfile_ipynb(result.stdout) == snapshot("""\
-Updated 
+Updated
 `<TEMPDIR>/foo.ipynb`
 """)
     assert filter_ids(nb.read_text()) == snapshot("""\
@@ -291,7 +293,7 @@ def test_add_prepends_script_meta(tmp_path: pathlib.Path) -> None:
     result = invoke(["add", str(path), "polars==1", "anywidget"], uv_python="3.10")
     assert result.exit_code == 0
     assert filter_tempfile_ipynb(result.stdout) == snapshot("""\
-Updated 
+Updated
 `<TEMPDIR>/empty.ipynb`
 """)
     assert filter_ids(path.read_text()) == snapshot("""\
@@ -351,7 +353,7 @@ print('Hello, numpy!')"""),
     result = invoke(["add", str(path), "polars==1", "anywidget"], uv_python="3.13")
     assert result.exit_code == 0
     assert filter_tempfile_ipynb(result.stdout) == snapshot("""\
-Updated 
+Updated
 `<TEMPDIR>/empty.ipynb`
 """)
     assert filter_ids(path.read_text()) == snapshot("""\
@@ -389,7 +391,7 @@ def test_init_creates_notebook_with_inline_meta(tmp_path: pathlib.Path) -> None:
     result = invoke(["init", str(path)], uv_python="3.13")
     assert result.exit_code == 0
     assert filter_tempfile_ipynb(result.stdout) == snapshot("""\
-Initialized notebook at 
+Initialized notebook at
 `<TEMPDIR>/empty.ipynb`
 """)
     assert filter_ids(path.read_text()) == snapshot("""\
@@ -427,7 +429,7 @@ def test_init_creates_notebook_with_specific_python_version(
     result = invoke(["init", str(path), "--python=3.8"])
     assert result.exit_code == 0
     assert filter_tempfile_ipynb(result.stdout) == snapshot("""\
-Initialized notebook at 
+Initialized notebook at
 `<TEMPDIR>/empty.ipynb`
 """)
     assert filter_ids(path.read_text()) == snapshot("""\
@@ -472,10 +474,9 @@ def test_init_with_deps(
             "--with=numpy,pandas>=2",
         ]
     )
-    print(result.stdout)
     assert result.exit_code == 0
     assert filter_tempfile_ipynb(result.stdout) == snapshot("""\
-Initialized notebook at 
+Initialized notebook at
 `<TEMPDIR>/Untitled.ipynb`
 """)
 

@@ -12,7 +12,7 @@ import rich
 
 @click.group()
 @click.version_option()
-def cli():
+def cli() -> None:
     """Create, manage, and run reproducible Jupyter notebooks."""
 
 
@@ -22,12 +22,10 @@ def version(detail: bool) -> None:
     """Display juv's version."""
     from ._version import __version__
 
-    print(f"juv {__version__}")
     if detail:
         from ._uv import uv
 
-        result = uv(["version"], check=True)
-        print(result.stdout.decode().strip())
+        uv(["version"], check=True)
 
 
 @cli.command()
@@ -92,9 +90,7 @@ def upgrade_legacy_jupyter_command(args: list[str]) -> None:
     if len(args) >= 2:
         command = args[1]
         if (
-            command.startswith("lab")
-            or command.startswith("notebook")
-            or command.startswith("nbclassic")
+            command.startswith(("lab", "notebook", "nbclassic"))
         ):
             rich.print(
                 f"[bold]Warning:[/bold] The command '{command}' is deprecated. "
@@ -104,6 +100,6 @@ def upgrade_legacy_jupyter_command(args: list[str]) -> None:
             args[1] = "run"
 
 
-def main():
+def main() -> None:
     upgrade_legacy_jupyter_command(sys.argv)
     cli()

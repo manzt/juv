@@ -1,7 +1,12 @@
-from pathlib import Path
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import jupytext
 import nbformat.v4.nbbase as nb
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def code_cell(source: str, hidden: bool = False) -> dict:

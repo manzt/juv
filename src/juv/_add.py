@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import tempfile
 import typing
-from pathlib import Path
 
 import jupytext
 
 from ._nbconvert import code_cell, write_ipynb
 from ._pep723 import includes_inline_metadata
 from ._uv import uv
+
+if typing.TYPE_CHECKING:
+    from pathlib import Path
 
 T = typing.TypeVar("T")
 

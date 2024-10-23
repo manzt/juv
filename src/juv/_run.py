@@ -4,7 +4,6 @@ import os
 import sys
 import typing
 from dataclasses import dataclass
-from pathlib import Path
 
 import jupytext
 import rich
@@ -12,6 +11,9 @@ import tomllib
 
 from ._nbconvert import code_cell, write_ipynb
 from ._pep723 import extract_inline_meta, parse_inline_script_metadata
+
+if typing.TYPE_CHECKING:
+    from pathlib import Path
 
 
 @dataclass
@@ -49,7 +51,8 @@ def parse_notebook_specifier(value: str | None) -> Runtime:
         case [kind] if is_notebook_kind(kind):
             return Runtime(kind)
 
-    raise ValueError(f"Invalid runtime specifier: {value}")
+    msg = f"Invalid runtime specifier: {value}"
+    raise ValueError(msg)
 
 
 def load_script_notebook(fp: Path) -> dict:
@@ -72,7 +75,8 @@ def to_notebook(fp: Path) -> tuple[str | None, dict]:
         case ".ipynb":
             nb = jupytext.read(fp, fmt="ipynb")
         case _:
-            raise ValueError(f"Unsupported file extension: {fp.suffix}")
+            msg = f"Unsupported file extension: {fp.suffix}"
+            raise ValueError(msg)
 
     meta = next(
         (
