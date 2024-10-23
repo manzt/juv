@@ -2,13 +2,13 @@ from __future__ import annotations
 import typing
 
 from pathlib import Path
-import subprocess
 import tempfile
 
 import jupytext
 
 from ._pep723 import includes_inline_metadata
 from ._nbconvert import code_cell, write_ipynb
+from ._uv import uv
 
 T = typing.TypeVar("T")
 
@@ -43,12 +43,17 @@ def add(path: Path, packages: typing.Sequence[str], requirements: str | None) ->
         f.write(cell["source"].strip())
         f.flush()
 
-        cmd = ["uv", "add", "--quiet"]
-        if requirements:
-            cmd.extend(["--requirements", requirements])
-        cmd.extend(["--script", f.name, *packages])
+        uv(
+            [
+                "add",
+                *(["--requirements", requirements] if requirements else []),
+                "--script",
+                f.name,
+                *packages,
+            ],
+            check=True,
+        )
 
-        subprocess.run(cmd, check=True)
         f.seek(0)
         cell["source"] = f.read().strip()
 

@@ -9,6 +9,7 @@ dependencies = [
     "click>=8.1.7",
     "jupytext>=1.16.4",
     "rich>=13.9.2",
+    "uv>=0.4.25",
 ]
 
 [project.scripts]

@@ -1,6 +1,5 @@
 import pytest
 from pathlib import Path
-from unittest.mock import patch
 import pathlib
 import re
 import os
@@ -11,10 +10,10 @@ from nbformat.v4.nbbase import new_code_cell, new_notebook
 
 from click.testing import CliRunner, Result
 
-from juv import cli, assert_uv_available
+from juv import cli
 from juv._nbconvert import write_ipynb
 from juv._pep723 import parse_inline_script_metadata
-from juv._run import to_notebook, prepare_uvx_args, Runtime, Pep723Meta
+from juv._run import to_notebook, prepare_uv_tool_run_args, Runtime, Pep723Meta
 
 
 def invoke(args: list[str], uv_python: str = "3.13") -> Result:
@@ -152,27 +151,21 @@ requires-python = ">=3.8"
     )
 
 
-def test_assert_uv_available() -> None:
-    with patch("shutil.which", return_value=None):
-        with pytest.raises(SystemExit):
-            assert_uv_available()
-
-
 def test_python_override() -> None:
-    assert prepare_uvx_args(
+    assert prepare_uv_tool_run_args(
         target=Path("test.ipynb"),
         runtime=Runtime("nbclassic", None),
-        pep723_meta=Pep723Meta(dependencies=["numpy"], requires_python="3.8"),
-        with_args=["polars"],
+        meta=Pep723Meta(dependencies=["numpy"], requires_python="3.8"),
+        extra_with_args=["polars"],
         python="3.12",
     ) == snapshot(
         [
-            "--with=setuptools",
-            "--with=polars",
+            "tool",
+            "run",
             "--python=3.12",
+            "--with=setuptools,nbclassic",
             "--with=numpy",
-            "--with=nbclassic",
-            "--from=jupyter-core",
+            "--with=polars",
             "jupyter",
             "nbclassic",
             "test.ipynb",
@@ -181,20 +174,20 @@ def test_python_override() -> None:
 
 
 def test_run_nbclassic() -> None:
-    assert prepare_uvx_args(
+    assert prepare_uv_tool_run_args(
         target=Path("test.ipynb"),
         runtime=Runtime("nbclassic", None),
-        pep723_meta=Pep723Meta(dependencies=["numpy"], requires_python="3.8"),
+        meta=Pep723Meta(dependencies=["numpy"], requires_python="3.8"),
         python=None,
-        with_args=["polars"],
+        extra_with_args=["polars"],
     ) == snapshot(
         [
-            "--with=setuptools",
-            "--with=polars",
+            "tool",
+            "run",
             "--python=3.8",
+            "--with=setuptools,nbclassic",
             "--with=numpy",
-            "--with=nbclassic",
-            "--from=jupyter-core",
+            "--with=polars",
             "jupyter",
             "nbclassic",
             "test.ipynb",
@@ -203,17 +196,17 @@ def test_run_nbclassic() -> None:
 
 
 def test_run_notebook() -> None:
-    assert prepare_uvx_args(
+    assert prepare_uv_tool_run_args(
         target=Path("test.ipynb"),
         runtime=Runtime("notebook", "6.4.0"),
-        pep723_meta=Pep723Meta(dependencies=[], requires_python=None),
-        with_args=[],
+        meta=Pep723Meta(dependencies=[], requires_python=None),
+        extra_with_args=[],
         python=None,
     ) == snapshot(
         [
-            "--with=setuptools",
-            "--with=notebook==6.4.0",
-            "--from=jupyter-core",
+            "tool",
+            "run",
+            "--with=setuptools,notebook==6.4.0",
             "jupyter",
             "notebook",
             "test.ipynb",
@@ -222,20 +215,20 @@ def test_run_notebook() -> None:
 
 
 def test_run_jlab() -> None:
-    assert prepare_uvx_args(
+    assert prepare_uv_tool_run_args(
         target=Path("test.ipynb"),
         runtime=Runtime("lab", None),
-        pep723_meta=Pep723Meta(dependencies=["numpy"], requires_python="3.8"),
+        meta=Pep723Meta(dependencies=["numpy"], requires_python="3.8"),
         python=None,
-        with_args=["polars,altair"],
+        extra_with_args=["polars,altair"],
     ) == snapshot(
         [
-            "--with=setuptools",
-            "--with=polars,altair",
+            "tool",
+            "run",
             "--python=3.8",
+            "--with=setuptools,jupyterlab",
             "--with=numpy",
-            "--with=jupyterlab",
-            "--from=jupyter-core",
+            "--with=polars,altair",
             "jupyter",
             "lab",
             "test.ipynb",
