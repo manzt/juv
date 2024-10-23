@@ -42,11 +42,13 @@ def init(
     """Initialize a new notebook."""
     from ._init import init
 
-    init(
+    path = init(
         path=Path(file) if file else None,
         python=python,
         packages=[p for w in with_args for p in w.split(",")],
     )
+    path = path.resolve().relative_to(Path.cwd(), walk_up=True)
+    rich.print(f"Initialized notebook at `[cyan]{path}[/cyan]`")
 
 
 @cli.command()
@@ -58,7 +60,8 @@ def add(file: str, requirements: str | None, packages: tuple[str, ...]) -> None:
     from ._add import add
 
     add(path=Path(file), packages=packages, requirements=requirements)
-    rich.print(f"Updated `[cyan]{Path(file).resolve().absolute()}[/cyan]`")
+    path = Path(file).resolve().relative_to(Path.cwd(), walk_up=True)
+    rich.print(f"Updated `[cyan]{path}[/cyan]`")
 
 
 @cli.command()

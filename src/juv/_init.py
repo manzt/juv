@@ -63,8 +63,24 @@ def init(
     path: Path | None,
     python: str | None,
     packages: typing.Sequence[str] = [],
-) -> None:
-    """Initialize a new notebook."""
+) -> Path:
+    """Initialize a new notebook.
+
+    Parameters
+    ----------
+    path : pathlib.Path | None
+        The path to the new notebook. If None, a new Untitled.ipynb is created.
+    python : str | None
+        The version of Python to use. Passed as `--python` to uv.
+    packages : Sequence[str]
+        A list of packages to install in the new notebook.
+
+    Returns
+    -------
+    pathlib.Path
+        The path to the new notebook.
+
+    """
     if not path:
         path = get_first_non_conflicting_untitled_ipynb(Path.cwd())
 
@@ -80,4 +96,4 @@ def init(
 
         add(path=path, packages=packages, requirements=None)
 
-    rich.print(f"Initialized notebook at `[cyan]{path.resolve().absolute()}[/cyan]`")
+    return path
