@@ -1,23 +1,22 @@
-"""
-Experimental UI wrapper for Jupyter commands that provides a minimal, consistent terminal interface.
+"""Experimental UI wrapper for Jupyter commands that provides a minimal, consistent terminal interface.
 
 Manages the Jupyter process lifecycle (rather than replacing the process) and displays formatted URLs,
 while handling graceful shutdown. Supports Jupyter Lab, Notebook, and NBClassic variants.
 """
 
+import os
 import re
 import signal
 import subprocess
+import time
+import typing
 from queue import Queue
 from threading import Thread
-import os
-import typing
-import time
-
-from uv import find_uv_bin
-from ._version import __version__
 
 from rich.console import Console
+from uv import find_uv_bin
+
+from ._version import __version__
 
 
 def get_version(jupyter: str, version: str | None):
@@ -39,7 +38,7 @@ def get_version(jupyter: str, version: str | None):
             "--version",
         ],
         capture_output=True,
-        text=True,
+        text=True, check=False,
     )
     return result.stdout.strip()
 

@@ -1,17 +1,17 @@
 from __future__ import annotations
 
 import os
+import sys
+import typing
 from dataclasses import dataclass
 from pathlib import Path
-import typing
-import tomllib
-import sys
 
-import rich
 import jupytext
+import rich
+import tomllib
 
-from ._nbconvert import write_ipynb, code_cell
-from ._pep723 import parse_inline_script_metadata, extract_inline_meta
+from ._nbconvert import code_cell, write_ipynb
+from ._pep723 import extract_inline_meta, parse_inline_script_metadata
 
 
 @dataclass

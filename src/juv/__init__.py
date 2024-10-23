@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import sys
 import os
+import sys
 from pathlib import Path
-import click
 
+import click
 import rich
 
 
@@ -77,7 +77,6 @@ def run(
     python: str | None,
 ) -> None:
     """Launch a notebook or script."""
-
     from ._run import run
 
     run(
@@ -90,7 +89,6 @@ def run(
 
 def upgrade_legacy_jupyter_command(args: list[str]) -> None:
     """Check legacy lab/notebook/nbclassic command usage and upgrade to 'run' with deprecation notice."""
-
     if len(args) >= 2:
         command = args[1]
         if (

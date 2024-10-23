@@ -1,13 +1,13 @@
 from __future__ import annotations
-import typing
 
-from pathlib import Path
 import tempfile
+import typing
+from pathlib import Path
 
 import jupytext
 
-from ._pep723 import includes_inline_metadata
 from ._nbconvert import code_cell, write_ipynb
+from ._pep723 import includes_inline_metadata
 from ._uv import uv
 
 T = typing.TypeVar("T")

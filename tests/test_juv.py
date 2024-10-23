@@ -1,19 +1,18 @@
-import pytest
-from pathlib import Path
+import os
 import pathlib
 import re
-import os
-from inline_snapshot import snapshot
+from pathlib import Path
 
 import jupytext
-from nbformat.v4.nbbase import new_code_cell, new_notebook
-
+import pytest
 from click.testing import CliRunner, Result
+from inline_snapshot import snapshot
+from nbformat.v4.nbbase import new_code_cell, new_notebook
 
 from juv import cli
 from juv._nbconvert import write_ipynb
 from juv._pep723 import parse_inline_script_metadata
-from juv._run import to_notebook, prepare_uv_tool_run_args, Runtime, Pep723Meta
+from juv._run import Pep723Meta, Runtime, prepare_uv_tool_run_args, to_notebook
 
 
 def invoke(args: list[str], uv_python: str = "3.13") -> Result:

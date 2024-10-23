@@ -1,6 +1,6 @@
 from pathlib import Path
-import jupytext
 
+import jupytext
 import nbformat.v4.nbbase as nb
 
 
