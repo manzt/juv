@@ -111,11 +111,17 @@ def run(
     )
     output_thread.start()
 
+    status = console.status("Starting Jupyter Server", spinner="dots")
+    status.start()
+
     try:
         while True and process.stdout:
             line = process.stdout.readline()
             if not line and process.poll() is not None:
                 break
+            if line and status:
+                status.stop()
+                status = None
             output_queue.put(line)
     except KeyboardInterrupt:
         with console.status("Shutting down..."):
