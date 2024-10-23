@@ -10,10 +10,11 @@ if TYPE_CHECKING:
 
 
 def code_cell(source: str, *, hidden: bool = False) -> dict:
-    return nb.new_code_cell(
-        source,
-        metadata={"jupyter": {"source_hidden": hidden}},
-    )
+    kwargs = {}
+    if hidden:
+        kwargs["metadata"] = {"jupyter": {"source_hidden": hidden}}
+
+    return nb.new_code_cell(source, **kwargs)
 
 
 def new_notebook(cells: list[dict]) -> dict:

@@ -12,7 +12,7 @@ from inline_snapshot import snapshot
 from nbformat.v4.nbbase import new_code_cell, new_notebook
 
 from juv import cli
-from juv._nbconvert import write_ipynb
+from juv._nbutils import write_ipynb
 from juv._pep723 import parse_inline_script_metadata
 from juv._run import Pep723Meta, Runtime, prepare_uv_tool_run_args, to_notebook
 

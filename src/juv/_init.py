@@ -7,7 +7,7 @@ from pathlib import Path
 
 import rich
 
-from ._nbconvert import code_cell, new_notebook, write_ipynb
+from ._nbutils import code_cell, new_notebook, write_ipynb
 from ._uv import uv
 
 

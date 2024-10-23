@@ -8,7 +8,7 @@ from dataclasses import dataclass
 import jupytext
 import rich
 
-from ._nbconvert import code_cell, write_ipynb
+from ._nbutils import code_cell, write_ipynb
 from ._pep723 import extract_inline_meta, parse_inline_script_metadata
 
 if typing.TYPE_CHECKING:
