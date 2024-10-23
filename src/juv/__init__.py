@@ -47,7 +47,7 @@ def init(
         python=python,
         packages=[p for w in with_args for p in w.split(",")],
     )
-    path = path.resolve().relative_to(Path.cwd(), walk_up=True)
+    path = os.path.relpath(path.resolve(), Path.cwd())
     rich.print(f"Initialized notebook at `[cyan]{path}[/cyan]`")
 
 
@@ -60,7 +60,7 @@ def add(file: str, requirements: str | None, packages: tuple[str, ...]) -> None:
     from ._add import add
 
     add(path=Path(file), packages=packages, requirements=requirements)
-    path = Path(file).resolve().relative_to(Path.cwd(), walk_up=True)
+    path = os.path.relpath(Path(file).resolve(), Path.cwd())
     rich.print(f"Updated `[cyan]{path}[/cyan]`")
 
 
