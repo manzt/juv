@@ -29,10 +29,12 @@ target-version = "py39"
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
-    "D211",   # No blank line before section (conflicts with D203)
-    "D213",   # Multi-line docstring summary should start at the second line
     "FIX002", # Fixable issue
     "S404",   # Allow imports of subprocess
+    "D203",   # Conflict with formatter
+    "COM812",
+    "ISC001",
+    "D213",
 ]
 
 [tool.ruff.lint.per-file-ignores]

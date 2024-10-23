@@ -151,11 +151,11 @@ def run(
     )
 
     if os.environ.get("JUV_RUN_MODE") == "managed":
-        from ._run_managed import run as run_managed  # noqa: PLC0415
+        from ._run_managed import run as run_managed
 
         run_managed(args, path.name, runtime.name, runtime.version)
     else:
-        from uv import find_uv_bin  # noqa: PLC0415
+        from uv import find_uv_bin
 
         uv = os.fsdecode(find_uv_bin())
         try:

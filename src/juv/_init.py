@@ -12,7 +12,8 @@ from ._uv import uv
 
 
 def new_notebook_with_inline_metadata(
-    directory: Path, python: str | None = None,
+    directory: Path,
+    python: str | None = None,
 ) -> dict:
     """Create a new notebook with inline metadata.
 
