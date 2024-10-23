@@ -12,7 +12,6 @@ import jupytext
 
 from ._nbconvert import write_ipynb, code_cell
 from ._pep723 import parse_inline_script_metadata, extract_inline_meta
-from uv import find_uv_bin
 
 
 @dataclass
@@ -127,6 +126,7 @@ def run(
     with_args: typing.Sequence[str],
 ) -> None:
     """Launch a notebook or script."""
+    runtime = parse_notebook_specifier(jupyter)
     meta, nb = to_notebook(path)
 
     if path.suffix == ".py":
@@ -136,16 +136,24 @@ def run(
             f"Converted script to notebook `[cyan]{path.resolve().absolute()}[/cyan]`"
         )
 
-    uv = os.fsdecode(find_uv_bin())
     args = prepare_uv_tool_run_args(
         target=path,
-        runtime=parse_notebook_specifier(jupyter),
+        runtime=runtime,
         meta=Pep723Meta.from_toml(meta) if meta else Pep723Meta([], None),
         python=python,
         extra_with_args=with_args,
     )
-    try:
-        os.execvp(uv, args)
-    except OSError as e:
-        rich.print(f"Error executing [cyan]uvx[/cyan]: {e}", file=sys.stderr)
-        sys.exit(1)
+
+    if os.environ.get("JUV_RUN_MODE") == "managed":
+        from ._run_managed import run as run_managed
+
+        run_managed(args, path.name, runtime.name, runtime.version)
+    else:
+        from uv import find_uv_bin
+
+        uv = os.fsdecode(find_uv_bin())
+        try:
+            os.execvp(uv, args)
+        except OSError as e:
+            rich.print(f"Error executing [cyan]uvx[/cyan]: {e}", file=sys.stderr)
+            sys.exit(1)
