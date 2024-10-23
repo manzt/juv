@@ -401,6 +401,14 @@ def test_init_creates_notebook_with_inline_meta(
     "# dependencies = []\\n",
     "# ///"
    ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "<ID>",
+   "metadata": {},
+   "outputs": [],
+   "source": []
   }
  ],
  "metadata": {},
@@ -440,6 +448,14 @@ def test_init_creates_notebook_with_specific_python_version(
     "# dependencies = []\\n",
     "# ///"
    ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "<ID>",
+   "metadata": {},
+   "outputs": [],
+   "source": []
   }
  ],
  "metadata": {},
@@ -494,6 +510,14 @@ def test_init_with_deps(
     "# ]\\n",
     "# ///"
    ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "<ID>",
+   "metadata": {},
+   "outputs": [],
+   "source": []
   }
  ],
  "metadata": {},
