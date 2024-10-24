@@ -183,3 +183,9 @@ uvx --with-requirements=requirements.txt --from=jupyter-core --with=jupyterlab j
 
 While slightly more verbose and breaking self-containment, this approach
 totally works and saves you from installing another dependency.
+
+## Contributing
+
+**juv** welcomes contributions in the form of bug reports, feature requests,
+and pull requests. See the [CONTRIBUTING.md](./CONTRIBUTING.md) for more
+information.
