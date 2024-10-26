@@ -47,7 +47,7 @@ def new_notebook_with_inline_metadata(
         return new_notebook(
             cells=[
                 code_cell(contents, hidden=True),
-                code_cell("%load_ext juv"),
+                code_cell(""),
             ]
         )
 

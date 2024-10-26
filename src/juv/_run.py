@@ -11,7 +11,6 @@ from uv import find_uv_bin
 
 from ._nbutils import code_cell, write_ipynb
 from ._pep723 import extract_inline_meta, parse_inline_script_metadata
-from ._wheel import get_juv_jupyter_wheel
 
 if typing.TYPE_CHECKING:
     from pathlib import Path
@@ -108,11 +107,17 @@ def get_juv_extras(
     }[jupyter]
     if version:
         jupyter_dependency += f"=={version}"
-    return [
+    packages = [
         "setuptools",
         jupyter_dependency,
-        str(get_juv_jupyter_wheel().resolve()),
     ]
+    if os.environ.get("JUV_RUN_CLIENT") == "1":
+        from ._wheel import get_juv_jupyter_wheel  # noqa: PLC0415
+
+        # adds %juv magic to the notebook env
+        packages.append(str(get_juv_jupyter_wheel()))
+
+    return packages
 
 
 def prepare_uv_tool_run(
@@ -121,7 +126,10 @@ def prepare_uv_tool_run(
     meta: Pep723Meta,
     python: str | None,
     extra_with_args: typing.Sequence[str],
-    no_cache: bool,
+    *,
+    no_cache: bool = False,
+    isolated: bool = False,
+    no_project: bool = False,
 ) -> tuple[str, list[str], dict]:
     juv_with_args = get_juv_extras(runtime.name, runtime.version)
 
@@ -132,8 +140,8 @@ def prepare_uv_tool_run(
     args = [
         "tool",
         "run",
-        "--isolated",
-        "--no-project",
+        *(["--isolated"] if isolated else []),
+        *(["--no-project"] if no_project else []),
         *(["--no-cache"] if no_cache else []),
         *([f"--python={python}"] if python else []),
         "--with=" + ",".join(juv_with_args),
@@ -154,8 +162,11 @@ def run(
     path: Path,
     jupyter: str | None,
     python: str | None,
-    no_cache: bool,
     with_args: typing.Sequence[str],
+    *,
+    no_cache: bool,
+    isolated: bool,
+    no_project: bool,
 ) -> None:
     """Launch a notebook or script."""
     runtime = parse_notebook_specifier(jupyter)
@@ -175,6 +186,8 @@ def run(
         python=python,
         extra_with_args=with_args,
         no_cache=no_cache,
+        isolated=isolated,
+        no_project=no_project,
     )
 
     if os.environ.get("JUV_RUN_MODE") == "managed":

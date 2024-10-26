@@ -72,12 +72,17 @@ def add(file: str, requirements: str | None, packages: tuple[str, ...]) -> None:
 @click.option("--with", "with_args", type=click.STRING, multiple=True)
 @click.option("--python", type=click.STRING, required=False)
 @click.option("--no-cache", is_flag=True)
+@click.option("--isolated", is_flag=True)
+@click.option("--no-project", is_flag=True)
 def run(
     file: str,
     jupyter: str | None,
     with_args: tuple[str, ...],
     python: str | None,
+    *,
     no_cache: bool,
+    isolated: bool,
+    no_project: bool,
 ) -> None:
     """Launch a notebook or script in a Jupyter front end."""
     from ._run import run
@@ -88,6 +93,8 @@ def run(
         python=python,
         with_args=with_args,
         no_cache=no_cache,
+        isolated=isolated,
+        no_project=no_project,
     )
 
 
