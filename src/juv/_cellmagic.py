@@ -150,22 +150,16 @@ class JuvMagics(Magics):
         cmd, args = parse_line(line)
 
 
-LOADED = False
+CALLBACK = None
 
 
 def load_ipython_extension(ipython: InteractiveShell) -> None:
-    """Load the IPython extension.
+    """Load the IPython extension."""
+    global CALLBACK  # noqa: PLW0603
 
-    Parameters
-    ----------
-    ipython : IPython.core.interactiveshell.InteractiveShell
-        The IPython shell instance.
-
-    """
-    global LOADED  # noqa: PLW0603
-    if LOADED:
-        return
-    LOADED = True
+    if CALLBACK:
+        ipython.events.unregister("pre_run_cell", CALLBACK)
+        ipython.magics_manager.unregister_magics(JuvMagics)
 
     inline_meta_comment = get_current_meta_comment()
 
@@ -182,5 +176,18 @@ def load_ipython_extension(ipython: InteractiveShell) -> None:
         inline_meta_comment = current
         uv_sync(current)
 
-    ipython.events.register("pre_run_cell", lambda _: sync_env())
+    CALLBACK = lambda _: sync_env()  # noqa: E731
+
+    ipython.events.register("pre_run_cell", CALLBACK)
     ipython.register_magics(JuvMagics)
+
+
+def unload_ipython_extension(ipython: InteractiveShell) -> None:
+    """Unload the IPython extension."""
+    global CALLBACK  # noqa: PLW0603
+
+    if CALLBACK:
+        ipython.events.unregister("pre_run_cell", CALLBACK)
+        CALLBACK = None
+
+    ipython.magics_manager.unregister_magics(JuvMagics)
