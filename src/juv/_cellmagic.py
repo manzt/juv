@@ -88,17 +88,14 @@ def uv_sync(meta_str: str | None) -> None:
             check=True,
             env=env,
         )
-        subprocess.run(  # noqa: S603
-            [
-                ENV["uv"],
-                "pip",
-                "sync",
-                str(requirements_txt),
-            ],
+        result = subprocess.run(  # noqa: S603
+            [ENV["uv"], "pip", "sync", str(requirements_txt)],
             capture_output=True,
             check=False,
             env=env,
         )
+        sys.stdout.write(result.stdout.decode("utf-8"))
+        sys.stderr.write(result.stderr.decode("utf-8"))
 
 
 def is_command(cmd: str) -> typing.TypeGuard[typing.Literal["add", "sync"]]:
@@ -159,7 +156,6 @@ def load_ipython_extension(ipython: InteractiveShell) -> None:
 
     if CALLBACK:
         ipython.events.unregister("pre_run_cell", CALLBACK)
-        ipython.magics_manager.unregister_magics(JuvMagics)
 
     inline_meta_comment = get_current_meta_comment()
 
