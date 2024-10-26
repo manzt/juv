@@ -15,11 +15,19 @@ def data_files() -> typing.Generator[tuple[str, str]]:
     if deno:
         yield (
             "share/jupyter/kernels/deno/kernel.json",
-            json.dumps({
-                "argv": [deno, "jupyter", "--kernel", "--conn", "{connection_file}"],
-                "display_name": "Deno",
-                "language": "typescript",
-            }),
+            json.dumps(
+                {
+                    "argv": [
+                        deno,
+                        "jupyter",
+                        "--kernel",
+                        "--conn",
+                        "{connection_file}",
+                    ],
+                    "display_name": "Deno",
+                    "language": "typescript",
+                }
+            ),
         )
 
 
@@ -44,29 +52,35 @@ def get_juv_jupyter_wheel() -> pathlib.Path:
 
         zf.writestr(
             f"{name}-{version}.dist-info/WHEEL",
-            "\n".join([  # noqa: FLY002
-                "Wheel-Version: 1.0",
-                "Generator: juv (1.0.0)",
-                "Root-Is-Purelib: true",
-                "Tag: py3-none-any",
-            ]),
+            "\n".join(
+                [  # noqa: FLY002
+                    "Wheel-Version: 1.0",
+                    "Generator: juv (1.0.0)",
+                    "Root-Is-Purelib: true",
+                    "Tag: py3-none-any",
+                ]
+            ),
         )
         zf.writestr(
             f"{name}-{version}.dist-info/METADATA",
-            "\n".join([
-                "Metadata-Version: 2.1",
-                f"Name: {name}",
-                f"Version: {version}",
-                "Summary: Installs some client utilties for juv",
-                "License: MIT",
-                f"Requires-Dist: uv=={importlib.metadata.version('uv')}",
-            ]),
+            "\n".join(
+                [
+                    "Metadata-Version: 2.1",
+                    f"Name: {name}",
+                    f"Version: {version}",
+                    "Summary: Installs some client utilties for juv",
+                    "License: MIT",
+                    f"Requires-Dist: uv=={importlib.metadata.version('uv')}",
+                ]
+            ),
         )
-        record.extend((
-            f"{name}-{version}.dist-info/WHEEL,,",
-            f"{name}-{version}.dist-info/METADATA,,",
-            f"{name}-{version}.dist-info/RECORD,,",
-        ))
+        record.extend(
+            (
+                f"{name}-{version}.dist-info/WHEEL,,",
+                f"{name}-{version}.dist-info/METADATA,,",
+                f"{name}-{version}.dist-info/RECORD,,",
+            )
+        )
         zf.writestr(f"{name}-{version}.dist-info/RECORD", "\n".join(record))
 
     return wheel

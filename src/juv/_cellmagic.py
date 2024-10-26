@@ -98,7 +98,7 @@ def uv_sync(meta_str: str | None) -> None:
             env=env,
         )
         # we should print to std err also for jupyter
-        # print(result.stderr.decode("utf-8"))
+        print(result.stderr.decode("utf-8"))
 
 
 def parse_line(line: str) -> tuple[typing.Literal["add", "sync"], list[str]]:

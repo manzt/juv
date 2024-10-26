@@ -128,7 +128,6 @@ def prepare_uv_tool_run(
     extra_with_args: typing.Sequence[str],
     *,
     no_cache: bool = False,
-    isolated: bool = False,
     no_project: bool = False,
 ) -> tuple[str, list[str], dict]:
     juv_with_args = get_juv_extras(runtime.name, runtime.version)
@@ -140,7 +139,7 @@ def prepare_uv_tool_run(
     args = [
         "tool",
         "run",
-        *(["--isolated"] if isolated else []),
+        "--isolated",
         *(["--no-project"] if no_project else []),
         *(["--no-cache"] if no_cache else []),
         *([f"--python={python}"] if python else []),
@@ -165,7 +164,6 @@ def run(
     with_args: typing.Sequence[str],
     *,
     no_cache: bool,
-    isolated: bool,
     no_project: bool,
 ) -> None:
     """Launch a notebook or script."""
@@ -186,7 +184,6 @@ def run(
         python=python,
         extra_with_args=with_args,
         no_cache=no_cache,
-        isolated=isolated,
         no_project=no_project,
     )
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 import tempfile
 import typing
@@ -47,7 +48,11 @@ def new_notebook_with_inline_metadata(
         return new_notebook(
             cells=[
                 code_cell(contents, hidden=True),
-                code_cell(""),
+                code_cell(
+                    "%reload_ext juv"
+                    if os.environ.get("JUV_RUN_CLIENT") == "1"
+                    else "",
+                ),
             ]
         )
 
