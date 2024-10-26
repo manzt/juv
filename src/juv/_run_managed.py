@@ -107,11 +107,11 @@ def process_output(
     while local_url is None:
         line = output_queue.get()
 
-        if line.startswith("[") and not server_started:
+        if line and line.startswith("[") and not server_started:
             status.update("Jupyter server started", spinner="dots")
             server_started = True
 
-        if "http://" in line:
+        if line and "http://" in line:
             url = extract_url(line)
             if "localhost" in url and not local_url:
                 local_url = format_url(url, path)

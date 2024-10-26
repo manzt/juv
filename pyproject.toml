@@ -36,7 +36,12 @@ classifiers = [
 juv = "juv:main"
 
 [dependency-groups]
-dev = ["inline-snapshot>=0.13.3", "pytest>=8.3.3", "ruff>=0.7.0"]
+dev = [
+    "inline-snapshot>=0.13.3",
+    "ipython>=8.12.3",
+    "pytest>=8.3.3",
+    "ruff>=0.7.0",
+]
 
 [tool.ruff]
 line-length = 88
@@ -73,3 +78,4 @@ changelog_sections.bug = "Bug fixes"
 changelog_sections.documentation = "Documentation"
 changelog_sections.__unknown__ = "Other changes"
 changelog_contributors = true
+

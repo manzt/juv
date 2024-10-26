@@ -44,7 +44,12 @@ def new_notebook_with_inline_metadata(
             check=True,
         )
         contents = f.read().strip()
-        return new_notebook(cells=[code_cell(contents, hidden=True), code_cell("")])
+        return new_notebook(
+            cells=[
+                code_cell(contents, hidden=True),
+                code_cell("%load_ext juv"),
+            ]
+        )
 
 
 def get_first_non_conflicting_untitled_ipynb(directory: Path) -> Path:

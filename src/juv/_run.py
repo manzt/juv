@@ -10,6 +10,7 @@ import rich
 
 from ._nbutils import code_cell, write_ipynb
 from ._pep723 import extract_inline_meta, parse_inline_script_metadata
+from ._wheel import get_juv_jupyter_wheel
 
 if typing.TYPE_CHECKING:
     from pathlib import Path
@@ -95,6 +96,21 @@ def to_notebook(fp: Path) -> tuple[str | None, dict]:
     return meta, nb
 
 
+def get_juv_extras(runtime: Runtime) -> list[str]:
+    jupyter_dependency = {
+        "notebook": "notebook",
+        "lab": "jupyterlab",
+        "nbclassic": "nbclassic",
+    }[runtime.name]
+    if runtime.version:
+        jupyter_dependency += f"=={runtime.version}"
+    return [
+        "setuptools",
+        jupyter_dependency,
+        str(get_juv_jupyter_wheel().resolve()),
+    ]
+
+
 def prepare_uv_tool_run_args(
     target: Path,
     runtime: Runtime,
@@ -102,16 +118,7 @@ def prepare_uv_tool_run_args(
     python: str | None,
     extra_with_args: typing.Sequence[str],
 ) -> list[str]:
-    jupyter_dependency = {
-        "notebook": "notebook",
-        "lab": "jupyterlab",
-        "nbclassic": "nbclassic",
-    }[runtime.name]
-
-    if runtime.version:
-        jupyter_dependency += f"=={runtime.version}"
-
-    juv_with_args = ["setuptools", jupyter_dependency]
+    juv_with_args = get_juv_extras(runtime)
 
     if meta.requires_python and python is None:
         python = meta.requires_python
@@ -119,6 +126,9 @@ def prepare_uv_tool_run_args(
     return [
         "tool",
         "run",
+        "--isolated",
+        "--no-project",
+        "--no-cache",
         *([f"--python={python}"] if python else []),
         "--with=" + ",".join(juv_with_args),
         *(["--with=" + ",".join(meta.dependencies)] if meta.dependencies else []),
@@ -162,8 +172,11 @@ def run(
         from uv import find_uv_bin
 
         uv = os.fsdecode(find_uv_bin())
+        env = os.environ.copy()
+        env["JUV_CLIENT_NOTEBOOK"] = str(path.resolve())
+        env["JUV_CLIENT_PIP_EXTRAS"] = ",".join(get_juv_extras(runtime))
         try:
-            os.execvp(uv, args)  # noqa: S606
+            os.execvpe(uv, args, env=env)  # noqa: S606
         except OSError as e:
             rich.print(f"Error executing [cyan]uvx[/cyan]: {e}", file=sys.stderr)
             sys.exit(1)
