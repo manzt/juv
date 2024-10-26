@@ -18,9 +18,11 @@ from IPython.core.magic import Magics, cell_magic, line_magic, magics_class
 
 from ._pep723 import includes_inline_metadata, parse_inline_script_metadata
 
-CMDS = {"add", "sync"}
+if typing.TYPE_CHECKING:
+    from IPython.core.interactiveshell import InteractiveShell
 
-parent_env = {
+
+ENV = {
     "notebook_target": os.environ["JUV_INTERNAL__NOTEBOOK_TARGET"],
     "notebook_extras": os.environ["JUV_INTERNAL__NOTEBOOK_EXTRAS"],
     "uv": os.environ["JUV_INTERNAL__UV"],
@@ -39,7 +41,7 @@ def get_venv() -> str:
 
 
 def get_current_meta_comment() -> str | None:
-    notebook_path = parent_env["notebook_target"]
+    notebook_path = ENV["notebook_target"]
 
     with open(notebook_path, encoding="utf-8") as f:  # noqa: PTH123
         notebook = json.load(f)
@@ -61,7 +63,7 @@ def uv_sync(meta_str: str | None) -> None:
 
     env = os.environ.copy()
     env["VIRTUAL_ENV"] = get_venv()
-    packages = parent_env["notebook_extras"].split(",")
+    packages = ENV["notebook_extras"].split(",")
 
     if meta_str is not None:
         meta_str = parse_inline_script_metadata(meta_str)
@@ -73,9 +75,9 @@ def uv_sync(meta_str: str | None) -> None:
     # Tried just chaining pipes, but it didn't work..
     with tempfile.TemporaryDirectory() as tempdir:
         requirements_txt = Path(tempdir) / "requirements.txt"
-        result = subprocess.run(  # noqa: S603
+        subprocess.run(  # noqa: S603
             [
-                parent_env["uv"],
+                ENV["uv"],
                 "pip",
                 "compile",
                 f"--output-file={requirements_txt}",
@@ -86,9 +88,9 @@ def uv_sync(meta_str: str | None) -> None:
             check=True,
             env=env,
         )
-        result = subprocess.run(  # noqa: S603
+        subprocess.run(  # noqa: S603
             [
-                parent_env["uv"],
+                ENV["uv"],
                 "pip",
                 "sync",
                 str(requirements_txt),
@@ -97,8 +99,10 @@ def uv_sync(meta_str: str | None) -> None:
             check=False,
             env=env,
         )
-        # we should print to std err also for jupyter
-        print(result.stderr.decode("utf-8"))
+
+
+def is_command(cmd: str) -> typing.TypeGuard[typing.Literal["add", "sync"]]:
+    return cmd in {"add", "sync"}
 
 
 def parse_line(line: str) -> tuple[typing.Literal["add", "sync"], list[str]]:
@@ -108,24 +112,27 @@ def parse_line(line: str) -> tuple[typing.Literal["add", "sync"], list[str]]:
         raise ValueError(msg)
 
     cmd, *args = args
-    if cmd not in CMDS:
+    if not is_command(cmd):
         msg = f"Invalid command: {cmd}"
         raise ValueError(msg)
 
     return cmd, args
 
 
-def debounce(wait) -> typing.Callable:
-    def deco(fn: typing.Callable):
-        last_call = [0.0]  # Using list to maintain state in closure
+def debounce(
+    wait: float,
+) -> typing.Callable[[typing.Callable[..., None]], typing.Callable[..., None]]:
+    def deco(fn: typing.Callable) -> typing.Callable:
+        last_call = 0.0
 
         @wraps(fn)
-        def debounced(*args, **kwargs):
+        def debounced() -> None:
+            nonlocal last_call
             current_time = time.time()
-            if current_time - last_call[0] < wait:
+            if current_time - last_call < wait:
                 return None
-            last_call[0] = current_time
-            return fn(*args, **kwargs)
+            last_call = current_time
+            return fn()
 
         return debounced
 
@@ -138,12 +145,9 @@ class JuvMagics(Magics):
 
     @line_magic("juv")
     @cell_magic("juv")
-    def execute(self, line: str = "", cell: str = "") -> None:
+    def execute(self, line: str = "", cell: str = "") -> None:  # noqa: ARG002
         """Run a juv command."""
         cmd, args = parse_line(line)
-
-        if cmd != "add":
-            return
 
 
 def load_ipython_extension(ipython: InteractiveShell) -> None:
@@ -170,7 +174,7 @@ def load_ipython_extension(ipython: InteractiveShell) -> None:
         inline_meta_comment = current
         uv_sync(current)
 
-    def pre_run_cell(info: dict):
+    def pre_run_cell(info: dict) -> None:  # noqa: ARG001
         sync_env()
 
     ipython.events.register("pre_run_cell", pre_run_cell)

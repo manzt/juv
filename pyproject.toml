@@ -52,6 +52,7 @@ select = ["ALL"]
 ignore = [
     "FIX002", # Fixable issue
     "S404",   # Allow imports of subprocess
+    "PLR0913", # Too many arguments
     "D203",   # Conflict with formatter
     "COM812",
     "ISC001",

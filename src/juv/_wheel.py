@@ -53,9 +53,9 @@ def get_juv_jupyter_wheel() -> pathlib.Path:
         zf.writestr(
             f"{name}-{version}.dist-info/WHEEL",
             "\n".join(
-                [  # noqa: FLY002
+                [
                     "Wheel-Version: 1.0",
-                    "Generator: juv (1.0.0)",
+                    f"Generator: {name} ({version})",
                     "Root-Is-Purelib: true",
                     "Tag: py3-none-any",
                 ]
