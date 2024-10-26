@@ -1,3 +1,7 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "juv"
 version = "0.2.7"
@@ -31,12 +35,12 @@ classifiers = [
 [project.scripts]
 juv = "juv:main"
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[tool.uv]
-dev-dependencies = ["inline-snapshot>=0.13.3", "pytest>=8.3.3", "ruff>=0.7.0"]
+[dependency-groups]
+dev = [
+    "inline-snapshot>=0.13.3",
+    "pytest>=8.3.3",
+    "ruff>=0.7.0",
+]
 
 [tool.ruff]
 line-length = 88
