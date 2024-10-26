@@ -150,6 +150,9 @@ class JuvMagics(Magics):
         cmd, args = parse_line(line)
 
 
+LOADED = False
+
+
 def load_ipython_extension(ipython: InteractiveShell) -> None:
     """Load the IPython extension.
 
@@ -159,6 +162,11 @@ def load_ipython_extension(ipython: InteractiveShell) -> None:
         The IPython shell instance.
 
     """
+    global LOADED  # noqa: PLW0603
+    if LOADED:
+        return
+    LOADED = True
+
     inline_meta_comment = get_current_meta_comment()
 
     # debounce to avoid multiple syncs if cells are run in quick succession
@@ -174,8 +182,5 @@ def load_ipython_extension(ipython: InteractiveShell) -> None:
         inline_meta_comment = current
         uv_sync(current)
 
-    def pre_run_cell(info: dict) -> None:  # noqa: ARG001
-        sync_env()
-
-    ipython.events.register("pre_run_cell", pre_run_cell)
+    ipython.events.register("pre_run_cell", lambda _: sync_env())
     ipython.register_magics(JuvMagics)
