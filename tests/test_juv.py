@@ -165,6 +165,7 @@ def test_python_override() -> None:
         [
             "tool",
             "run",
+            "--isolated",
             "--python=3.12",
             "--with=setuptools,nbclassic",
             "--with=numpy",
@@ -187,6 +188,7 @@ def test_run_nbclassic() -> None:
         [
             "tool",
             "run",
+            "--isolated",
             "--python=3.8",
             "--with=setuptools,nbclassic",
             "--with=numpy",
@@ -209,6 +211,7 @@ def test_run_notebook() -> None:
         [
             "tool",
             "run",
+            "--isolated",
             "--with=setuptools,notebook==6.4.0",
             "jupyter",
             "notebook",
@@ -228,6 +231,7 @@ def test_run_jlab() -> None:
         [
             "tool",
             "run",
+            "--isolated",
             "--python=3.8",
             "--with=setuptools,jupyterlab",
             "--with=numpy",
