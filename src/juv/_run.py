@@ -111,7 +111,7 @@ def get_juv_extras(
         "setuptools",
         jupyter_dependency,
     ]
-    if os.environ.get("JUV_RUN_CLIENT") == "1":
+    if os.environ.get("JUV_CELLMAGIC") == "1":
         from ._wheel import get_juv_jupyter_wheel  # noqa: PLC0415
 
         # adds %juv magic to the notebook env

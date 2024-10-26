@@ -49,9 +49,7 @@ def new_notebook_with_inline_metadata(
             cells=[
                 code_cell(contents, hidden=True),
                 code_cell(
-                    "%reload_ext juv"
-                    if os.environ.get("JUV_RUN_CLIENT") == "1"
-                    else "",
+                    "%reload_ext juv" if os.environ.get("JUV_CELLMAGIC") == "1" else "",
                 ),
             ]
         )
