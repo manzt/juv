@@ -185,5 +185,3 @@ def unload_ipython_extension(ipython: InteractiveShell) -> None:
     if CALLBACK:
         ipython.events.unregister("pre_run_cell", CALLBACK)
         CALLBACK = None
-
-    ipython.magics_manager.unregister_magics(JuvMagics)
