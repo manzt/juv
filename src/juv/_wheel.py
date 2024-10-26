@@ -34,7 +34,6 @@ def get_juv_jupyter_wheel() -> pathlib.Path:
         for target, file in [
             (f"{name}/__init__.py", "_cellmagic.py"),
             (f"{name}/_pep723.py", "_pep723.py"),
-            (f"{name}/_uv.py", "_uv.py"),
         ]:
             zf.writestr(target, (SELF_DIR / file).read_text())
             record.append(f"{target},,")

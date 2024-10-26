@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 import jupytext
 import rich
+from uv import find_uv_bin
 
 from ._nbutils import code_cell, write_ipynb
 from ._pep723 import extract_inline_meta, parse_inline_script_metadata
@@ -96,14 +97,17 @@ def to_notebook(fp: Path) -> tuple[str | None, dict]:
     return meta, nb
 
 
-def get_juv_extras(runtime: Runtime) -> list[str]:
+def get_juv_extras(
+    jupyter: typing.Literal["notebook", "lab", "nbclassic"],
+    version: str | None = None,
+) -> list[str]:
     jupyter_dependency = {
         "notebook": "notebook",
         "lab": "jupyterlab",
         "nbclassic": "nbclassic",
-    }[runtime.name]
-    if runtime.version:
-        jupyter_dependency += f"=={runtime.version}"
+    }[jupyter]
+    if version:
+        jupyter_dependency += f"=={version}"
     return [
         "setuptools",
         jupyter_dependency,
@@ -111,24 +115,26 @@ def get_juv_extras(runtime: Runtime) -> list[str]:
     ]
 
 
-def prepare_uv_tool_run_args(
+def prepare_uv_tool_run(
     target: Path,
     runtime: Runtime,
     meta: Pep723Meta,
     python: str | None,
     extra_with_args: typing.Sequence[str],
-) -> list[str]:
-    juv_with_args = get_juv_extras(runtime)
+    no_cache: bool,
+) -> tuple[str, list[str], dict]:
+    juv_with_args = get_juv_extras(runtime.name, runtime.version)
 
     if meta.requires_python and python is None:
         python = meta.requires_python
 
-    return [
+    uv = os.fsdecode(find_uv_bin())
+    args = [
         "tool",
         "run",
         "--isolated",
         "--no-project",
-        "--no-cache",
+        *(["--no-cache"] if no_cache else []),
         *([f"--python={python}"] if python else []),
         "--with=" + ",".join(juv_with_args),
         *(["--with=" + ",".join(meta.dependencies)] if meta.dependencies else []),
@@ -137,12 +143,18 @@ def prepare_uv_tool_run_args(
         runtime.name,
         str(target),
     ]
+    env = os.environ.copy()
+    env["JUV_INTERNAL__UV"] = uv
+    env["JUV_INTERNAL__NOTEBOOK_TARGET"] = str(target.resolve())
+    env["JUV_INTERNAL__NOTEBOOK_EXTRAS"] = ",".join(juv_with_args)
+    return uv, args, env
 
 
 def run(
     path: Path,
     jupyter: str | None,
     python: str | None,
+    no_cache: bool,
     with_args: typing.Sequence[str],
 ) -> None:
     """Launch a notebook or script."""
@@ -156,25 +168,20 @@ def run(
             f"Converted script to notebook `[cyan]{path.resolve().absolute()}[/cyan]`",
         )
 
-    args = prepare_uv_tool_run_args(
+    uv, args, env = prepare_uv_tool_run(
         target=path,
         runtime=runtime,
         meta=Pep723Meta.from_toml(meta) if meta else Pep723Meta([], None),
         python=python,
         extra_with_args=with_args,
+        no_cache=no_cache,
     )
 
     if os.environ.get("JUV_RUN_MODE") == "managed":
         from ._run_managed import run as run_managed
 
-        run_managed(args, path.name, runtime.name, runtime.version)
+        run_managed(uv, args, path.name, runtime.name, runtime.version, env=env)
     else:
-        from uv import find_uv_bin
-
-        uv = os.fsdecode(find_uv_bin())
-        env = os.environ.copy()
-        env["JUV_CLIENT_NOTEBOOK"] = str(path.resolve())
-        env["JUV_CLIENT_PIP_EXTRAS"] = ",".join(get_juv_extras(runtime))
         try:
             os.execvpe(uv, args, env=env)  # noqa: S606
         except OSError as e:

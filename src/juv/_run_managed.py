@@ -121,19 +121,23 @@ def process_output(
 
 
 def run(
+    uv: str,
     args: list[str],
     filename: str,
     jupyter: typing.Literal["lab", "notebook", "nbclassic"],
     jupyter_verison: str | None,
+    env: dict,
 ) -> None:
     console = Console()
     output_queue = Queue()
+    uv = os.fsdecode(find_uv_bin())
     process = subprocess.Popen(  # noqa: S603
-        [os.fsdecode(find_uv_bin()), *args],
+        [uv, *args],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         preexec_fn=os.setsid,  # noqa: PLW1509
         text=True,
+        env=env,
     )
     output_thread = Thread(
         target=process_output,
