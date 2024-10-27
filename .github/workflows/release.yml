@@ -40,6 +40,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION=$(uv run juv version --output-format=json | jq -r '.version')
-          uvx --from 'rooster-blue>=0.0.8' --isolated rooster changelog --version=v$VERSION > release-notes.md
-          uvx --from 'rooster-blue>=0.0.8' --isolated rooster contributors --version=v$VERSION > release-notes.md
+          uvx --from 'rooster-blue>=0.0.8' --isolated rooster changelog --version=v$VERSION | grep -v '^[Found|Retrieving]' > release-notes.md
+          uvx --from 'rooster-blue>=0.0.8' --isolated rooster contributors --version=v$VERSION --quiet >> release-notes.md
           gh release create v$VERSION --notes-file release-notes.md
