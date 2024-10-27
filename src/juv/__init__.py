@@ -17,17 +17,15 @@ def cli() -> None:
 
 
 @cli.command()
-@click.option("--detail", is_flag=True)
-def version(*, detail: bool) -> None:
+@click.option("--output-format", type=click.Choice(["json", "text"]))
+def version(output_format: str | None) -> None:
     """Display juv's version."""
     from ._version import __version__
 
-    print(f"juv v{__version__}")  # noqa: T201
-
-    if detail:
-        from ._uv import uv
-
-        uv(["version"], check=True)
+    if output_format == "json":
+        sys.stdout.write(f'{{"version": "{__version__}"}}\n')
+    else:
+        sys.stdout.write(f"juv {__version__}\n")
 
 
 @cli.command()
