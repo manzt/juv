@@ -42,4 +42,4 @@ entries are based on the commit messages and use GitHub labels to categorize
 the release sections.
 
 Then open a PR with the title: `vX.Y.Z`. Once the PR is merged, we will make a
-release from the tag.
+release by manually running the release.yml workflow.
