@@ -1,32 +1,45 @@
 name: Release
 
+# This is a manual workflow for releasing new version of the package.
+#
+# It will:
+#   - Build the distribution
+#   - Publish it to PyPI
+#   - Create a new release on GitHub
+#
+# The version (and tag) of the release is determined by the version in the
+# `pyproject.toml` file.
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
 
 jobs:
   release:
     runs-on: ubuntu-latest
+
     permissions:
-      contents: write
-      id-token: write
+      contents: write # Required for making the Release
+      id-token: write # Required for PyPI Trusted Publishing
+
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: astral-sh/setup-uv@v3
         with:
           version: "0.4.x"
 
-      - run: uv build
+      - name: Build distribution
+        run: uv build
 
-      - name: Publish distribution 📦 to PyPI
+      - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
           verbose: true
 
-      - run: npx changelogithub@0.13
+      - name: Create GitHub Release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(uv run juv version --output-format=json | jq -r '.version')
+          uvx --from 'rooster-blue>=0.0.8' --isolated rooster changelog --version=v$VERSION > release-notes.md
+          uvx --from 'rooster-blue>=0.0.8' --isolated rooster contributors --version=v$VERSION > release-notes.md
+          gh release create v$VERSION --notes-file release-notes.md
