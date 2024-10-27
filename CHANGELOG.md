@@ -1,16 +1,20 @@
+## 0.2.8
+
+### Enhancements
+
+- Add `--output-format` flag for `version` command ([#18](https://github.com/manzt/juv/pull/18))
+
 ## 0.2.7
 
 ### Enhancements
 
 - Add new empty cell to new notebooks ([#15](https://github.com/manzt/juv/pull/15))
 
-
 ## 0.2.6
 
 ### Other changes
 
 - Add PyPI shield to README ([#14](https://github.com/manzt/juv/pull/14))
-
 
 ## 0.2.5
 
