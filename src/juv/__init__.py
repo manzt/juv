@@ -210,7 +210,7 @@ def exec_(
 )
 def cat(notebook: str, format: str) -> None:  # noqa: A002
     """Print notebook contents to stdout."""
-    import jupytext
+    from ._cat import cat
 
     path = Path(notebook)
     if path.suffix != ".ipynb":
@@ -220,11 +220,7 @@ def cat(notebook: str, format: str) -> None:  # noqa: A002
         )
         return
 
-    nb = jupytext.read(path, fmt="ipynb")
-    text = jupytext.writes(
-        nb, fmt={"md": "markdown", "py": "py:percent"}.get(format, format)
-    )
-    sys.stdout.write(text)
+    sys.stdout.write(cat(path, fmt=format))
 
 
 def main() -> None:
