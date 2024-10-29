@@ -41,12 +41,12 @@ def strip_python_frontmatter_comment(content: str) -> tuple[str, str]:
     return "", content
 
 
-def cat(nb: Path | dict, fmt: str) -> str:
-    fmt = {"markdown": "md", "py:percent": "py", "md": "md", "py": "py"}[fmt]
+def cat(nb: Path | dict, *, script: bool) -> str:
+    fmt = "py:percent" if script else "md"
     notebook = nb if isinstance(nb, dict) else jupytext.read(nb)
     contents = jupytext.writes(notebook, fmt=fmt)
-    if fmt == "md":
-        _, contents = strip_markdown_header(contents)
-    else:
+    if script:
         _, contents = strip_python_frontmatter_comment(contents)
+    else:
+        _, contents = strip_markdown_header(contents)
     return contents.lstrip()
