@@ -1,3 +1,9 @@
+## 0.2.10
+
+### Enhancements
+
+- Allow specifying directories for `clear` ([#22](https://github.com/manzt/juv/pull/22))
+
 ## 0.2.9
 
 ### Enhancements
