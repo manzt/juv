@@ -88,6 +88,44 @@ def run(
     )
 
 
+@cli.command()
+@click.argument("files", nargs=-1, type=click.Path(exists=True), required=True)
+def clear(files: list[str]) -> None:
+    """Clear the output of notebooks.
+
+    Supports multiple files and glob patterns (e.g., *.ipynb, notebooks/*.ipynb)
+    """
+    from ._clear import clear
+
+    paths = []
+    for file in files:
+        for path in Path().glob(file):
+            if not path.is_file():
+                continue
+
+            if path.suffix != ".ipynb":
+                rich.print(
+                    f"[bold yellow]Warning:[/bold yellow] Skipping "
+                    f"`[cyan]{path}[/cyan]` because it is not a notebook",
+                    file=sys.stderr,
+                )
+                continue
+
+            paths.append(path)
+
+    if len(paths) == 1:
+        clear(paths[0])
+        path = os.path.relpath(paths[0].resolve(), Path.cwd())
+        rich.print(f"Cleared output from `[cyan]{path}[/cyan]`", file=sys.stderr)
+        return
+
+    for path in paths:
+        clear(path)
+        rich.print(path.resolve().absolute())
+
+    rich.print(f"Cleared output from {len(paths)} notebooks", file=sys.stderr)
+
+
 def upgrade_legacy_jupyter_command(args: list[str]) -> None:
     """Check legacy command usage and upgrade to 'run' with deprecation notice."""
     if len(args) >= 2:  # noqa: PLR2004
