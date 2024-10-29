@@ -19,11 +19,26 @@ def strip_markdown_header(content: str) -> tuple[str, str]:
     return "", content
 
 
-def strip_python_header(content: str) -> tuple[str, str]:
+def strip_python_frontmatter_comment(content: str) -> tuple[str, str]:
+    """Remove frontmatter comment block from beginning of Python script.
+
+    Looks for content between # --- markers at start of file.
+
+    Args:
+        content: Full content of Python file
+
+    Returns:
+        tuple[str, str]: (frontmatter, remaining_content)
+
+    """
     lines = content.splitlines(keepends=True)
-    for i, line in enumerate(lines):
-        if not line.startswith("#"):
-            return "".join(lines[:i]), "".join(lines[i:])
+    if not lines or lines[0].strip() != "# ---":
+        return "", content
+
+    for i, line in enumerate(lines[1:], 1):
+        if line.strip() == "# ---":
+            return "".join(lines[: i + 1]), "".join(lines[i + 1 :])
+
     return "", content
 
 
@@ -82,9 +97,9 @@ def edit(path: Path, format_: str, editor: str) -> None:
     if fmt == "md":
         _, contents = strip_markdown_header(contents)
     else:
-        _, contents = strip_python_header(contents)
+        _, contents = strip_python_frontmatter_comment(contents)
 
-    text = open_editor(contents, suffix=suffix, editor=editor)
+    text = open_editor(contents.strip(), suffix=suffix, editor=editor)
 
     notebook = jupytext.reads(text.strip(), fmt=fmt)
     path.write_text(jupytext.writes(notebook, fmt="ipynb"))
