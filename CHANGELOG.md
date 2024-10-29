@@ -1,3 +1,9 @@
+## 0.2.9
+
+### Enhancements
+
+- Add `clear` command ([#20](https://github.com/manzt/juv/pull/20))
+
 ## 0.2.8
 
 ### Enhancements
