@@ -63,7 +63,7 @@ def edit(path: Path, editor: str) -> None:
     new_notebook = jupytext.reads(text.strip(), fmt="md")
 
     for prev, new in zip_longest(prev_notebook["cells"], new_notebook["cells"]):
-        if prev is None:
+        if prev is None or new is None:
             break
 
         if "id" in prev:
