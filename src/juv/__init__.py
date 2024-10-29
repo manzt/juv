@@ -91,7 +91,7 @@ def run(
 @cli.command()
 @click.argument("files", nargs=-1, type=click.Path(exists=True), required=True)
 def clear(files: list[str]) -> None:
-    """Clear the output of notebooks.
+    """Clear the notebook cell outputs.
 
     Supports multiple files and glob patterns (e.g., *.ipynb, notebooks/*.ipynb)
     """
