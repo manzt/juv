@@ -139,7 +139,7 @@ def clear(files: list[str]) -> None:
 )
 @click.option("--editor", type=click.STRING, required=False)
 def edit(notebook: str, format: str, editor: str | None) -> None:  # noqa: A002
-    """Edit a notebook in the default editor."""
+    """Quick edit a notebook in default editor."""
     from ._edit import EditorAbortedError, edit
 
     if editor is None:
