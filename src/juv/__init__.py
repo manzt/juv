@@ -129,6 +129,32 @@ def clear(files: list[str]) -> None:
     rich.print(f"Cleared output from {len(paths)} notebooks", file=sys.stderr)
 
 
+@cli.command()
+@click.argument("notebook", type=click.Path(exists=True), required=True)
+@click.option(
+    "--format",
+    type=click.Choice(["markdown", "py:percent"]),
+    default="py:percent",
+    help="The format for editing the notebook in a temporary file.",
+)
+@click.option("--editor", type=click.STRING, required=False)
+def edit(notebook: str, format: str, editor: str | None) -> None:  # noqa: A002
+    """Edit a notebook in the default editor."""
+    from ._edit import edit
+
+    if editor is None:
+        editor = os.environ.get("EDITOR")
+
+    if editor is None:
+        msg = (
+            "No editor specified. Please set the EDITOR environment variable "
+            "or use the --editor option."
+        )
+        raise click.UsageError(msg)  # noqa: DOC501
+
+    edit(path=Path(notebook), editor=editor, format_=format)
+
+
 def upgrade_legacy_jupyter_command(args: list[str]) -> None:
     """Check legacy command usage and upgrade to 'run' with deprecation notice."""
     if len(args) >= 2:  # noqa: PLR2004
