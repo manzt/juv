@@ -54,7 +54,7 @@ def init(
 @click.option("--requirements", "-r", type=click.Path(exists=True), required=False)
 @click.argument("packages", nargs=-1)
 def add(file: str, requirements: str | None, packages: tuple[str, ...]) -> None:
-    """Add dependencies to the notebook."""
+    """Add dependencies to a notebook."""
     from ._add import add
 
     add(path=Path(file), packages=packages, requirements=requirements)
@@ -77,7 +77,7 @@ def run(
     with_args: tuple[str, ...],
     python: str | None,
 ) -> None:
-    """Launch a notebook or script."""
+    """Launch a notebook or script in a Jupyter front end."""
     from ._run import run
 
     run(
@@ -91,7 +91,7 @@ def run(
 @cli.command()
 @click.argument("files", nargs=-1, type=click.Path(exists=True), required=True)
 def clear(files: list[str]) -> None:
-    """Clear the notebook cell outputs.
+    """Clear notebook cell outputs.
 
     Supports multiple files and glob patterns (e.g., *.ipynb, notebooks/*.ipynb)
     """
