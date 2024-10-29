@@ -98,8 +98,11 @@ def clear(files: list[str]) -> None:
     from ._clear import clear
 
     paths = []
-    for file in files:
-        for path in Path().glob(file):
+    for arg in files:
+        path = Path(arg)
+        to_check = path.glob("*.ipynb") if path.is_dir() else [path]
+
+        for path in to_check:
             if not path.is_file():
                 continue
 

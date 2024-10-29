@@ -42,6 +42,6 @@ jobs:
           VERSION=$(uv run juv version --output-format=json | jq -r '.version')
           gh release create v$VERSION
           git fetch --tags
-          uvx --from 'rooster-blue>=0.0.8' --isolated rooster changelog --version=v$VERSION | grep -v '^[Found|Retrieving]' > release-notes.md
+          awk '/^## / {if (p++) exit} p && NR > 2' CHANGELOG.md > release-notes.md
           uvx --from 'rooster-blue>=0.0.8' --isolated rooster contributors --version=v$VERSION --quiet >> release-notes.md
           gh release edit v$VERSION --notes-file release-notes.md
