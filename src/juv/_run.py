@@ -129,13 +129,44 @@ def prepare_uv_tool_run_args(
     ]
 
 
+def run_notebook_as_script(
+    path: Path,
+    python: str | None,
+    with_args: typing.Sequence[str],
+) -> None:
+    import subprocess
+
+    from uv import find_uv_bin
+
+    notebook = jupytext.read(path)
+    subprocess.run(  # noqa: S603
+        [
+            os.fsdecode(find_uv_bin()),
+            "run",
+            *([f"--python={python}"] if python else []),
+            *(["--with=" + ",".join(with_args)] if with_args else []),
+            "-",
+        ],
+        input=jupytext.writes(notebook, fmt="py").encode(),
+        check=True,
+        stdout=sys.stdout,
+        stderr=sys.stderr,
+    )
+
+
 def run(
     path: Path,
     jupyter: str | None,
     python: str | None,
     with_args: typing.Sequence[str],
+    *,
+    execute: bool,
 ) -> None:
     """Launch a notebook or script."""
+    if execute:
+        run_notebook_as_script(path, python, with_args)
+        return
+
     runtime = parse_notebook_specifier(jupyter)
     meta, nb = to_notebook(path)
 

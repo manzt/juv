@@ -71,11 +71,18 @@ def add(file: str, requirements: str | None, packages: tuple[str, ...]) -> None:
 )
 @click.option("--with", "with_args", type=click.STRING, multiple=True)
 @click.option("--python", type=click.STRING, required=False)
+@click.option(
+    "--execute",
+    is_flag=True,
+    help="Execute the notebook instead of running in Jupyter.",
+)
 def run(
     file: str,
     jupyter: str | None,
     with_args: tuple[str, ...],
     python: str | None,
+    *,
+    execute: bool,
 ) -> None:
     """Launch a notebook or script."""
     from ._run import run
@@ -85,6 +92,7 @@ def run(
         jupyter=jupyter,
         python=python,
         with_args=with_args,
+        execute=execute,
     )
 
 
