@@ -1,3 +1,10 @@
+## 0.2.13
+
+### Enhancements
+
+- Add `cat` command ([#28](https://github.com/manzt/juv/pull/28))
+- Require editing in markdown for better diffs ([#31](https://github.com/manzt/juv/pull/31))
+
 ## 0.2.12
 
 ### Bug fixes
