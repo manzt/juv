@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 from pathlib import Path
 
@@ -36,9 +38,9 @@ def strip_python_frontmatter_comment(content: str) -> tuple[str, str]:
     return "", content
 
 
-def cat(path: Path, fmt: str) -> str:
+def cat(path: Path | dict, fmt: str) -> str:
     fmt = {"markdown": "md", "py:percent": "py", "md": "md", "py": "py"}[fmt]
-    notebook = jupytext.read(path)
+    notebook = path if isinstance(path, dict) else jupytext.read(path)
     contents = jupytext.writes(notebook, fmt=fmt)
     if fmt == "md":
         _, contents = strip_markdown_header(contents)

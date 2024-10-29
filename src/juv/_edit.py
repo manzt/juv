@@ -48,6 +48,12 @@ def open_editor(contents: str, suffix: str, editor: str) -> str:
         tpath.unlink()
 
 
+def resolve_new_cells(previous_cells: list[dict], new_cells: list[dict]):
+    for previous_cell, new_cell in zip(previous_cells, new_cells):
+        new_cell["id"] = previous_cell["id"]
+    return new_cells
+
+
 def edit(path: Path, format_: str, editor: str) -> None:
     """Edit a Jupyter notebook in the specified format.
 
@@ -61,8 +67,9 @@ def edit(path: Path, format_: str, editor: str) -> None:
     fmt = "md" if format_ == "markdown" else "py:percent"
     suffix = ".md" if fmt == "md" else ".py"
 
-    contents = cat(path, fmt)
-    text = open_editor(contents, suffix=suffix, editor=editor)
+    text = open_editor(cat(notebook, fmt), suffix=suffix, editor=editor)
 
-    notebook = jupytext.reads(text.strip(), fmt=fmt)
+    new_notebook = jupytext.reads(text.strip(), fmt=fmt)
+    notebook.cells = resolve_new_cells(notebook.cells, new_notebook.cells)
+
     path.write_text(jupytext.writes(notebook, fmt="ipynb"))
