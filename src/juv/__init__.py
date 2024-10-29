@@ -200,6 +200,33 @@ def exec_(
     exec_(path=Path(notebook), python=python, with_args=with_args, quiet=quiet)
 
 
+@cli.command()
+@click.argument("notebook", type=click.Path(exists=True), required=True)
+@click.option(
+    "--format",
+    type=click.Choice(["markdown", "py:percent", "py", "md"]),
+    default="py:percent",
+    help="The format for printing the notebook (default: py:percent).",
+)
+def cat(notebook: str, format: str) -> None:  # noqa: A002
+    """Print notebook contents to stdout."""
+    import jupytext
+
+    path = Path(notebook)
+    if path.suffix != ".ipynb":
+        rich.print(
+            f"[bold red]Error:[/bold red] `[cyan]{path}[/cyan]` is not a notebook",
+            file=sys.stderr,
+        )
+        return
+
+    nb = jupytext.read(path, fmt="ipynb")
+    text = jupytext.writes(
+        nb, fmt={"md": "markdown", "py": "py:percent"}.get(format, format)
+    )
+    sys.stdout.write(text)
+
+
 def main() -> None:
     """Run the CLI."""
     upgrade_legacy_jupyter_command(sys.argv)
