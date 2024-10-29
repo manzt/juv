@@ -131,15 +131,9 @@ def clear(files: list[str]) -> None:
 
 @cli.command()
 @click.argument("notebook", type=click.Path(exists=True), required=True)
-@click.option(
-    "--format",
-    type=click.Choice(["markdown", "py:percent", "py", "md"]),
-    default="py:percent",
-    help="The format for editing the notebook in a temporary file.",
-)
 @click.option("--editor", type=click.STRING, required=False)
-def edit(notebook: str, format: str, editor: str | None) -> None:  # noqa: A002
-    """Quick edit a notebook in default editor."""
+def edit(notebook: str, editor: str | None) -> None:  # noqa: A002
+    """Quick edit a notebook as markdown."""
     from ._edit import EditorAbortedError, edit
 
     if editor is None:
@@ -162,11 +156,7 @@ def edit(notebook: str, format: str, editor: str | None) -> None:  # noqa: A002
         return
 
     try:
-        edit(
-            path=path,
-            editor=editor,
-            format_={"md": "markdown", "py": "py:percent"}.get(format, format),
-        )
+        edit(path=path, editor=editor)
         rich.print(f"Edited `[cyan]{notebook}[/cyan]`")
     except EditorAbortedError as e:
         rich.print(f"[bold red]Error:[/bold red] {e}", file=sys.stderr)

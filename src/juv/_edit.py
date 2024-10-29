@@ -5,6 +5,7 @@ from pathlib import Path
 import jupytext
 
 from ._cat import cat
+from ._pep723 import includes_inline_metadata
 
 
 class EditorAbortedError(Exception):
@@ -48,21 +49,24 @@ def open_editor(contents: str, suffix: str, editor: str) -> str:
         tpath.unlink()
 
 
-def edit(path: Path, format_: str, editor: str) -> None:
-    """Edit a Jupyter notebook in the specified format.
+def edit(path: Path, editor: str) -> None:
+    """Edit a Jupyter notebook as markdown.
 
     Args:
         path: Path to notebook file
-        format_: Target format ('markdown' or 'python')
         editor: Editor command to use
 
     """
-    notebook = jupytext.read(path, fmt="ipynb")
-    fmt = "md" if format_ == "markdown" else "py:percent"
-    suffix = ".md" if fmt == "md" else ".py"
+    prev_notebook = jupytext.read(path, fmt="ipynb")
 
-    contents = cat(path, fmt)
-    text = open_editor(contents, suffix=suffix, editor=editor)
+    text = open_editor(cat(prev_notebook, fmt="md"), suffix=".md", editor=editor)
+    new_notebook = jupytext.reads(text.strip(), fmt="md")
 
-    notebook = jupytext.reads(text.strip(), fmt=fmt)
-    path.write_text(jupytext.writes(notebook, fmt="ipynb"))
+    # Preserves thing like the outputs and execution count, probably should just
+    # override but you can use `juv clean` for that.
+    for old_cell, new_cell in zip(prev_notebook["cells"], new_notebook["cells"]):
+        old_cell["cell_type"] = new_cell["cell_type"]
+        old_cell["source"] = new_cell["source"]
+        old_cell["metadata"] = new_cell["metadata"]
+
+    path.write_text(jupytext.writes(prev_notebook, fmt="ipynb"))
