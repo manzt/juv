@@ -58,7 +58,7 @@ def edit(path: Path, editor: str) -> None:
     """
     prev_notebook = jupytext.read(path, fmt="ipynb")
 
-    text = open_editor(cat(prev_notebook, fmt="md"), suffix=".md", editor=editor)
+    text = open_editor(cat(prev_notebook, script=False), suffix=".md", editor=editor)
     new_notebook = jupytext.reads(text.strip(), fmt="md")
 
     for prev, new in zip(prev_notebook["cells"], new_notebook["cells"]):

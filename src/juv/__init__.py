@@ -192,13 +192,8 @@ def exec_(
 
 @cli.command()
 @click.argument("notebook", type=click.Path(exists=True), required=True)
-@click.option(
-    "--format",
-    type=click.Choice(["markdown", "py:percent", "py", "md"]),
-    default="py:percent",
-    help="The format for printing the notebook (default: py:percent).",
-)
-def cat(notebook: str, format: str) -> None:  # noqa: A002
+@click.option("--script", is_flag=True)
+def cat(notebook: str, *, script: bool) -> None:
     """Print notebook contents to stdout."""
     from ._cat import cat
 
@@ -210,7 +205,7 @@ def cat(notebook: str, format: str) -> None:  # noqa: A002
         )
         return
 
-    sys.stdout.write(cat(path, fmt=format))
+    sys.stdout.write(cat(path, script=script))
 
 
 def main() -> None:
