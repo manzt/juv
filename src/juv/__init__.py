@@ -140,7 +140,7 @@ def clear(files: list[str]) -> None:
 @click.option("--editor", type=click.STRING, required=False)
 def edit(notebook: str, format: str, editor: str | None) -> None:  # noqa: A002
     """Edit a notebook in the default editor."""
-    from ._edit import edit
+    from ._edit import EditorAbortedError, edit
 
     if editor is None:
         editor = os.environ.get("EDITOR")
@@ -150,9 +150,13 @@ def edit(notebook: str, format: str, editor: str | None) -> None:  # noqa: A002
             "No editor specified. Please set the EDITOR environment variable "
             "or use the --editor option."
         )
-        raise click.UsageError(msg)  # noqa: DOC501
+        raise click.UsageError(msg)
 
-    edit(path=Path(notebook), editor=editor, format_=format)
+    try:
+        edit(path=Path(notebook), editor=editor, format_=format)
+        rich.print(f"Edited `[cyan]{notebook}[/cyan]`")
+    except EditorAbortedError as e:
+        rich.print(f"[bold red]Error:[/bold red] {e}", file=sys.stderr)
 
 
 def upgrade_legacy_jupyter_command(args: list[str]) -> None:
