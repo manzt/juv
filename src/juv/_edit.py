@@ -1,5 +1,6 @@
 import subprocess
 import tempfile
+from itertools import zip_longest
 from pathlib import Path
 
 import jupytext
@@ -48,21 +49,31 @@ def open_editor(contents: str, suffix: str, editor: str) -> str:
         tpath.unlink()
 
 
-def edit(path: Path, format_: str, editor: str) -> None:
-    """Edit a Jupyter notebook in the specified format.
+def edit(path: Path, editor: str) -> None:
+    """Edit a Jupyter notebook as markdown.
 
     Args:
         path: Path to notebook file
-        format_: Target format ('markdown' or 'python')
         editor: Editor command to use
 
     """
-    notebook = jupytext.read(path, fmt="ipynb")
-    fmt = "md" if format_ == "markdown" else "py:percent"
-    suffix = ".md" if fmt == "md" else ".py"
+    prev_notebook = jupytext.read(path, fmt="ipynb")
 
-    contents = cat(path, fmt)
-    text = open_editor(contents, suffix=suffix, editor=editor)
+    text = open_editor(cat(prev_notebook, fmt="md"), suffix=".md", editor=editor)
+    new_notebook = jupytext.reads(text.strip(), fmt="md")
 
-    notebook = jupytext.reads(text.strip(), fmt=fmt)
-    path.write_text(jupytext.writes(notebook, fmt="ipynb"))
+    for prev, new in zip_longest(prev_notebook["cells"], new_notebook["cells"]):
+        if prev is None:
+            break
+
+        if "id" in prev:
+            new["id"] = prev["id"]
+
+        if "outputs" in prev:
+            new["outputs"] = prev["outputs"]
+
+        if "execution_count" in prev:
+            new["execution_count"] = prev["execution_count"]
+
+    prev_notebook["cells"] = new_notebook["cells"]
+    path.write_text(jupytext.writes(prev_notebook, fmt="ipynb"))
