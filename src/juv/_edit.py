@@ -1,11 +1,11 @@
 import subprocess
 import tempfile
 from pathlib import Path
+from itertools import zip_longest
 
 import jupytext
 
 from ._cat import cat
-from ._pep723 import includes_inline_metadata
 
 
 class EditorAbortedError(Exception):
@@ -62,11 +62,18 @@ def edit(path: Path, editor: str) -> None:
     text = open_editor(cat(prev_notebook, fmt="md"), suffix=".md", editor=editor)
     new_notebook = jupytext.reads(text.strip(), fmt="md")
 
-    # Preserves thing like the outputs and execution count, probably should just
-    # override but you can use `juv clean` for that.
-    for old_cell, new_cell in zip(prev_notebook["cells"], new_notebook["cells"]):
-        old_cell["cell_type"] = new_cell["cell_type"]
-        old_cell["source"] = new_cell["source"]
-        old_cell["metadata"] = new_cell["metadata"]
+    for prev, new in zip_longest(prev_notebook["cells"], new_notebook["cells"]):
+        if prev is None:
+            break
 
+        if "id" in prev:
+            new["id"] = prev["id"]
+
+        if "outputs" in prev:
+            new["outputs"] = prev["outputs"]
+
+        if "execution_count" in prev:
+            new["execution_count"] = prev["execution_count"]
+
+    prev_notebook["cells"] = new_notebook["cells"]
     path.write_text(jupytext.writes(prev_notebook, fmt="ipynb"))
