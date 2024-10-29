@@ -32,7 +32,12 @@ def open_editor(contents: str, suffix: str, editor: str) -> str:
             tf.flush()
         tpath = Path(tf.name)
     try:
-        result = subprocess.run([editor, tpath], check=False)  # noqa: S603
+        if any(code in editor.lower() for code in ["code", "vscode"]):
+            cmd = [editor, "--wait", tpath]
+        else:
+            cmd = [editor, tpath]
+
+        result = subprocess.run(cmd, check=False)  # noqa: S603
         if result.returncode != 0:
             msg = f"Editor exited with code {result.returncode}"
             raise EditorAbortedError(msg)
@@ -53,10 +58,9 @@ def edit(path: Path, format_: str, editor: str) -> None:
     contents = jupytext.read(path, fmt="ipynb")
     fmt = "md" if format_ == "markdown" else "py:percent"
     suffix = ".md" if fmt == "md" else ".py"
-    contents = jupytext.writes(contents, fmt=fmt)
 
+    contents = jupytext.writes(contents, fmt=fmt)
     text = open_editor(contents, suffix=suffix, editor=editor)
 
-    # Only process the notebook if editor completed normally
     notebook = jupytext.reads(text, fmt=fmt)
     path.write_text(jupytext.writes(notebook, fmt="ipynb"))

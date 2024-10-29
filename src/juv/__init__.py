@@ -133,7 +133,7 @@ def clear(files: list[str]) -> None:
 @click.argument("notebook", type=click.Path(exists=True), required=True)
 @click.option(
     "--format",
-    type=click.Choice(["markdown", "py:percent"]),
+    type=click.Choice(["markdown", "py:percent", "py", "md"]),
     default="py:percent",
     help="The format for editing the notebook in a temporary file.",
 )
@@ -150,10 +150,23 @@ def edit(notebook: str, format: str, editor: str | None) -> None:  # noqa: A002
             "No editor specified. Please set the EDITOR environment variable "
             "or use the --editor option."
         )
-        raise click.UsageError(msg)
+        rich.print(f"[bold red]Error:[/bold red] {msg}", file=sys.stderr)
+        return
+
+    path = Path(notebook)
+    if path.suffix != ".ipynb":
+        rich.print(
+            f"[bold red]Error:[/bold red] `[cyan]{path}[/cyan]` is not a notebook",
+            file=sys.stderr,
+        )
+        return
 
     try:
-        edit(path=Path(notebook), editor=editor, format_=format)
+        edit(
+            path=path,
+            editor=editor,
+            format_={"md": "markdown", "py": "py:percent"}.get(format, format),
+        )
         rich.print(f"Edited `[cyan]{notebook}[/cyan]`")
     except EditorAbortedError as e:
         rich.print(f"[bold red]Error:[/bold red] {e}", file=sys.stderr)
