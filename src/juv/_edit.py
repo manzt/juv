@@ -1,6 +1,5 @@
 import subprocess
 import tempfile
-from itertools import zip_longest
 from pathlib import Path
 
 import jupytext
@@ -62,10 +61,7 @@ def edit(path: Path, editor: str) -> None:
     text = open_editor(cat(prev_notebook, fmt="md"), suffix=".md", editor=editor)
     new_notebook = jupytext.reads(text.strip(), fmt="md")
 
-    for prev, new in zip_longest(prev_notebook["cells"], new_notebook["cells"]):
-        if prev is None:
-            break
-
+    for prev, new in zip(prev_notebook["cells"], new_notebook["cells"]):
         if "id" in prev:
             new["id"] = prev["id"]
 
