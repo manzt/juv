@@ -211,7 +211,7 @@ wheels = [
 
 [[package]]
 name = "juv"
-version = "0.2.11"
+version = "0.2.12"
 source = { editable = "." }
 dependencies = [
     { name = "click" },

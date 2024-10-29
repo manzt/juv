@@ -1,3 +1,9 @@
+## 0.2.12
+
+### Bug fixes
+
+- Strip content for editor ([#27](https://github.com/manzt/juv/pull/27))
+
 ## 0.2.11
 
 ### Enhancements
