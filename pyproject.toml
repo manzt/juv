@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "juv"
-version = "0.2.10"
+version = "0.2.11"
 description = "A toolkit for reproducible Jupyter notebooks, powered by uv."
 readme = "README.md"
 authors = [{ name = "Trevor Manz", email = "trevor.j.manz@gmail.com" }]

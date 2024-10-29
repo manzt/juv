@@ -1,3 +1,15 @@
+## 0.2.11
+
+### Enhancements
+
+- Add `exec` command ([#23](https://github.com/manzt/juv/pull/23))
+- Hide notebook metadata in `edit` ([#26](https://github.com/manzt/juv/pull/26))
+
+### Other changes
+
+- Add `edit` command for quick editing in default editor ([#24](https://github.com/manzt/juv/pull/24))
+- More consistent clear message ([#25](https://github.com/manzt/juv/pull/25))
+
 ## 0.2.10
 
 ### Enhancements
