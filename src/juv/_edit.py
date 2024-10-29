@@ -1,3 +1,4 @@
+import re
 import subprocess
 import tempfile
 from pathlib import Path
@@ -7,6 +8,23 @@ import jupytext
 
 class EditorAbortedError(Exception):
     """Exception raised when the editor exits abnormally."""
+
+
+def strip_markdown_header(content: str) -> tuple[str, str]:
+    # Match content between first set of --- markers
+    match = re.match(r"^---\n.*?\n---\n(.*)$", content, re.DOTALL)
+    if match:
+        header = content[: content.find(match.group(1))]
+        return header, match.group(1)
+    return "", content
+
+
+def strip_python_header(content: str) -> tuple[str, str]:
+    lines = content.splitlines(keepends=True)
+    for i, line in enumerate(lines):
+        if not line.startswith("#"):
+            return "".join(lines[:i]), "".join(lines[i:])
+    return "", content
 
 
 def open_editor(contents: str, suffix: str, editor: str) -> str:
@@ -55,12 +73,18 @@ def edit(path: Path, format_: str, editor: str) -> None:
         editor: Editor command to use
 
     """
-    contents = jupytext.read(path, fmt="ipynb")
+    notebook = jupytext.read(path, fmt="ipynb")
     fmt = "md" if format_ == "markdown" else "py:percent"
     suffix = ".md" if fmt == "md" else ".py"
 
-    contents = jupytext.writes(contents, fmt=fmt)
+    contents = jupytext.writes(notebook, fmt=fmt)
+
+    if fmt == "md":
+        _, contents = strip_markdown_header(contents)
+    else:
+        _, contents = strip_python_header(contents)
+
     text = open_editor(contents, suffix=suffix, editor=editor)
 
-    notebook = jupytext.reads(text, fmt=fmt)
+    notebook = jupytext.reads(text.strip(), fmt=fmt)
     path.write_text(jupytext.writes(notebook, fmt="ipynb"))
