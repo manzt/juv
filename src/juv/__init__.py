@@ -132,7 +132,7 @@ def clear(files: list[str]) -> None:
 @cli.command()
 @click.argument("notebook", type=click.Path(exists=True), required=True)
 @click.option("--editor", type=click.STRING, required=False)
-def edit(notebook: str, editor: str | None) -> None:  # noqa: A002
+def edit(notebook: str, editor: str | None) -> None:
     """Quick edit a notebook as markdown."""
     from ._edit import EditorAbortedError, edit
 

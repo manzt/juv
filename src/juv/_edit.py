@@ -1,7 +1,7 @@
 import subprocess
 import tempfile
-from pathlib import Path
 from itertools import zip_longest
+from pathlib import Path
 
 import jupytext
 

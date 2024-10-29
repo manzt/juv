@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import re
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import jupytext
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def strip_markdown_header(content: str) -> tuple[str, str]:
