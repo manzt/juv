@@ -186,6 +186,20 @@ def upgrade_legacy_jupyter_command(args: list[str]) -> None:
             args[1] = "run"
 
 
+@cli.command("exec")
+@click.argument("notebook", type=click.Path(exists=True), required=True)
+@click.option("--python", type=click.STRING, required=False)
+@click.option("--with", "with_args", type=click.STRING, multiple=True)
+@click.option("--quiet", is_flag=True)
+def exec_(
+    notebook: str, python: str | None, with_args: tuple[str, ...], *, quiet: bool
+) -> None:
+    """Execute a notebook as a script."""
+    from ._exec import exec_
+
+    exec_(path=Path(notebook), python=python, with_args=with_args, quiet=quiet)
+
+
 def main() -> None:
     """Run the CLI."""
     upgrade_legacy_jupyter_command(sys.argv)
