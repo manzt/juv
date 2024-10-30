@@ -58,18 +58,33 @@ def edit(path: Path, editor: str) -> None:
     """
     prev_notebook = jupytext.read(path, fmt="ipynb")
 
+    # Create a mapping of cell IDs to previous cells
+    prev_cells: dict[str, dict] = {}
+    for update in prev_notebook["cells"]:
+        if "id" not in update:
+            continue
+        update["metadata"]["id"] = update["id"]
+        prev_cells[update["id"]] = update
+
     text = open_editor(cat(prev_notebook, script=False), suffix=".md", editor=editor)
     new_notebook = jupytext.reads(text.strip(), fmt="md")
 
-    for prev, new in zip(prev_notebook["cells"], new_notebook["cells"]):
-        if "id" in prev:
-            new["id"] = prev["id"]
+    # Update the previous notebook cells with the new ones
+    cells = []
+    for update in new_notebook["cells"]:
+        prev = prev_cells.get(update["metadata"].pop("id", None))
+        update["metadata"].pop("lines_to_next_cell", None)
+        if prev is None:
+            cells.append(update)
+            continue
+        prev.update(
+            {
+                "cell_type": update["cell_type"],
+                "source": update["source"],
+                "metadata": update["metadata"],
+            }
+        )
+        cells.append(prev)
 
-        if "outputs" in prev:
-            new["outputs"] = prev["outputs"]
-
-        if "execution_count" in prev:
-            new["execution_count"] = prev["execution_count"]
-
-    prev_notebook["cells"] = new_notebook["cells"]
+    prev_notebook["cells"] = cells
     path.write_text(jupytext.writes(prev_notebook, fmt="ipynb"))
