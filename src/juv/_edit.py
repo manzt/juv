@@ -1,5 +1,3 @@
-import difflib
-import operator
 import subprocess
 import tempfile
 from pathlib import Path
@@ -60,53 +58,33 @@ def edit(path: Path, editor: str) -> None:
     """
     prev_notebook = jupytext.read(path, fmt="ipynb")
 
+    # Create a mapping of cell IDs to previous cells
+    prev_cells: dict[str, dict] = {}
+    for update in prev_notebook["cells"]:
+        if "id" not in update:
+            continue
+        update["metadata"]["id"] = update["id"]
+        prev_cells[update["id"]] = update
+
     text = open_editor(cat(prev_notebook, script=False), suffix=".md", editor=editor)
     new_notebook = jupytext.reads(text.strip(), fmt="md")
 
-    apply_diff(prev_notebook["cells"], new_notebook["cells"])
+    # Update the previous notebook cells with the new ones
+    cells = []
+    for update in new_notebook["cells"]:
+        prev = prev_cells.get(update["metadata"].pop("id", None))
+        update["metadata"].pop("lines_to_next_cell", None)
+        if prev is None:
+            cells.append(update)
+            continue
+        prev.update(
+            {
+                "cell_type": update["cell_type"],
+                "source": update["source"],
+                "metadata": update["metadata"],
+            }
+        )
+        cells.append(prev)
 
-    # replace the original notebook cells with the modified ones
-    prev_notebook["cells"] = new_notebook["cells"]
+    prev_notebook["cells"] = cells
     path.write_text(jupytext.writes(prev_notebook, fmt="ipynb"))
-
-
-def apply_diff(
-    prev_cells: list[dict], new_cells: list[dict], min_similarity: float = 0.8
-) -> None:
-    """Intelligently diff and merge cells to minimize changes.
-
-    Args:
-        prev_cells: Original notebook cells
-        new_cells: Modified notebook cells
-    Returns:
-        List of merged cells with minimal changes.
-
-    """
-    prev_cells = prev_cells.copy()
-
-    def update(prev: dict, new: dict) -> None:
-        if "id" in prev:
-            new["id"] = prev["id"]
-        if "outputs" in prev:
-            new["outputs"] = prev["outputs"]
-        if "execution_count" in prev:
-            new["execution_count"] = prev["execution_count"]
-
-    for new in new_cells:
-        scores: list[tuple[float, dict]] = []
-        for prev in prev_cells:
-            matcher = difflib.SequenceMatcher(
-                isjunk=None, a="".join(new["source"]), b="".join(prev["source"])
-            )
-            score = matcher.ratio()
-            if score == 1.0:
-                # we have an exact match and can skip the rest
-                prev_cells.remove(prev)
-                update(prev, new)
-                break
-            scores.append((score, prev))
-        if scores:
-            score, prev = max(scores, key=operator.itemgetter(0))
-            if score > min_similarity:  # only update if similarity is high enough
-                prev_cells.remove(prev)
-                update(prev, new)
