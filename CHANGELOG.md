@@ -1,3 +1,14 @@
+## 0.2.14
+
+### Enhancements
+
+- Replace `cat --format` with `cat --script` ([#33](https://github.com/manzt/juv/pull/33))
+- Include `id` metadata for markdown editing for better diffing ([#34](https://github.com/manzt/juv/pull/34))
+
+### Bug fixes
+
+- Fix so that cells are diffed by longest ([#32](https://github.com/manzt/juv/pull/32))
+
 ## 0.2.13
 
 ### Enhancements
