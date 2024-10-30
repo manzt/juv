@@ -6,7 +6,9 @@ import subprocess
 from uv import find_uv_bin
 
 
-def uv(args: list[str], *, check: bool) -> subprocess.CompletedProcess:
+def uv(
+    args: list[str], *, check: bool, env: dict | None = None
+) -> subprocess.CompletedProcess:
     """Invoke a uv subprocess and return the result.
 
     Parameters
@@ -17,6 +19,9 @@ def uv(args: list[str], *, check: bool) -> subprocess.CompletedProcess:
     check : bool
         Whether to raise an exception if the subprocess returns a non-zero exit code.
 
+    env : dict, optional
+        The environment variables to pass to the subprocess
+
     Returns
     -------
     subprocess.CompletedProcess
@@ -24,4 +29,4 @@ def uv(args: list[str], *, check: bool) -> subprocess.CompletedProcess:
 
     """
     uv = os.fsdecode(find_uv_bin())
-    return subprocess.run([uv, *args], capture_output=True, check=check)  # noqa: S603
+    return subprocess.run([uv, *args], capture_output=True, check=check, env=env)  # noqa: S603

@@ -14,7 +14,7 @@ from nbformat.v4.nbbase import new_code_cell, new_notebook
 from juv import cli
 from juv._nbutils import write_ipynb
 from juv._pep723 import parse_inline_script_metadata
-from juv._run import Pep723Meta, Runtime, prepare_uv_tool_run_args, to_notebook
+from juv._run import Pep723Meta, Runtime, prepare_uv_tool_run, to_notebook
 
 
 def invoke(args: list[str], uv_python: str = "3.13") -> Result:
@@ -23,6 +23,22 @@ def invoke(args: list[str], uv_python: str = "3.13") -> Result:
         args,
         env={**os.environ, "UV_PYTHON": uv_python},
     )
+
+
+def prepare_uv_tool_run_args(
+    target: Path,
+    runtime: Runtime,
+    meta: Pep723Meta,
+    extra_with_args: list[str],
+    python: str | None,
+) -> list[str]:
+    return prepare_uv_tool_run(
+        target=target,
+        runtime=runtime,
+        meta=meta,
+        extra_with_args=extra_with_args,
+        python=python,
+    )[1]
 
 
 @pytest.fixture
@@ -149,6 +165,7 @@ def test_python_override() -> None:
         [
             "tool",
             "run",
+            "--isolated",
             "--python=3.12",
             "--with=setuptools,nbclassic",
             "--with=numpy",
@@ -171,6 +188,7 @@ def test_run_nbclassic() -> None:
         [
             "tool",
             "run",
+            "--isolated",
             "--python=3.8",
             "--with=setuptools,nbclassic",
             "--with=numpy",
@@ -193,6 +211,7 @@ def test_run_notebook() -> None:
         [
             "tool",
             "run",
+            "--isolated",
             "--with=setuptools,notebook==6.4.0",
             "jupyter",
             "notebook",
@@ -212,6 +231,7 @@ def test_run_jlab() -> None:
         [
             "tool",
             "run",
+            "--isolated",
             "--python=3.8",
             "--with=setuptools,jupyterlab",
             "--with=numpy",

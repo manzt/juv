@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 import tempfile
 import typing
@@ -44,7 +45,14 @@ def new_notebook_with_inline_metadata(
             check=True,
         )
         contents = f.read().strip()
-        return new_notebook(cells=[code_cell(contents, hidden=True), code_cell("")])
+        return new_notebook(
+            cells=[
+                code_cell(contents, hidden=True),
+                code_cell(
+                    "%reload_ext juv" if os.environ.get("JUV_CELLMAGIC") == "1" else "",
+                ),
+            ]
+        )
 
 
 def get_first_non_conflicting_untitled_ipynb(directory: Path) -> Path:
