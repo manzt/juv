@@ -71,11 +71,15 @@ def add(file: str, requirements: str | None, packages: tuple[str, ...]) -> None:
 )
 @click.option("--with", "with_args", type=click.STRING, multiple=True)
 @click.option("--python", type=click.STRING, required=False)
+@click.argument(
+    "jupyter_args", nargs=-1, type=click.UNPROCESSED
+)  # Capture all args after --
 def run(
     file: str,
     jupyter: str | None,
     with_args: tuple[str, ...],
     python: str | None,
+    jupyter_args: tuple[str, ...],
 ) -> None:
     """Launch a notebook or script in a Jupyter front end."""
     from ._run import run
@@ -85,6 +89,7 @@ def run(
         jupyter=jupyter,
         python=python,
         with_args=with_args,
+        jupyter_args=jupyter_args,
     )
 
 

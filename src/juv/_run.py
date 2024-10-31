@@ -95,12 +95,14 @@ def to_notebook(fp: Path) -> tuple[str | None, dict]:
     return meta, nb
 
 
-def prepare_uv_tool_run_args(
+def prepare_uv_tool_run_args(  # noqa: PLR0913
+    *,
     target: Path,
     runtime: Runtime,
     meta: Pep723Meta,
     python: str | None,
     extra_with_args: typing.Sequence[str],
+    jupyter_args: typing.Sequence[str],
 ) -> list[str]:
     jupyter_dependency = {
         "notebook": "notebook",
@@ -125,6 +127,7 @@ def prepare_uv_tool_run_args(
         *(["--with=" + ",".join(extra_with_args)] if extra_with_args else []),
         "jupyter",
         runtime.name,
+        *jupyter_args,
         str(target),
     ]
 
@@ -134,6 +137,7 @@ def run(
     jupyter: str | None,
     python: str | None,
     with_args: typing.Sequence[str],
+    jupyter_args: typing.Sequence[str],
 ) -> None:
     """Launch a notebook or script."""
     runtime = parse_notebook_specifier(jupyter)
@@ -152,7 +156,12 @@ def run(
         meta=Pep723Meta.from_toml(meta) if meta else Pep723Meta([], None),
         python=python,
         extra_with_args=with_args,
+        jupyter_args=jupyter_args,
     )
+
+    if os.environ.get("JUV_DEBUG") == "1":
+        print(f"uv {' '.join(args)}")  # noqa: T201
+        return
 
     if os.environ.get("JUV_RUN_MODE") == "managed":
         from ._run_managed import run as run_managed
