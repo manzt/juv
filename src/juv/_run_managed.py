@@ -113,8 +113,7 @@ def process_output(
 
         if "http://" in line:
             url = extract_url(line)
-            if "localhost" in url and not local_url:
-                local_url = format_url(url, path)
+            local_url = format_url(url, path)
 
     status.stop()
     display(local_url)
