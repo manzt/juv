@@ -30,7 +30,7 @@ class Pep723Meta:
         meta = toml.loads(s)
         return cls(
             dependencies=meta.get("dependencies", []),
-            requires_python=meta.get("requires_python", None),
+            requires_python=meta.get("requires-python", None),
         )
 
 
