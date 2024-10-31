@@ -78,7 +78,7 @@ def run(
     if os.environ.get("JUV_RUN_MODE") == "managed":
         from ._run_managed import run as run_managed
 
-        run_managed(script, args, runtime.name, str(path))
+        run_managed(script, args, str(path))
     else:
         from ._run_replace import run as run_replace
 

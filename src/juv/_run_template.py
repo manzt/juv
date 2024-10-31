@@ -63,7 +63,17 @@ class Runtime:
 
 LAB = """
 {meta}
-import sys from jupyterlab.labapp import main
+import os
+import sys
+
+from jupyterlab.labapp import main
+
+
+if os.environ.get("JUV_RUN_MODE") == "managed":
+    import importlib.metadata
+
+    version = importlib.metadata.version("jupyterlab")
+    print("JUV_MANGED=" + "jupyterlab" + "," + version, file=sys.stderr)
 
 sys.argv = ["jupyter-lab", "{notebook}", *{args}]
 main()
@@ -71,8 +81,17 @@ main()
 
 NOTEBOOK = """
 {meta}
+import os
 import sys
+
 from notebook.app import main
+
+
+if os.environ.get("JUV_RUN_MODE") == "managed":
+    import importlib.metadata
+
+    version = importlib.metadata.version("notebook")
+    print("JUV_MANGED=" + "notebook" + "," + version, file=sys.stderr)
 
 sys.argv = ["jupyter-notebook", "{notebook}", *{args}]
 main()
@@ -80,8 +99,17 @@ main()
 
 NOTEBOOK_6 = """
 {meta}
+import os
 import sys
+
 from notebook.notebookapp import main
+
+
+if os.environ.get("JUV_RUN_MODE") == "managed":
+    import importlib.metadata
+
+    version = importlib.metadata.version("notebook")
+    print("JUV_MANGED=" + "notebook" + "," + version, file=sys.stderr)
 
 sys.argv = ["jupyter-notebook", "{notebook}", *{args}]
 main()
@@ -89,8 +117,17 @@ main()
 
 NBCLASSIC = """
 {meta}
+import os
 import sys
+
 from nbclassic.notebookapp import main
+
+
+if os.environ.get("JUV_RUN_MODE") == "managed":
+    import importlib.metadata
+
+    version = importlib.metadata.version("nbclassic")
+    print("JUV_MANGED=" + "nbclassic" + "," + version, file=sys.stderr)
 
 sys.argv = ["jupyter-nbclassic", "{notebook}", *{args}]
 main()

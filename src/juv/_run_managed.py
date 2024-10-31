@@ -12,7 +12,6 @@ import re
 import signal
 import subprocess
 import time
-import typing
 from queue import Queue
 from threading import Thread
 
@@ -38,7 +37,6 @@ def format_url(url: str, path: str) -> str:
 
 def process_output(
     console: Console,
-    jupyter: str,
     filename: str,
     output_queue: Queue,
 ) -> None:
@@ -46,7 +44,17 @@ def process_output(
     status.start()
     start = time.time()
 
-    version = "0.0.0"
+    name_version: None | tuple[str, str] = None
+
+    while name_version is None:
+        line = output_queue.get()
+
+        if line.startswith("JUV_MANGED="):
+            name_version = line[len("JUV_MANGED=") :].split(",")
+        else:
+            print(line, end="")
+
+    jupyter, version = name_version
 
     path = {
         "lab": f"/tree/{filename}",
@@ -96,7 +104,6 @@ def process_output(
 def run(
     script: str,
     args: list[str],
-    jupyter: str,
     filename: str,
 ) -> None:
     console = Console()
@@ -108,6 +115,7 @@ def run(
         stderr=subprocess.STDOUT,
         preexec_fn=os.setsid,  # noqa: PLW1509
         text=True,
+        env=os.environ,
     )
     assert process.stdin is not None  # noqa: S101
     process.stdin.write(script)
@@ -116,7 +124,7 @@ def run(
 
     output_thread = Thread(
         target=process_output,
-        args=(console, jupyter, filename, output_queue),
+        args=(console, filename, output_queue),
     )
     output_thread.start()
 
