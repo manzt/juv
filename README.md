@@ -50,7 +50,6 @@ juv run notebook.ipynb
 juv run --with=polars notebook.ipynb # additional dependencies for this session (not saved)
 juv run --jupyter=notebook@6.4.0 notebook.ipynb # pick a specific Jupyter frontend
 juv run --jupyter=nbclassic notebook.ipynb -- --no-browser # pass additional arguments to Jupyter
-```
 
 # JUV_JUPYTER env var to set preferred Jupyter frontend (default: lab)
 export JUV_JUPYTER=nbclassic
