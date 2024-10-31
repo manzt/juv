@@ -13,22 +13,10 @@ from nbformat.v4.nbbase import new_code_cell, new_notebook
 from juv import cli
 from juv._nbutils import write_ipynb
 from juv._pep723 import parse_inline_script_metadata
-from juv._run import Pep723Meta, to_notebook
+from juv._run import to_notebook
 
 if TYPE_CHECKING:
     import pathlib
-
-
-def meta_to_str(meta: Pep723Meta) -> str:
-    lines = [
-        "# /// script",
-        f'# requires-python = "{meta.requires_python}"',
-        "# dependencies = [",
-        *(f'  "{dep}",' for dep in meta.dependencies),
-        "# ]",
-        "# ///",
-    ]
-    return "\n".join(lines)
 
 
 def invoke(args: list[str], uv_python: str = "3.13") -> Result:
@@ -169,14 +157,11 @@ Error: Invalid value for 'FILE': Path 'test.ipynb' does not exist.
 
 def test_run_basic(tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
-
-    nb = new_notebook()
-    write_ipynb(nb, tmp_path / "test.ipynb")
-
+    invoke(["init", "test.ipynb"])
     result = invoke(["run", "test.ipynb"])
     assert result.exit_code == 0
     assert result.stdout == snapshot(
-        "uv tool run --with=setuptools,jupyterlab jupyter lab test.ipynb\n"
+        "uv tool run --python=>=3.13 --with=setuptools,jupyterlab jupyter lab test.ipynb\n"
     )
 
 
@@ -184,9 +169,7 @@ def test_run_python_override(
     tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.chdir(tmp_path)
-
-    nb = new_notebook()
-    write_ipynb(nb, tmp_path / "test.ipynb")
+    invoke(["init", "test.ipynb"])
 
     result = invoke(["run", "--python=3.12", "test.ipynb"])
     assert result.exit_code == 0
@@ -199,20 +182,11 @@ def test_run_with_script_meta(
     tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.chdir(tmp_path)
-
-    nb = new_notebook(
-        cells=[
-            new_code_cell(
-                meta_to_str(Pep723Meta(dependencies=["numpy"], requires_python=">=3.8"))
-            ),
-        ]
-    )
-    write_ipynb(nb, tmp_path / "test.ipynb")
-
+    invoke(["init", "test.ipynb", "--with", "numpy"])
     result = invoke(["run", "test.ipynb"])
     assert result.exit_code == 0
     assert result.stdout == snapshot(
-        "uv tool run --with=setuptools,jupyterlab jupyter lab test.ipynb\n"
+        "uv tool run --python=>=3.13 --with=setuptools,jupyterlab --with=numpy jupyter lab test.ipynb\n"
     )
 
 
@@ -220,39 +194,21 @@ def test_run_with_script_meta_and_with_args(
     tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.chdir(tmp_path)
-
-    nb = new_notebook(
-        cells=[
-            new_code_cell(
-                meta_to_str(Pep723Meta(dependencies=["numpy"], requires_python=">=3.8"))
-            ),
-        ]
-    )
-    write_ipynb(nb, tmp_path / "test.ipynb")
-
+    invoke(["init", "test.ipynb", "--with", "numpy"])
     result = invoke(["run", "--with", "polars", "--with=anywidget,foo", "test.ipynb"])
     assert result.exit_code == 0
     assert result.stdout == snapshot(
-        "uv tool run --with=setuptools,jupyterlab --with=polars,anywidget,foo jupyter lab test.ipynb\n"
+        "uv tool run --python=>=3.13 --with=setuptools,jupyterlab --with=numpy --with=polars,anywidget,foo jupyter lab test.ipynb\n"
     )
 
 
 def test_run_nbclassic(tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
-
-    nb = new_notebook(
-        cells=[
-            new_code_cell(
-                meta_to_str(Pep723Meta(dependencies=["numpy"], requires_python=">=3.8"))
-            ),
-        ]
-    )
-    write_ipynb(nb, tmp_path / "test.ipynb")
-
+    invoke(["init", "--with", "numpy", "test.ipynb"])
     result = invoke(["run", "--with=polars", "--jupyter=nbclassic", "test.ipynb"])
     assert result.exit_code == 0
     assert result.stdout == snapshot(
-        "uv tool run --with=setuptools,nbclassic --with=polars jupyter nbclassic test.ipynb\n"
+        "uv tool run --python=>=3.13 --with=setuptools,nbclassic --with=numpy --with=polars jupyter nbclassic test.ipynb\n"
     )
 
 
@@ -260,13 +216,11 @@ def test_run_notebook_and_version(
     tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.chdir(tmp_path)
-    nb = new_notebook()
-    write_ipynb(nb, tmp_path / "test.ipynb")
-
+    invoke(["init", "test.ipynb", "--python=3.8"])
     result = invoke(["run", "--jupyter=notebook@6.4.0", "test.ipynb"])
     assert result.exit_code == 0
     assert result.stdout == snapshot(
-        "uv tool run --with=setuptools,notebook==6.4.0 jupyter notebook test.ipynb\n"
+        "uv tool run --python=>=3.8 --with=setuptools,notebook==6.4.0 jupyter notebook test.ipynb\n"
     )
 
 
@@ -274,23 +228,45 @@ def test_run_with_extra_jupyter_flags(
     tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.chdir(tmp_path)
-    nb = new_notebook()
-    write_ipynb(nb, tmp_path / "test.ipynb")
-
-    result = invoke(
-        [
-            "run",
-            "test.ipynb",
-            "--",
-            "--no-browser",
-            "--port=8888",
-            "--ip=0.0.0.0",
-        ]
-    )
+    invoke(["init", "test.ipynb"])
+    result = invoke([
+        "run",
+        "test.ipynb",
+        "--",
+        "--no-browser",
+        "--port=8888",
+        "--ip=0.0.0.0",
+    ])
     assert result.exit_code == 0
     assert result.stdout == snapshot(
-        "uv tool run --with=setuptools,jupyterlab jupyter lab --no-browser --port=8888 --ip=0.0.0.0 test.ipynb\n"
+        "uv tool run --python=>=3.13 --with=setuptools,jupyterlab jupyter lab --no-browser --port=8888 --ip=0.0.0.0 test.ipynb\n"
     )
+
+
+def test_run_uses_version_specifier(
+    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    script = """
+# /// script
+# dependencies = ["numpy", "pandas"]
+# requires-python = ">=3.8,<3.10"
+# ///
+
+import numpy as np
+import pandas as pd
+
+print('Hello, world!')
+"""
+    script_path = tmp_path / "script.py"
+    script_path.write_text(script)
+
+    foo = to_notebook(script_path)
+    write_ipynb(foo[1], tmp_path / "script.ipynb")
+
+    result = invoke(["run", "script.ipynb"])
+    assert result.exit_code == 0
+    assert result.stdout == snapshot("uv tool run --python=>=3.8,<3.10 --with=setuptools,jupyterlab --with=numpy,pandas jupyter lab script.ipynb\n")
 
 
 def filter_tempfile_ipynb(output: str) -> str:
