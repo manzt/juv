@@ -229,14 +229,16 @@ def test_run_with_extra_jupyter_flags(
 ) -> None:
     monkeypatch.chdir(tmp_path)
     invoke(["init", "test.ipynb"])
-    result = invoke([
-        "run",
-        "test.ipynb",
-        "--",
-        "--no-browser",
-        "--port=8888",
-        "--ip=0.0.0.0",
-    ])
+    result = invoke(
+        [
+            "run",
+            "test.ipynb",
+            "--",
+            "--no-browser",
+            "--port=8888",
+            "--ip=0.0.0.0",
+        ]
+    )
     assert result.exit_code == 0
     assert result.stdout == snapshot(
         "uv tool run --python=>=3.13 --with=setuptools,jupyterlab jupyter lab --no-browser --port=8888 --ip=0.0.0.0 test.ipynb\n"
@@ -266,7 +268,9 @@ print('Hello, world!')
 
     result = invoke(["run", "script.ipynb"])
     assert result.exit_code == 0
-    assert result.stdout == snapshot("uv tool run --python=>=3.8,<3.10 --with=setuptools,jupyterlab --with=numpy,pandas jupyter lab script.ipynb\n")
+    assert result.stdout == snapshot(
+        "uv tool run --python=>=3.8,<3.10 --with=setuptools,jupyterlab --with=numpy,pandas jupyter lab script.ipynb\n"
+    )
 
 
 def filter_tempfile_ipynb(output: str) -> str:
