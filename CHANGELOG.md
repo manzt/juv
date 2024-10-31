@@ -1,3 +1,9 @@
+## 0.2.15
+
+### Enhancements
+
+- Support forwarding flags to underlying Jupyter front end ([#35](https://github.com/manzt/juv/pull/35))
+
 ## 0.2.14
 
 ### Enhancements
