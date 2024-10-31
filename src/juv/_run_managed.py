@@ -22,31 +22,6 @@ from uv import find_uv_bin
 from ._version import __version__
 
 
-def get_version(jupyter: str, version: str | None) -> str:
-    with_jupyter = {
-        "lab": "--with=jupyterlab",
-        "notebook": "--with=notebook",
-        "nbclassic": "--with=nbclassic",
-    }[jupyter]
-    if version:
-        with_jupyter += f"=={version}"
-    result = subprocess.run(  # noqa: S603
-        [
-            os.fsdecode(find_uv_bin()),
-            "tool",
-            "run",
-            with_jupyter,
-            "jupyter",
-            jupyter,
-            "--version",
-        ],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    return result.stdout.strip()
-
-
 def extract_url(log_line: str) -> str:
     match = re.search(r"http://[^\s]+", log_line)
     return "" if not match else match.group(0)
@@ -64,7 +39,6 @@ def format_url(url: str, path: str) -> str:
 def process_output(
     console: Console,
     jupyter: str,
-    jupyter_version: str | None,
     filename: str,
     output_queue: Queue,
 ) -> None:
@@ -72,7 +46,7 @@ def process_output(
     status.start()
     start = time.time()
 
-    version = get_version(jupyter, jupyter_version)
+    version = "0.0.0"
 
     path = {
         "lab": f"/tree/{filename}",
@@ -120,23 +94,29 @@ def process_output(
 
 
 def run(
+    script: str,
     args: list[str],
+    jupyter: str,
     filename: str,
-    jupyter: typing.Literal["lab", "notebook", "nbclassic"],
-    jupyter_verison: str | None,
 ) -> None:
     console = Console()
     output_queue = Queue()
     process = subprocess.Popen(  # noqa: S603
         [os.fsdecode(find_uv_bin()), *args],
+        stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         preexec_fn=os.setsid,  # noqa: PLW1509
         text=True,
     )
+    assert process.stdin is not None  # noqa: S101
+    process.stdin.write(script)
+    process.stdin.flush()
+    process.stdin.close()
+
     output_thread = Thread(
         target=process_output,
-        args=(console, jupyter, jupyter_verison, filename, output_queue),
+        args=(console, jupyter, filename, output_queue),
     )
     output_thread.start()
 
