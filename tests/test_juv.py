@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import os
-import pathlib
 import re
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import jupytext
 import pytest
@@ -14,7 +13,10 @@ from nbformat.v4.nbbase import new_code_cell, new_notebook
 from juv import cli
 from juv._nbutils import write_ipynb
 from juv._pep723 import parse_inline_script_metadata
-from juv._run import Pep723Meta, Runtime, prepare_uv_tool_run_args, to_notebook
+from juv._run import Pep723Meta, to_notebook
+
+if TYPE_CHECKING:
+    import pathlib
 
 
 def meta_to_str(meta: Pep723Meta) -> str:
@@ -156,7 +158,7 @@ def test_run_no_notebook(
     monkeypatch.chdir(tmp_path)
 
     result = invoke(["run", "test.ipynb"])
-    assert result.exit_code == 2
+    assert result.exit_code == 2  # noqa: PLR2004
     assert result.stdout == snapshot("""\
 Usage: cli run [OPTIONS] FILE [JUPYTER_ARGS]...
 Try 'cli run --help' for help.
@@ -173,7 +175,9 @@ def test_run_basic(tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> N
 
     result = invoke(["run", "test.ipynb"])
     assert result.exit_code == 0
-    assert result.stdout == snapshot("uv tool run --with=setuptools,jupyterlab jupyter lab test.ipynb\n")
+    assert result.stdout == snapshot(
+        "uv tool run --with=setuptools,jupyterlab jupyter lab test.ipynb\n"
+    )
 
 
 def test_run_python_override(
@@ -186,7 +190,9 @@ def test_run_python_override(
 
     result = invoke(["run", "--python=3.12", "test.ipynb"])
     assert result.exit_code == 0
-    assert result.stdout == snapshot("uv tool run --python=3.12 --with=setuptools,jupyterlab jupyter lab test.ipynb\n")
+    assert result.stdout == snapshot(
+        "uv tool run --python=3.12 --with=setuptools,jupyterlab jupyter lab test.ipynb\n"
+    )
 
 
 def test_run_with_script_meta(
@@ -205,7 +211,9 @@ def test_run_with_script_meta(
 
     result = invoke(["run", "test.ipynb"])
     assert result.exit_code == 0
-    assert result.stdout == snapshot("uv tool run --with=setuptools,jupyterlab jupyter lab test.ipynb\n")
+    assert result.stdout == snapshot(
+        "uv tool run --with=setuptools,jupyterlab jupyter lab test.ipynb\n"
+    )
 
 
 def test_run_with_script_meta_and_with_args(
@@ -224,7 +232,9 @@ def test_run_with_script_meta_and_with_args(
 
     result = invoke(["run", "--with", "polars", "--with=anywidget,foo", "test.ipynb"])
     assert result.exit_code == 0
-    assert result.stdout == snapshot("uv tool run --with=setuptools,jupyterlab --with=polars,anywidget,foo jupyter lab test.ipynb\n")
+    assert result.stdout == snapshot(
+        "uv tool run --with=setuptools,jupyterlab --with=polars,anywidget,foo jupyter lab test.ipynb\n"
+    )
 
 
 def test_run_nbclassic(tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -241,7 +251,9 @@ def test_run_nbclassic(tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) 
 
     result = invoke(["run", "--with=polars", "--jupyter=nbclassic", "test.ipynb"])
     assert result.exit_code == 0
-    assert result.stdout == snapshot("uv tool run --with=setuptools,nbclassic --with=polars jupyter nbclassic test.ipynb\n")
+    assert result.stdout == snapshot(
+        "uv tool run --with=setuptools,nbclassic --with=polars jupyter nbclassic test.ipynb\n"
+    )
 
 
 def test_run_notebook_and_version(
@@ -253,7 +265,32 @@ def test_run_notebook_and_version(
 
     result = invoke(["run", "--jupyter=notebook@6.4.0", "test.ipynb"])
     assert result.exit_code == 0
-    assert result.stdout == snapshot("uv tool run --with=setuptools,notebook==6.4.0 jupyter notebook test.ipynb\n")
+    assert result.stdout == snapshot(
+        "uv tool run --with=setuptools,notebook==6.4.0 jupyter notebook test.ipynb\n"
+    )
+
+
+def test_run_with_extra_jupyter_flags(
+    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    nb = new_notebook()
+    write_ipynb(nb, tmp_path / "test.ipynb")
+
+    result = invoke(
+        [
+            "run",
+            "test.ipynb",
+            "--",
+            "--no-browser",
+            "--port=8888",
+            "--ip=0.0.0.0",
+        ]
+    )
+    assert result.exit_code == 0
+    assert result.stdout == snapshot(
+        "uv tool run --with=setuptools,jupyterlab jupyter lab --no-browser --port=8888 --ip=0.0.0.0 test.ipynb\n"
+    )
 
 
 def filter_tempfile_ipynb(output: str) -> str:

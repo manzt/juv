@@ -60,6 +60,8 @@ ignore = [
     "SLF001", # Access private member
     "W291",   # Trailing whitespace
     "INP001", # Allow implicit namespace
+    "E501",   # Allow long lines (snapshots)
+    "PLC2701" # Import private member
 ]
 
 [tool.rooster]
@@ -73,3 +75,4 @@ changelog_sections.bug = "Bug fixes"
 changelog_sections.documentation = "Documentation"
 changelog_sections.__unknown__ = "Other changes"
 changelog_contributors = true
+
