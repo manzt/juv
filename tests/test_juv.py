@@ -14,6 +14,7 @@ from juv import cli
 from juv._nbutils import write_ipynb
 from juv._pep723 import parse_inline_script_metadata
 from juv._run import to_notebook
+from juv._uv import uv
 
 if TYPE_CHECKING:
     import pathlib
@@ -608,5 +609,55 @@ def test_add_with_extras(
 # dependencies = [
 #     "anywidget[dev,foo]",
 # ]
+# ///\
+""")
+
+
+def test_add_local_package(
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    uv(["init", "--lib", "foo"], check=True)
+    invoke(["init", "test.ipynb"])
+    result = invoke(["add", "test.ipynb", "./foo"])
+
+    assert result.exit_code == 0
+    assert result.stdout == snapshot("Updated `test.ipynb`\n")
+    assert extract_meta_cell(tmp_path / "test.ipynb") == snapshot("""\
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#     "foo",
+# ]
+#
+# [tool.uv.sources]
+# foo = { path = "foo" }
+# ///\
+""")
+
+
+def test_add_local_package_as_editable(
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    uv(["init", "--lib", "foo"], check=True)
+    invoke(["init", "test.ipynb"])
+    result = invoke(["add", "test.ipynb", "--editable", "./foo"])
+
+    assert result.exit_code == 0
+    assert result.stdout == snapshot("Updated `test.ipynb`\n")
+    assert extract_meta_cell(tmp_path / "test.ipynb") == snapshot("""\
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#     "foo",
+# ]
+#
+# [tool.uv.sources]
+# foo = { path = "foo", editable = true }
 # ///\
 """)

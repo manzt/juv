@@ -53,17 +53,26 @@ def init(
 @click.argument("file", type=click.Path(exists=True), required=True)
 @click.option("--requirements", "-r", type=click.Path(exists=True), required=False)
 @click.option("--extra", "extras", type=click.STRING, multiple=True)
+@click.option("--editable", is_flag=True)
 @click.argument("packages", nargs=-1)
 def add(
     file: str,
     requirements: str | None,
     extras: tuple[str, ...],
     packages: tuple[str, ...],
+    *,
+    editable: bool,
 ) -> None:
     """Add dependencies to a notebook."""
     from ._add import add
 
-    add(path=Path(file), packages=packages, requirements=requirements, extras=extras)
+    add(
+        path=Path(file),
+        packages=packages,
+        requirements=requirements,
+        extras=extras,
+        editable=editable,
+    )
     path = os.path.relpath(Path(file).resolve(), Path.cwd())
     rich.print(f"Updated `[cyan]{path}[/cyan]`")
 
