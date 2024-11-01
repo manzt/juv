@@ -1,3 +1,35 @@
+## 0.2.17
+
+This release adds some nice cli flags to `juv add` for configuring various kinds of dependency sources:
+
+Include "extra" dependency groups with `--extra`:
+
+```sh
+juv add Untitled.ipynb --extra dev anywidget # adds `anywidget[dev]`
+```
+
+Treat a local source as editable with `--editable`:
+
+```sh
+juv add Untitled.ipynb --editable ./path/to/packages
+```
+
+Add a git source at a specific revision (i.e., commit), tag, or branch:
+
+```sh
+juv add Untitled.ipynb git+https://github.com/encode/httpx --tag 0.27.0
+juv add Untitled.ipynb git+https://github.com/encode/httpx --branch master
+juv add Untitled.ipynb git+https://github.com/encode/httpx --rev 326b9431c761e1ef1e00b9f760d1f654c8db48c6
+```
+
+### Enhancements
+
+- Support `--editable` sources for `add` ([#39](https://github.com/manzt/juv/pull/39))
+- Support `add --extra` ([#38](https://github.com/manzt/juv/pull/38))
+- Support git sources with `add` ([#40](https://github.com/manzt/juv/pull/40))
+- Add help information for command line flags ([#40](https://github.com/manzt/juv/pull/40))
+
+
 ## 0.2.16
 
 ### Enhancements
