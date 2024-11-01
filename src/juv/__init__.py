@@ -54,12 +54,18 @@ def init(
 @click.option("--requirements", "-r", type=click.Path(exists=True), required=False)
 @click.option("--extra", "extras", type=click.STRING, multiple=True)
 @click.option("--editable", is_flag=True)
+@click.option("--tag", type=click.STRING)
+@click.option("--branch", type=click.STRING)
+@click.option("--rev", type=click.STRING)
 @click.argument("packages", nargs=-1)
 def add(
     file: str,
     requirements: str | None,
     extras: tuple[str, ...],
     packages: tuple[str, ...],
+    tag: str | None,
+    branch: str | None,
+    rev: str | None,
     *,
     editable: bool,
 ) -> None:
@@ -72,6 +78,9 @@ def add(
         requirements=requirements,
         extras=extras,
         editable=editable,
+        tag=tag,
+        branch=branch,
+        rev=rev,
     )
     path = os.path.relpath(Path(file).resolve(), Path.cwd())
     rich.print(f"Updated `[cyan]{path}[/cyan]`")

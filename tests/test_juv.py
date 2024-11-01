@@ -233,16 +233,14 @@ def test_run_with_extra_jupyter_flags(
 ) -> None:
     monkeypatch.chdir(tmp_path)
     invoke(["init", "test.ipynb"])
-    result = invoke(
-        [
-            "run",
-            "test.ipynb",
-            "--",
-            "--no-browser",
-            "--port=8888",
-            "--ip=0.0.0.0",
-        ]
-    )
+    result = invoke([
+        "run",
+        "test.ipynb",
+        "--",
+        "--no-browser",
+        "--port=8888",
+        "--ip=0.0.0.0",
+    ])
     assert result.exit_code == 0
     assert result.stdout == snapshot("uv run --no-project --with=jupyterlab -\n")
 
@@ -589,17 +587,15 @@ def test_add_with_extras(
     monkeypatch.chdir(tmp_path)
 
     invoke(["init", "test.ipynb"])
-    result = invoke(
-        [
-            "add",
-            "test.ipynb",
-            "--extra",
-            "dev",
-            "--extra",
-            "foo",
-            "anywidget",
-        ]
-    )
+    result = invoke([
+        "add",
+        "test.ipynb",
+        "--extra",
+        "dev",
+        "--extra",
+        "foo",
+        "anywidget",
+    ])
 
     assert result.exit_code == 0
     assert result.stdout == snapshot("Updated `test.ipynb`\n")
@@ -659,5 +655,119 @@ def test_add_local_package_as_editable(
 #
 # [tool.uv.sources]
 # foo = { path = "foo", editable = true }
+# ///\
+""")
+
+
+def test_add_git_default(
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    invoke(["init", "test.ipynb"])
+    result = invoke(["add", "test.ipynb", "git+https://github.com/encode/httpx"])
+
+    assert result.exit_code == 0
+    assert result.stdout == snapshot("Updated `test.ipynb`\n")
+    assert extract_meta_cell(tmp_path / "test.ipynb") == snapshot("""\
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#     "httpx",
+# ]
+#
+# [tool.uv.sources]
+# httpx = { git = "https://github.com/encode/httpx" }
+# ///\
+""")
+
+
+def test_add_git_tag(
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    invoke(["init", "test.ipynb"])
+    result = invoke([
+        "add",
+        "test.ipynb",
+        "git+https://github.com/encode/httpx",
+        "--tag",
+        "0.19.0",
+    ])
+
+    assert result.exit_code == 0
+    assert result.stdout == snapshot("Updated `test.ipynb`\n")
+    assert extract_meta_cell(tmp_path / "test.ipynb") == snapshot("""\
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#     "httpx",
+# ]
+#
+# [tool.uv.sources]
+# httpx = { git = "https://github.com/encode/httpx", tag = "0.19.0" }
+# ///\
+""")
+
+
+def test_add_git_branch(
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    invoke(["init", "test.ipynb"])
+    result = invoke([
+        "add",
+        "test.ipynb",
+        "git+https://github.com/encode/httpx",
+        "--branch",
+        "master",
+    ])
+
+    assert result.exit_code == 0
+    assert result.stdout == snapshot("Updated `test.ipynb`\n")
+    assert extract_meta_cell(tmp_path / "test.ipynb") == snapshot("""\
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#     "httpx",
+# ]
+#
+# [tool.uv.sources]
+# httpx = { git = "https://github.com/encode/httpx", branch = "master" }
+# ///\
+""")
+
+
+def test_add_git_rev(
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    invoke(["init", "test.ipynb"])
+    result = invoke([
+        "add",
+        "test.ipynb",
+        "git+https://github.com/encode/httpx",
+        "--rev",
+        "326b9431c761e1ef1e00b9f760d1f654c8db48c6",
+    ])
+
+    assert result.exit_code == 0
+    assert result.stdout == snapshot("Updated `test.ipynb`\n")
+    assert extract_meta_cell(tmp_path / "test.ipynb") == snapshot("""\
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#     "httpx",
+# ]
+#
+# [tool.uv.sources]
+# httpx = { git = "https://github.com/encode/httpx", rev = "326b9431c761e1ef1e00b9f760d1f654c8db48c6" }
 # ///\
 """)
