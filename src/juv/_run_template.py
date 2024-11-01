@@ -57,7 +57,7 @@ class Runtime:
             with_ += f"=={self.version}"
 
         # notebook v6 requires setuptools
-        if with_ == "notebook" and self.version and self.version.startswith("6"):
+        if self.name == "notebook" and self.version:
             with_ += ",setuptools"
 
         return with_
@@ -84,18 +84,21 @@ def handle_termination(signum, frame):
 signal.signal(signal.SIGTERM, handle_termination)
 signal.signal(signal.SIGINT, handle_termination)
 
+config_paths = []
 root_data_dir = Path(sys.prefix) / "share" / "jupyter"
 jupyter_paths = [root_data_dir]
 for path in map(Path, sys.path):
     if not path.name == "site-packages":
         continue
-    data_dir = path.parent.parent.parent / "share" / "jupyter"
+    venv_path = path.parent.parent.parent
+    config_paths.append(venv_path / "etc" / "jupyter")
+    data_dir = venv_path / "share" / "jupyter"
     if not data_dir.exists() or str(data_dir) == str(root_data_dir):
         continue
+
     jupyter_paths.append(data_dir)
 
 
-# Populate the merged directory with hard links from jupyter_paths
 for path in reversed(jupyter_paths):
     for item in path.rglob('*'):
         if item.is_file():
@@ -107,7 +110,7 @@ for path in reversed(jupyter_paths):
                 pass
 
 os.environ["JUPYTER_DATA_DIR"] = str(merged_dir)
-print("JUPYTER_DATA_DIR=" + str(merged_dir), file=sys.stderr)
+os.environ["JUPYTER_CONFIG_PATH"] = os.pathsep.join(map(str, config_paths))
 """
 
 LAB = """

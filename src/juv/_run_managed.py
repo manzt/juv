@@ -48,6 +48,8 @@ def process_output(
 
     while name_version is None:
         line = output_queue.get()
+        if line.startswith("Reading inline script"):
+            continue
 
         if line.startswith("JUV_MANGED="):
             name_version = line[len("JUV_MANGED=") :].split(",")
