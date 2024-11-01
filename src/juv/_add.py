@@ -34,11 +34,14 @@ def find(cb: typing.Callable[[T], bool], items: list[T]) -> T | None:
     return next((item for item in items if cb(item)), None)
 
 
-def add(
+def add(  # noqa: PLR0913
     path: Path,
     packages: typing.Sequence[str],
     requirements: str | None = None,
     extras: typing.Sequence[str] | None = None,
+    tag: str | None = None,
+    branch: str | None = None,
+    rev: str | None = None,
     *,
     editable: bool = False,
 ) -> None:
@@ -73,6 +76,9 @@ def add(
                 *(["--requirements", requirements] if requirements else []),
                 *([f"--extra={extra}" for extra in extras or []]),
                 *(["--editable"] if editable else []),
+                *([f"--tag={tag}"] if tag else []),
+                *([f"--branch={branch}"] if branch else []),
+                *([f"--rev={rev}"] if rev else []),
                 "--script",
                 f.name,
                 *packages,
