@@ -37,8 +37,10 @@ def find(cb: typing.Callable[[T], bool], items: list[T]) -> T | None:
 def add(
     path: Path,
     packages: typing.Sequence[str],
-    requirements: str | None,
-    extras: typing.Sequence[str],
+    requirements: str | None = None,
+    extras: typing.Sequence[str] | None = None,
+    *,
+    editable: bool = False,
 ) -> None:
     notebook = jupytext.read(path, fmt="ipynb")
 
@@ -69,7 +71,8 @@ def add(
             [
                 "add",
                 *(["--requirements", requirements] if requirements else []),
-                *([f"--extra={extra}" for extra in extras]),
+                *([f"--extra={extra}" for extra in extras or []]),
+                *(["--editable"] if editable else []),
                 "--script",
                 f.name,
                 *packages,
