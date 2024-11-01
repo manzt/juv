@@ -1,3 +1,10 @@
+## 0.2.16
+
+### Enhancements
+
+- Refactor `run` to use isolated scripts ([#37](https://github.com/manzt/juv/pull/37))
+- Respect inline requires-python for python request ([#36](https://github.com/manzt/juv/pull/36))
+
 ## 0.2.15
 
 ### Enhancements
