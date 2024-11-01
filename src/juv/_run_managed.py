@@ -52,17 +52,17 @@ def process_output(
         if line.startswith("JUV_MANGED="):
             name_version = line[len("JUV_MANGED=") :].split(",")
         else:
-            print(line, end="")
+            console.print(line)
 
     jupyter, version = name_version
 
     path = {
-        "lab": f"/tree/{filename}",
+        "jupyterlab": f"/tree/{filename}",
         "notebook": f"/notebooks/{filename}",
         "nbclassic": f"/notebooks/{filename}",
     }[jupyter]
 
-    def display(local_url: str) -> None:
+    def display(url: str) -> None:
         end = time.time()
         elapsed_ms = (end - start) * 1000
 
@@ -76,17 +76,17 @@ def process_output(
             f"""
   [green][b]juv[/b] v{__version__}[/green] [dim]ready in[/dim] [white]{time_str}[/white]
 
-  [green b]➜[/green b]  [b]Local:[/b]    {local_url}
+  [green b]➜[/green b]  [b]Local:[/b]    {url}
   [dim][green b]➜[/green b]  [b]Jupyter:[/b]  {jupyter} v{version}[/dim]
   """,
             highlight=False,
             no_wrap=True,
         )
 
-    local_url = None
+    url = None
     server_started = False
 
-    while local_url is None:
+    while url is None:
         line = output_queue.get()
 
         if line.startswith("[") and not server_started:
@@ -94,11 +94,10 @@ def process_output(
             server_started = True
 
         if "http://" in line:
-            url = extract_url(line)
-            local_url = format_url(url, path)
+            url = format_url(extract_url(line), path)
 
     status.stop()
-    display(local_url)
+    display(url)
 
 
 def run(
