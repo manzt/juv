@@ -74,6 +74,10 @@ def run(
         no_project=True,
     )
 
+    if os.environ.get("JUV_DEBUG") == "1":
+        print(f"uv {' '.join(args)}")
+        return
+
     if os.environ.get("JUV_RUN_MODE") == "managed":
         from ._run_managed import run as run_managed
 
