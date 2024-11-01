@@ -23,7 +23,12 @@ def invoke(args: list[str], uv_python: str = "3.13") -> Result:
     return CliRunner().invoke(
         cli,
         args,
-        env={**os.environ, "UV_PYTHON": uv_python, "JUV_DEBUG": "1"},
+        env={
+            **os.environ,
+            "UV_PYTHON": uv_python,
+            "JUV_RUN_MODE": "dry",
+            "JUV_JUPYTER": "lab",
+        },
     )
 
 
@@ -162,9 +167,7 @@ def test_run_basic(tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> N
     invoke(["init", "test.ipynb"])
     result = invoke(["run", "test.ipynb"])
     assert result.exit_code == 0
-    assert result.stdout == snapshot(
-        "uv run --no-project --with=jupyterlab -\n"
-    )
+    assert result.stdout == snapshot("uv run --no-project --with=jupyterlab -\n")
 
 
 def test_run_python_override(
@@ -187,9 +190,7 @@ def test_run_with_script_meta(
     invoke(["init", "test.ipynb", "--with", "numpy"])
     result = invoke(["run", "test.ipynb"])
     assert result.exit_code == 0
-    assert result.stdout == snapshot(
-        "uv run --no-project --with=jupyterlab -\n"
-    )
+    assert result.stdout == snapshot("uv run --no-project --with=jupyterlab -\n")
 
 
 def test_run_with_script_meta_and_with_args(
@@ -231,20 +232,16 @@ def test_run_with_extra_jupyter_flags(
 ) -> None:
     monkeypatch.chdir(tmp_path)
     invoke(["init", "test.ipynb"])
-    result = invoke(
-        [
-            "run",
-            "test.ipynb",
-            "--",
-            "--no-browser",
-            "--port=8888",
-            "--ip=0.0.0.0",
-        ]
-    )
+    result = invoke([
+        "run",
+        "test.ipynb",
+        "--",
+        "--no-browser",
+        "--port=8888",
+        "--ip=0.0.0.0",
+    ])
     assert result.exit_code == 0
-    assert result.stdout == snapshot(
-        "uv run --no-project --with=jupyterlab -\n"
-    )
+    assert result.stdout == snapshot("uv run --no-project --with=jupyterlab -\n")
 
 
 def test_run_uses_version_specifier(
@@ -270,9 +267,7 @@ print('Hello, world!')
 
     result = invoke(["run", "script.ipynb"])
     assert result.exit_code == 0
-    assert result.stdout == snapshot(
-        "uv run --no-project --with=jupyterlab -\n"
-    )
+    assert result.stdout == snapshot("uv run --no-project --with=jupyterlab -\n")
 
 
 def filter_tempfile_ipynb(output: str) -> str:
