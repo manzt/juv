@@ -233,14 +233,16 @@ def test_run_with_extra_jupyter_flags(
 ) -> None:
     monkeypatch.chdir(tmp_path)
     invoke(["init", "test.ipynb"])
-    result = invoke([
-        "run",
-        "test.ipynb",
-        "--",
-        "--no-browser",
-        "--port=8888",
-        "--ip=0.0.0.0",
-    ])
+    result = invoke(
+        [
+            "run",
+            "test.ipynb",
+            "--",
+            "--no-browser",
+            "--port=8888",
+            "--ip=0.0.0.0",
+        ]
+    )
     assert result.exit_code == 0
     assert result.stdout == snapshot("uv run --no-project --with=jupyterlab -\n")
 
@@ -587,15 +589,17 @@ def test_add_with_extras(
     monkeypatch.chdir(tmp_path)
 
     invoke(["init", "test.ipynb"])
-    result = invoke([
-        "add",
-        "test.ipynb",
-        "--extra",
-        "dev",
-        "--extra",
-        "foo",
-        "anywidget",
-    ])
+    result = invoke(
+        [
+            "add",
+            "test.ipynb",
+            "--extra",
+            "dev",
+            "--extra",
+            "foo",
+            "anywidget",
+        ]
+    )
 
     assert result.exit_code == 0
     assert result.stdout == snapshot("Updated `test.ipynb`\n")
@@ -690,13 +694,15 @@ def test_add_git_tag(
     monkeypatch.chdir(tmp_path)
 
     invoke(["init", "test.ipynb"])
-    result = invoke([
-        "add",
-        "test.ipynb",
-        "git+https://github.com/encode/httpx",
-        "--tag",
-        "0.19.0",
-    ])
+    result = invoke(
+        [
+            "add",
+            "test.ipynb",
+            "git+https://github.com/encode/httpx",
+            "--tag",
+            "0.19.0",
+        ]
+    )
 
     assert result.exit_code == 0
     assert result.stdout == snapshot("Updated `test.ipynb`\n")
@@ -720,13 +726,15 @@ def test_add_git_branch(
     monkeypatch.chdir(tmp_path)
 
     invoke(["init", "test.ipynb"])
-    result = invoke([
-        "add",
-        "test.ipynb",
-        "git+https://github.com/encode/httpx",
-        "--branch",
-        "master",
-    ])
+    result = invoke(
+        [
+            "add",
+            "test.ipynb",
+            "git+https://github.com/encode/httpx",
+            "--branch",
+            "master",
+        ]
+    )
 
     assert result.exit_code == 0
     assert result.stdout == snapshot("Updated `test.ipynb`\n")
@@ -750,13 +758,15 @@ def test_add_git_rev(
     monkeypatch.chdir(tmp_path)
 
     invoke(["init", "test.ipynb"])
-    result = invoke([
-        "add",
-        "test.ipynb",
-        "git+https://github.com/encode/httpx",
-        "--rev",
-        "326b9431c761e1ef1e00b9f760d1f654c8db48c6",
-    ])
+    result = invoke(
+        [
+            "add",
+            "test.ipynb",
+            "git+https://github.com/encode/httpx",
+            "--rev",
+            "326b9431c761e1ef1e00b9f760d1f654c8db48c6",
+        ]
+    )
 
     assert result.exit_code == 0
     assert result.stdout == snapshot("Updated `test.ipynb`\n")

@@ -88,7 +88,7 @@ def init(
     "--rev", type=click.STRING, help="Commit to use when adding a dependency from Git."
 )
 @click.argument("packages", nargs=-1)
-def add(  # noqa: PLR0913, PLR0917
+def add(  # noqa: PLR0913
     file: str,
     requirements: str | None,
     extras: tuple[str, ...],

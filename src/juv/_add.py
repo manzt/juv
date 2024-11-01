@@ -34,7 +34,7 @@ def find(cb: typing.Callable[[T], bool], items: list[T]) -> T | None:
     return next((item for item in items if cb(item)), None)
 
 
-def add(  # noqa: PLR0913, PLR0917
+def add(  # noqa: PLR0913
     path: Path,
     packages: typing.Sequence[str],
     requirements: str | None = None,
