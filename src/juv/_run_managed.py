@@ -12,7 +12,6 @@ import re
 import signal
 import subprocess
 import time
-import typing
 from queue import Queue
 from threading import Thread
 
@@ -20,31 +19,6 @@ from rich.console import Console
 from uv import find_uv_bin
 
 from ._version import __version__
-
-
-def get_version(jupyter: str, version: str | None) -> str:
-    with_jupyter = {
-        "lab": "--with=jupyterlab",
-        "notebook": "--with=notebook",
-        "nbclassic": "--with=nbclassic",
-    }[jupyter]
-    if version:
-        with_jupyter += f"=={version}"
-    result = subprocess.run(  # noqa: S603
-        [
-            os.fsdecode(find_uv_bin()),
-            "tool",
-            "run",
-            with_jupyter,
-            "jupyter",
-            jupyter,
-            "--version",
-        ],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    return result.stdout.strip()
 
 
 def extract_url(log_line: str) -> str:
@@ -63,8 +37,6 @@ def format_url(url: str, path: str) -> str:
 
 def process_output(
     console: Console,
-    jupyter: str,
-    jupyter_version: str | None,
     filename: str,
     output_queue: Queue,
 ) -> None:
@@ -72,15 +44,27 @@ def process_output(
     status.start()
     start = time.time()
 
-    version = get_version(jupyter, jupyter_version)
+    name_version: None | tuple[str, str] = None
+
+    while name_version is None:
+        line = output_queue.get()
+        if line.startswith("Reading inline script"):
+            continue
+
+        if line.startswith("JUV_MANGED="):
+            name_version = line[len("JUV_MANGED=") :].split(",")
+        else:
+            console.print(line)
+
+    jupyter, version = name_version
 
     path = {
-        "lab": f"/tree/{filename}",
+        "jupyterlab": f"/tree/{filename}",
         "notebook": f"/notebooks/{filename}",
         "nbclassic": f"/notebooks/{filename}",
     }[jupyter]
 
-    def display(local_url: str) -> None:
+    def display(url: str) -> None:
         end = time.time()
         elapsed_ms = (end - start) * 1000
 
@@ -94,17 +78,17 @@ def process_output(
             f"""
   [green][b]juv[/b] v{__version__}[/green] [dim]ready in[/dim] [white]{time_str}[/white]
 
-  [green b]➜[/green b]  [b]Local:[/b]    {local_url}
+  [green b]➜[/green b]  [b]Local:[/b]    {url}
   [dim][green b]➜[/green b]  [b]Jupyter:[/b]  {jupyter} v{version}[/dim]
   """,
             highlight=False,
             no_wrap=True,
         )
 
-    local_url = None
+    url = None
     server_started = False
 
-    while local_url is None:
+    while url is None:
         line = output_queue.get()
 
         if line.startswith("[") and not server_started:
@@ -112,31 +96,36 @@ def process_output(
             server_started = True
 
         if "http://" in line:
-            url = extract_url(line)
-            local_url = format_url(url, path)
+            url = format_url(extract_url(line), path)
 
     status.stop()
-    display(local_url)
+    display(url)
 
 
 def run(
+    script: str,
     args: list[str],
     filename: str,
-    jupyter: typing.Literal["lab", "notebook", "nbclassic"],
-    jupyter_verison: str | None,
 ) -> None:
     console = Console()
     output_queue = Queue()
     process = subprocess.Popen(  # noqa: S603
         [os.fsdecode(find_uv_bin()), *args],
+        stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         preexec_fn=os.setsid,  # noqa: PLW1509
         text=True,
+        env=os.environ,
     )
+    assert process.stdin is not None  # noqa: S101
+    process.stdin.write(script)
+    process.stdin.flush()
+    process.stdin.close()
+
     output_thread = Thread(
         target=process_output,
-        args=(console, jupyter, jupyter_verison, filename, output_queue),
+        args=(console, filename, output_queue),
     )
     output_thread.start()
 

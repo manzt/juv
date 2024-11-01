@@ -1,65 +1,17 @@
 from __future__ import annotations
 
 import os
-import sys
 import typing
-from dataclasses import dataclass
 
 import jupytext
 import rich
 
 from ._nbutils import code_cell, write_ipynb
-from ._pep723 import extract_inline_meta, parse_inline_script_metadata
+from ._pep723 import extract_inline_meta
+from ._run_template import Runtime, prepare_run_script_and_uv_run_args
 
 if typing.TYPE_CHECKING:
     from pathlib import Path
-
-
-@dataclass
-class Pep723Meta:
-    dependencies: list[str]
-    requires_python: str | None
-
-    @classmethod
-    def from_toml(cls, s: str) -> Pep723Meta:
-        # tomllib introduced in 3.11
-        if sys.version_info < (3, 11):
-            import toml
-        else:
-            import tomllib as toml
-        meta = toml.loads(s)
-        return cls(
-            dependencies=meta.get("dependencies", []),
-            requires_python=meta.get("requires-python", None),
-        )
-
-
-@dataclass
-class Runtime:
-    name: RuntimeName
-    version: str | None = None
-
-
-RuntimeName = typing.Literal["notebook", "lab", "nbclassic"]
-
-
-def is_notebook_kind(kind: str) -> typing.TypeGuard[RuntimeName]:
-    return kind in {"notebook", "lab", "nbclassic"}
-
-
-def parse_notebook_specifier(value: str | None) -> Runtime:
-    value = value or os.getenv("JUV_JUPYTER", "lab")
-
-    parts = value.split("@")
-
-    if len(parts) == 2 and is_notebook_kind(parts[0]):  # noqa: PLR2004
-        return Runtime(parts[0], parts[1])
-
-    if len(parts) == 1 and is_notebook_kind(parts[0]):
-        return Runtime(parts[0])
-
-    msg = f"Invalid runtime specifier: {value}"
-    raise ValueError(msg)
 
 
 def load_script_notebook(fp: Path) -> dict:
@@ -84,52 +36,12 @@ def to_notebook(fp: Path) -> tuple[str | None, dict]:
         msg = f"Unsupported file extension: {fp.suffix}"
         raise ValueError(msg)
 
-    meta = next(
-        (
-            parse_inline_script_metadata("".join(cell["source"]))
-            for cell in filter(lambda c: c["cell_type"] == "code", nb.get("cells", []))
-        ),
-        None,
-    )
+    for cell in filter(lambda c: c["cell_type"] == "code", nb.get("cells", [])):
+        meta, _ = extract_inline_meta("".join(cell["source"]))
+        if meta:
+            return meta, nb
 
-    return meta, nb
-
-
-def prepare_uv_tool_run_args(  # noqa: PLR0913
-    *,
-    target: Path,
-    runtime: Runtime,
-    meta: Pep723Meta,
-    python: str | None,
-    extra_with_args: typing.Sequence[str],
-    jupyter_args: typing.Sequence[str],
-) -> list[str]:
-    jupyter_dependency = {
-        "notebook": "notebook",
-        "lab": "jupyterlab",
-        "nbclassic": "nbclassic",
-    }[runtime.name]
-
-    if runtime.version:
-        jupyter_dependency += f"=={runtime.version}"
-
-    juv_with_args = ["setuptools", jupyter_dependency]
-
-    if meta.requires_python and python is None:
-        python = meta.requires_python
-
-    return [
-        "tool",
-        "run",
-        *([f"--python={python}"] if python else []),
-        "--with=" + ",".join(juv_with_args),
-        *(["--with=" + ",".join(meta.dependencies)] if meta.dependencies else []),
-        *(["--with=" + ",".join(extra_with_args)] if extra_with_args else []),
-        "jupyter",
-        runtime.name,
-        *jupyter_args,
-        str(target),
-    ]
+    return None, nb
 
 
 def run(
@@ -140,7 +52,9 @@ def run(
     jupyter_args: typing.Sequence[str],
 ) -> None:
     """Launch a notebook or script."""
-    runtime = parse_notebook_specifier(jupyter)
+    runtime = Runtime.try_from_specifier(
+        jupyter or os.environ.get("JUV_JUPYTER", "lab")
+    )
     meta, nb = to_notebook(path)
 
     if path.suffix == ".py":
@@ -150,29 +64,24 @@ def run(
             f"Converted script to notebook `[cyan]{path.resolve().absolute()}[/cyan]`",
         )
 
-    args = prepare_uv_tool_run_args(
-        target=path,
+    script, args = prepare_run_script_and_uv_run_args(
         runtime=runtime,
-        meta=Pep723Meta.from_toml(meta) if meta else Pep723Meta([], None),
+        target=path,
+        meta=meta or "",
         python=python,
-        extra_with_args=with_args,
+        with_args=with_args,
         jupyter_args=jupyter_args,
+        no_project=True,
     )
 
-    if os.environ.get("JUV_DEBUG") == "1":
+    if os.environ.get("JUV_RUN_MODE") == "dry":
         print(f"uv {' '.join(args)}")  # noqa: T201
-        return
 
-    if os.environ.get("JUV_RUN_MODE") == "managed":
+    elif os.environ.get("JUV_RUN_MODE") == "managed":
         from ._run_managed import run as run_managed
 
-        run_managed(args, path.name, runtime.name, runtime.version)
+        run_managed(script, args, str(path))
     else:
-        from uv import find_uv_bin
+        from ._run_replace import run as run_replace
 
-        uv = os.fsdecode(find_uv_bin())
-        try:
-            os.execvp(uv, args)  # noqa: S606
-        except OSError as e:
-            rich.print(f"Error executing [cyan]uvx[/cyan]: {e}", file=sys.stderr)
-            sys.exit(1)
+        run_replace(script, args)
