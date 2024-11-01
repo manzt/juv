@@ -1,3 +1,9 @@
+## 0.2.18
+
+### Bug fixes
+
+- Change directories prior to running uv ([#41](https://github.com/manzt/juv/pull/41))
+
 ## 0.2.17
 
 This release adds some nice cli flags to `juv add` for configuring various kinds of dependency sources:
@@ -28,7 +34,6 @@ juv add Untitled.ipynb git+https://github.com/encode/httpx --rev 326b9431c761e1e
 - Support `add --extra` ([#38](https://github.com/manzt/juv/pull/38))
 - Support git sources with `add` ([#40](https://github.com/manzt/juv/pull/40))
 - Add help information for command line flags ([#40](https://github.com/manzt/juv/pull/40))
-
 
 ## 0.2.16
 
