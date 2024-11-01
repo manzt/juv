@@ -64,15 +64,20 @@ def run(
             f"Converted script to notebook `[cyan]{path.resolve().absolute()}[/cyan]`",
         )
 
+    target = path.resolve()
+
     script, args = prepare_run_script_and_uv_run_args(
         runtime=runtime,
-        target=path,
+        target=target,
         meta=meta or "",
         python=python,
         with_args=with_args,
         jupyter_args=jupyter_args,
         no_project=True,
     )
+
+    # change to the directory of the script/notebook before running uv
+    os.chdir(target.parent)
 
     if os.environ.get("JUV_RUN_MODE") == "dry":
         print(f"uv {' '.join(args)}")  # noqa: T201
