@@ -94,6 +94,6 @@ def init(
     if len(packages) > 0:
         from ._add import add
 
-        add(path=path, packages=packages, requirements=None)
+        add(path=path, packages=packages, requirements=None, extras=[])
 
     return path

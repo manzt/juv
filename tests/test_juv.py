@@ -574,3 +574,39 @@ def test_init_with_deps(
  "nbformat_minor": 5
 }\
 """)
+
+
+def extract_meta_cell(notebook_path: pathlib.Path) -> str:
+    nb = jupytext.read(notebook_path)
+    return "".join(nb.cells[0].source)
+
+
+def test_add_with_extras(
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    invoke(["init", "test.ipynb"])
+    result = invoke(
+        [
+            "add",
+            "test.ipynb",
+            "--extra",
+            "dev",
+            "--extra",
+            "foo",
+            "anywidget",
+        ]
+    )
+
+    assert result.exit_code == 0
+    assert result.stdout == snapshot("Updated `test.ipynb`\n")
+    assert extract_meta_cell(tmp_path / "test.ipynb") == snapshot("""\
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#     "anywidget[dev,foo]",
+# ]
+# ///\
+""")

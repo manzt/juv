@@ -34,7 +34,12 @@ def find(cb: typing.Callable[[T], bool], items: list[T]) -> T | None:
     return next((item for item in items if cb(item)), None)
 
 
-def add(path: Path, packages: typing.Sequence[str], requirements: str | None) -> None:
+def add(
+    path: Path,
+    packages: typing.Sequence[str],
+    requirements: str | None,
+    extras: typing.Sequence[str],
+) -> None:
     notebook = jupytext.read(path, fmt="ipynb")
 
     # need a reference so we can modify the cell["source"]
@@ -64,6 +69,7 @@ def add(path: Path, packages: typing.Sequence[str], requirements: str | None) ->
             [
                 "add",
                 *(["--requirements", requirements] if requirements else []),
+                *([f"--extra={extra}" for extra in extras]),
                 "--script",
                 f.name,
                 *packages,
