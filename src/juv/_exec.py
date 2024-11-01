@@ -19,7 +19,12 @@ def exec_(
     *,
     quiet: bool,
 ) -> None:
-    notebook = jupytext.read(path)
+    target = path.resolve()
+    notebook = jupytext.read(target)
+
+    # change to the target's directory
+    os.chdir(target.parent)
+
     subprocess.run(  # noqa: S603
         [
             os.fsdecode(find_uv_bin()),
