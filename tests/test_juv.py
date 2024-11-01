@@ -232,14 +232,16 @@ def test_run_with_extra_jupyter_flags(
 ) -> None:
     monkeypatch.chdir(tmp_path)
     invoke(["init", "test.ipynb"])
-    result = invoke([
-        "run",
-        "test.ipynb",
-        "--",
-        "--no-browser",
-        "--port=8888",
-        "--ip=0.0.0.0",
-    ])
+    result = invoke(
+        [
+            "run",
+            "test.ipynb",
+            "--",
+            "--no-browser",
+            "--port=8888",
+            "--ip=0.0.0.0",
+        ]
+    )
     assert result.exit_code == 0
     assert result.stdout == snapshot("uv run --no-project --with=jupyterlab -\n")
 
