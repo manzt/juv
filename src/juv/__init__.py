@@ -122,6 +122,7 @@ def add(  # noqa: PLR0913
     "--jupyter",
     required=False,
     help="The Jupyter frontend to use. [env: JUV_JUPYTER=]",
+    default=lambda: os.environ.get("JUV_JUPYTER", "lab"),
 )
 @click.option(
     "--with",
@@ -137,15 +138,22 @@ def add(  # noqa: PLR0913
     required=False,
     help="The Python interpreter to use for the run environment. [env: UV_PYTHON=]",
 )
+@click.option(
+    "--mode",
+    type=click.Choice(["replace", "managed", "dry"]),
+    default=lambda: os.environ.get("JUV_RUN_MODE", "replace"),
+    hidden=True,
+)
 @click.argument(
     "jupyter_args", nargs=-1, type=click.UNPROCESSED
 )  # Capture all args after --
 def run(
     file: str,
-    jupyter: str | None,
+    jupyter: str,
     with_args: tuple[str, ...],
     python: str | None,
     jupyter_args: tuple[str, ...],
+    mode: str,
 ) -> None:
     """Launch a notebook or script in a Jupyter front end."""
     from ._run import run
@@ -156,6 +164,7 @@ def run(
         python=python,
         with_args=with_args,
         jupyter_args=jupyter_args,
+        mode=mode,
     )
 
 

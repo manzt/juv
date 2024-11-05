@@ -44,17 +44,17 @@ def to_notebook(fp: Path) -> tuple[str | None, dict]:
     return None, nb
 
 
-def run(
+def run(  # noqa: PLR0913
+    *,
     path: Path,
-    jupyter: str | None,
+    jupyter: str,
     python: str | None,
     with_args: typing.Sequence[str],
     jupyter_args: typing.Sequence[str],
+    mode: str,
 ) -> None:
     """Launch a notebook or script."""
-    runtime = Runtime.try_from_specifier(
-        jupyter or os.environ.get("JUV_JUPYTER", "lab")
-    )
+    runtime = Runtime.try_from_specifier(jupyter)
     meta, nb = to_notebook(path)
 
     if path.suffix == ".py":
@@ -74,15 +74,16 @@ def run(
         with_args=with_args,
         jupyter_args=jupyter_args,
         no_project=True,
+        mode=mode,
     )
 
     # change to the directory of the script/notebook before running uv
     os.chdir(target.parent)
 
-    if os.environ.get("JUV_RUN_MODE") == "dry":
+    if mode == "dry":
         print(f"uv {' '.join(args)}")  # noqa: T201
 
-    elif os.environ.get("JUV_RUN_MODE") == "managed":
+    elif mode == "managed":
         from ._run_managed import run as run_managed
 
         run_managed(script, args, str(path))
