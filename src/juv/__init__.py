@@ -304,7 +304,14 @@ def exec_(
 @cli.command()
 @click.argument("notebook", type=click.Path(exists=True), required=True)
 @click.option("--script", is_flag=True)
-def cat(notebook: str, *, script: bool) -> None:
+@click.option(
+    "--pager",
+    type=click.STRING,
+    help="The pager to use.",
+    default=lambda: os.environ.get("JUV_PAGER"),
+    hidden=True,
+)
+def cat(notebook: str, *, script: bool, pager: str | None) -> None:
     """Print notebook contents to stdout."""
     from ._cat import cat
 
@@ -316,7 +323,7 @@ def cat(notebook: str, *, script: bool) -> None:
         )
         return
 
-    sys.stdout.write(cat(path, script=script))
+    cat(path=path, script=script, pager=pager)
 
 
 def main() -> None:

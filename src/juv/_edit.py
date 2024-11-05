@@ -4,7 +4,7 @@ from pathlib import Path
 
 import jupytext
 
-from ._cat import cat
+from ._cat import notebook_contents
 
 
 class EditorAbortedError(Exception):
@@ -66,7 +66,8 @@ def edit(path: Path, editor: str) -> None:
         update["metadata"]["id"] = update["id"]
         prev_cells[update["id"]] = update
 
-    text = open_editor(cat(prev_notebook, script=False), suffix=".md", editor=editor)
+    code = notebook_contents(path, script=False)
+    text = open_editor(code, suffix=".md", editor=editor)
     new_notebook = jupytext.reads(text.strip(), fmt="md")
 
     # Update the previous notebook cells with the new ones
