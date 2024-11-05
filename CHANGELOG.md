@@ -1,3 +1,13 @@
+## 0.2.19
+
+### Enhancements
+
+- Add `--check` flag for `juv clear` ([#44](https://github.com/manzt/juv/pull/44))
+
+### Bug fixes
+
+- Use managed temp dir for `JUPYTER_DATA_DIR` ([#43](https://github.com/manzt/juv/pull/43))
+
 ## 0.2.18
 
 ### Bug fixes
