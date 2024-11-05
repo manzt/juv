@@ -304,7 +304,14 @@ def exec_(
 @cli.command()
 @click.argument("notebook", type=click.Path(exists=True), required=True)
 @click.option("--script", is_flag=True)
-def cat(notebook: str, *, script: bool) -> None:
+@click.option(
+    "--pager",
+    type=click.STRING,
+    help="The pager to use.",
+    default=lambda: os.environ.get("JUV_PAGER"),
+    hidden=True,
+)
+def cat(notebook: str, *, script: bool, pager: str | None) -> None:
     """Print notebook contents to stdout."""
     from ._cat import cat
 
@@ -318,22 +325,20 @@ def cat(notebook: str, *, script: bool) -> None:
 
     code = cat(path, script=script)
 
-    # pipe the contents through JUV_PAGER if requested, otherwise print to stdout
-    if os.environ.get("JUV_PAGER"):
+    if pager:
+        # if specified, use the pager
         import subprocess
 
-        command = [os.environ["JUV_PAGER"], "-"]
+        command = [pager, "-"]
 
-        # special case for bat to apply syntax highlighting
-        if command[0] == "bat":
-            command.extend(
-                [
-                    "--language",
-                    "md" if not script else "py",
-                    "--file-name",
-                    f"{path.name} (as {'Python' if script else 'Markdown'})",
-                ]
-            )
+        # special case bat to apply syntax highlighting
+        if pager == "bat":
+            command.extend([
+                "--language",
+                "md" if not script else "py",
+                "--file-name",
+                f"{path.name} (as {'Python' if script else 'Markdown'})",
+            ])
 
         subprocess.run(  # noqa: PLW1510, S603
             command,
@@ -344,6 +349,7 @@ def cat(notebook: str, *, script: bool) -> None:
         )
 
     else:
+        # otherwise, just print to stdout
         sys.stdout.write(cat(path, script=script))
 
 
