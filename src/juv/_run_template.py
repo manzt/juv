@@ -70,15 +70,16 @@ from pathlib import Path
 import os
 import sys
 
-temp_dir = tempfile.TemporaryDirectory()
-merged_dir = Path(temp_dir.name) / "jupyter"
-merged_dir.mkdir(parents=True, exist_ok=True)
+from platformdirs import user_data_dir
+
+juv_data_dir = Path(user_data_dir("juv"))
+juv_data_dir.mkdir(parents=True, exist_ok=True)
+
+temp_dir = tempfile.TemporaryDirectory(dir=juv_data_dir)
+merged_dir = Path(temp_dir.name)
 
 def handle_termination(signum, frame):
-    print(f"Received signal {{signum}}, cleaning up...", file=sys.stderr)
-    print("Cleaning up temporary directory...", file=sys.stderr)
     temp_dir.cleanup()
-    print("Temporary directory removed.", file=sys.stderr)
     sys.exit(0)
 
 signal.signal(signal.SIGTERM, handle_termination)
