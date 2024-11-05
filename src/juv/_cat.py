@@ -57,19 +57,21 @@ def cat(path: Path, *, script: bool, pager: str | None = None) -> None:
     code = notebook_contents(path, script=script)
 
     if pager:
-        import os  # noqa: PLC0415
-        import subprocess  # noqa: PLC0415
+        import os
+        import subprocess
 
         command = [pager, "-"]
 
         # special case bat to apply syntax highlighting
         if pager == "bat":
-            command.extend([
-                "--language",
-                "md" if not script else "py",
-                "--file-name",
-                f"{path.stem}.md" if not script else f"{path.stem}.py",
-            ])
+            command.extend(
+                [
+                    "--language",
+                    "md" if not script else "py",
+                    "--file-name",
+                    f"{path.stem}.md" if not script else f"{path.stem}.py",
+                ]
+            )
 
         subprocess.run(  # noqa: PLW1510, S603
             command,
