@@ -56,31 +56,29 @@ def notebook_contents(nb: Path | dict, *, script: bool) -> str:
 def cat(path: Path, *, script: bool, pager: str | None = None) -> None:
     code = notebook_contents(path, script=script)
 
-    if pager:
-        import os
-        import subprocess
+    if not pager:
+        sys.stdout.write(code)
+        return
 
-        command = [pager, "-"]
+    import os
+    import subprocess
 
-        # special case bat to apply syntax highlighting
-        if pager == "bat":
-            command.extend(
-                [
-                    "--language",
-                    "md" if not script else "py",
-                    "--file-name",
-                    f"{path.stem}.md" if not script else f"{path.stem}.py",
-                ]
-            )
+    command = [pager]
 
-        subprocess.run(  # noqa: PLW1510, S603
-            command,
-            input=code.encode(),
-            stdout=sys.stdout,
-            stderr=sys.stderr,
-            env=os.environ,
+    # special case bat to apply syntax highlighting
+    if pager == "bat":
+        ext = "md" if not script else "py"
+        command.extend(
+            [
+                f"--language={ext}",
+                f"--file-name={path.stem}.{ext}",
+            ]
         )
 
-    else:
-        # otherwise, just print to stdout
-        sys.stdout.write(notebook_contents(path, script=script))
+    subprocess.run(  # noqa: PLW1510, S603
+        command,
+        input=code.encode(),
+        stdout=sys.stdout,
+        stderr=sys.stderr,
+        env=os.environ,
+    )
