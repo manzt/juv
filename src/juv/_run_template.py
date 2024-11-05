@@ -123,7 +123,7 @@ from jupyterlab.labapp import main
 
 {SETUP_JUPYTER_DATA_DIR}
 
-if "{juv_run_mode}" == "managed":
+if {is_managed}:
     import importlib.metadata
 
     version = importlib.metadata.version("jupyterlab")
@@ -142,7 +142,7 @@ from notebook.app import main
 
 {SETUP_JUPYTER_DATA_DIR}
 
-if "{juv_run_mode}" == "managed":
+if {is_managed}:
     import importlib.metadata
 
     version = importlib.metadata.version("notebook")
@@ -161,7 +161,7 @@ from notebook.notebookapp import main
 
 {SETUP_JUPYTER_DATA_DIR}
 
-if "{juv_run_mode}" == "managed":
+if {is_managed}:
     import importlib.metadata
 
     version = importlib.metadata.version("notebook")
@@ -180,7 +180,7 @@ from nbclassic.notebookapp import main
 
 {SETUP_JUPYTER_DATA_DIR}
 
-if "{juv_run_mode}" == "managed":
+if {is_managed}:
     import importlib.metadata
 
     version = importlib.metadata.version("nbclassic")
@@ -208,7 +208,7 @@ def prepare_run_script_and_uv_run_args(  # noqa: PLR0913
         notebook=target,
         args=jupyter_args,
         SETUP_JUPYTER_DATA_DIR=SETUP_JUPYTER_DATA_DIR,
-        juv_run_mode=mode,
+        is_managed=mode == "managed",
     )
     args = [
         "run",
