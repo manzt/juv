@@ -337,7 +337,7 @@ def cat(notebook: str, *, script: bool, pager: str | None) -> None:
                 "--language",
                 "md" if not script else "py",
                 "--file-name",
-                f"{path.name} (as {'Python' if script else 'Markdown'})",
+                f"{path.stem}.md" if not script else f"{path.stem}.py",
             ])
 
         subprocess.run(  # noqa: PLW1510, S603
