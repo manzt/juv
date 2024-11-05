@@ -333,12 +333,14 @@ def cat(notebook: str, *, script: bool, pager: str | None) -> None:
 
         # special case bat to apply syntax highlighting
         if pager == "bat":
-            command.extend([
-                "--language",
-                "md" if not script else "py",
-                "--file-name",
-                f"{path.stem}.md" if not script else f"{path.stem}.py",
-            ])
+            command.extend(
+                [
+                    "--language",
+                    "md" if not script else "py",
+                    "--file-name",
+                    f"{path.stem}.md" if not script else f"{path.stem}.py",
+                ]
+            )
 
         subprocess.run(  # noqa: PLW1510, S603
             command,
