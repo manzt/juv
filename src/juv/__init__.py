@@ -304,7 +304,6 @@ def exec_(
 @cli.command()
 @click.argument("notebook", type=click.Path(exists=True), required=True)
 @click.option("--script", is_flag=True)
-@click.option("--use-bat", is_flag=True, help="Use bat to display the notebook.")
 def cat(notebook: str, *, script: bool) -> None:
     """Print notebook contents to stdout."""
     from ._cat import cat
@@ -319,18 +318,25 @@ def cat(notebook: str, *, script: bool) -> None:
 
     code = cat(path, script=script)
 
-    # pipe the contents through bat if requested, otherwise print to stdout
-    if os.environ.get("JUV_BAT") == "1":
+    # pipe the contents through JUV_PAGER if requested, otherwise print to stdout
+    if os.environ.get("JUV_PAGER"):
         import subprocess
 
+        command = [os.environ["JUV_PAGER"], "-"]
+
+        # special case for bat to apply syntax highlighting
+        if command[0] == "bat":
+            command.extend(
+                [
+                    "--language",
+                    "md" if not script else "py",
+                    "--file-name",
+                    f"{path.name} (as {'Python' if script else 'Markdown'})",
+                ]
+            )
+
         subprocess.run(  # noqa: PLW1510, S603
-            [  # noqa: S607
-                "bat",
-                "--language",
-                "md" if not script else "py",
-                "--file-name",
-                f"{path.name} (as {'Python' if script else 'Markdown'})",
-            ],
+            command,
             input=code.encode(),
             stdout=sys.stdout,
             stderr=sys.stderr,
