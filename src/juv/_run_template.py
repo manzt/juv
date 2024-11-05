@@ -123,7 +123,7 @@ from jupyterlab.labapp import main
 
 {SETUP_JUPYTER_DATA_DIR}
 
-if os.environ.get("JUV_RUN_MODE") == "managed":
+if {is_managed}:
     import importlib.metadata
 
     version = importlib.metadata.version("jupyterlab")
@@ -142,7 +142,7 @@ from notebook.app import main
 
 {SETUP_JUPYTER_DATA_DIR}
 
-if os.environ.get("JUV_RUN_MODE") == "managed":
+if {is_managed}:
     import importlib.metadata
 
     version = importlib.metadata.version("notebook")
@@ -161,7 +161,7 @@ from notebook.notebookapp import main
 
 {SETUP_JUPYTER_DATA_DIR}
 
-if os.environ.get("JUV_RUN_MODE") == "managed":
+if {is_managed}:
     import importlib.metadata
 
     version = importlib.metadata.version("notebook")
@@ -180,7 +180,7 @@ from nbclassic.notebookapp import main
 
 {SETUP_JUPYTER_DATA_DIR}
 
-if os.environ.get("JUV_RUN_MODE") == "managed":
+if {is_managed}:
     import importlib.metadata
 
     version = importlib.metadata.version("nbclassic")
@@ -201,12 +201,14 @@ def prepare_run_script_and_uv_run_args(  # noqa: PLR0913
     with_args: typing.Sequence[str],
     jupyter_args: typing.Sequence[str],
     no_project: bool,
+    mode: str,
 ) -> tuple[str, list[str]]:
     script = runtime.script_template().format(
         meta=meta,
         notebook=target,
         args=jupyter_args,
         SETUP_JUPYTER_DATA_DIR=SETUP_JUPYTER_DATA_DIR,
+        is_managed=mode == "managed",
     )
     args = [
         "run",
