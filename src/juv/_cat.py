@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import sys
 from typing import TYPE_CHECKING
 
 import jupytext
@@ -41,7 +42,7 @@ def strip_python_frontmatter_comment(content: str) -> tuple[str, str]:
     return "", content
 
 
-def cat(nb: Path | dict, *, script: bool) -> str:
+def notebook_contents(nb: Path | dict, *, script: bool) -> str:
     fmt = "py:percent" if script else "md"
     notebook = nb if isinstance(nb, dict) else jupytext.read(nb)
     contents = jupytext.writes(notebook, fmt=fmt)
@@ -50,3 +51,34 @@ def cat(nb: Path | dict, *, script: bool) -> str:
     else:
         _, contents = strip_markdown_header(contents)
     return contents.lstrip()
+
+
+def cat(path: Path, *, script: bool, pager: str | None = None) -> None:
+    code = notebook_contents(path, script=script)
+
+    if pager:
+        import os  # noqa: PLC0415
+        import subprocess  # noqa: PLC0415
+
+        command = [pager, "-"]
+
+        # special case bat to apply syntax highlighting
+        if pager == "bat":
+            command.extend([
+                "--language",
+                "md" if not script else "py",
+                "--file-name",
+                f"{path.stem}.md" if not script else f"{path.stem}.py",
+            ])
+
+        subprocess.run(  # noqa: PLW1510, S603
+            command,
+            input=code.encode(),
+            stdout=sys.stdout,
+            stderr=sys.stderr,
+            env=os.environ,
+        )
+
+    else:
+        # otherwise, just print to stdout
+        sys.stdout.write(notebook_contents(path, script=script))

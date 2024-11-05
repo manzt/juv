@@ -323,36 +323,7 @@ def cat(notebook: str, *, script: bool, pager: str | None) -> None:
         )
         return
 
-    code = cat(path, script=script)
-
-    if pager:
-        # if specified, use the pager
-        import subprocess
-
-        command = [pager, "-"]
-
-        # special case bat to apply syntax highlighting
-        if pager == "bat":
-            command.extend(
-                [
-                    "--language",
-                    "md" if not script else "py",
-                    "--file-name",
-                    f"{path.stem}.md" if not script else f"{path.stem}.py",
-                ]
-            )
-
-        subprocess.run(  # noqa: PLW1510, S603
-            command,
-            input=code.encode(),
-            stdout=sys.stdout,
-            stderr=sys.stderr,
-            env=os.environ,
-        )
-
-    else:
-        # otherwise, just print to stdout
-        sys.stdout.write(cat(path, script=script))
+    cat(path=path, script=script, pager=pager)
 
 
 def main() -> None:
