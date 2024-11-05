@@ -1,3 +1,13 @@
+## 0.2.20
+
+### Enhancements
+
+- Add `--pager` flag for `juv cat` ([#45](https://github.com/manzt/juv/pull/45))
+
+### Other changes
+
+- Refactor environment vars to also accept flags ([#46](https://github.com/manzt/juv/pull/46))
+
 ## 0.2.19
 
 ### Enhancements
