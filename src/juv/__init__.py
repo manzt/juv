@@ -89,6 +89,7 @@ def init(
 )
 @click.argument("packages", nargs=-1)
 def add(  # noqa: PLR0913
+    *,
     file: str,
     requirements: str | None,
     extras: tuple[str, ...],
@@ -96,7 +97,6 @@ def add(  # noqa: PLR0913
     tag: str | None,
     branch: str | None,
     rev: str | None,
-    *,
     editable: bool,
 ) -> None:
     """Add dependencies to a notebook."""
@@ -147,7 +147,8 @@ def add(  # noqa: PLR0913
 @click.argument(
     "jupyter_args", nargs=-1, type=click.UNPROCESSED
 )  # Capture all args after --
-def run(
+def run(  # noqa: PLR0913
+    *,
     file: str,
     jupyter: str,
     with_args: tuple[str, ...],
@@ -175,7 +176,7 @@ def run(
     is_flag=True,
     help="Check if the notebooks are cleared.",
 )
-def clear(files: list[str], *, check: bool) -> None:  # noqa: C901
+def clear(*, files: list[str], check: bool) -> None:  # noqa: C901
     """Clear notebook cell outputs.
 
     Supports multiple files and glob patterns (e.g., *.ipynb, notebooks/*.ipynb)
@@ -240,7 +241,7 @@ def clear(files: list[str], *, check: bool) -> None:  # noqa: C901
     required=False,
     help="The editor to use. [env: EDITOR=]",
 )
-def edit(notebook: str, editor: str | None) -> None:
+def edit(*, notebook: str, editor: str | None) -> None:
     """Quick edit a notebook as markdown."""
     from ._edit import EditorAbortedError, edit
 
@@ -302,7 +303,7 @@ def upgrade_legacy_jupyter_command(args: list[str]) -> None:
 )
 @click.option("--quiet", is_flag=True)
 def exec_(
-    notebook: str, python: str | None, with_args: tuple[str, ...], *, quiet: bool
+    *, notebook: str, python: str | None, with_args: tuple[str, ...], quiet: bool
 ) -> None:
     """Execute a notebook as a script."""
     from ._exec import exec_
@@ -320,7 +321,7 @@ def exec_(
     default=lambda: os.environ.get("JUV_PAGER"),
     hidden=True,
 )
-def cat(notebook: str, *, script: bool, pager: str | None) -> None:
+def cat(*, notebook: str, script: bool, pager: str | None) -> None:
     """Print notebook contents to stdout."""
     from ._cat import cat
 
