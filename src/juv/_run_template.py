@@ -208,7 +208,7 @@ def prepare_run_script_and_uv_run_args(  # noqa: PLR0913
         notebook=target,
         args=jupyter_args,
         SETUP_JUPYTER_DATA_DIR=SETUP_JUPYTER_DATA_DIR,
-        juv_run_mode=mode,
+        juv_run_mode=repr(mode),
     )
     args = [
         "run",
