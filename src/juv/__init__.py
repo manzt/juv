@@ -161,12 +161,17 @@ def run(
 
 @cli.command()
 @click.argument("files", nargs=-1, type=click.Path(exists=True), required=True)
-def clear(files: list[str]) -> None:
+@click.option(
+    "--check",
+    is_flag=True,
+    help="Check if the notebooks are cleared.",
+)
+def clear(files: list[str], *, check: bool) -> None:  # noqa: C901
     """Clear notebook cell outputs.
 
     Supports multiple files and glob patterns (e.g., *.ipynb, notebooks/*.ipynb)
     """
-    from ._clear import clear
+    from ._clear import clear, is_cleared
 
     paths = []
     for arg in files:
@@ -186,6 +191,24 @@ def clear(files: list[str]) -> None:
                 continue
 
             paths.append(path)
+
+    if check:
+        any_cleared = False
+        for path in paths:
+            if not is_cleared(path):
+                rich.print(path.resolve().absolute(), file=sys.stderr)
+                any_cleared = True
+
+        if any_cleared:
+            rich.print(
+                "Some notebooks are not cleared. "
+                "Use `[green b]juv clear[/green b]` to fix.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+        rich.print("All notebooks are cleared", file=sys.stderr)
+        return
 
     if len(paths) == 1:
         clear(paths[0])
