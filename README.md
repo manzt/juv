@@ -185,6 +185,9 @@ uvx --with-requirements=requirements.txt --from=jupyter-core --with=jupyterlab j
 While slightly more verbose and breaking self-containment, this approach
 totally works and saves you from installing another dependency.
 
+There is also an [experimental rewrite](https://github.com/manzt/juv-rs) in
+Rust.
+
 ## Contributing
 
 **juv** welcomes contributions in the form of bug reports, feature requests,
