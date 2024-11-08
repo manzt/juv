@@ -1,3 +1,9 @@
+## 0.2.21
+
+### Enhancements
+
+- Upgrade uv to v0.5.0 ([#47](https://github.com/manzt/juv/pull/47))
+
 ## 0.2.20
 
 ### Enhancements
