@@ -76,14 +76,14 @@ crisis](https://leomurta.github.io/papers/pimentel2019a.pdf).
 This issue does not stem from a fundamental lack of care for reproducibility.
 Rather, our tools limit us from easily falling into the [pit of
 success](https://blog.codinghorror.com/falling-into-the-pit-of-success) with
-reproducible notebooks - in particular, managing dependencies.
+notebooks - in particular, managing dependencies.
 
 Notebooks are much like one-off Python scripts and therefore do not benefit
 from the same dependency management as packages. Being a "good steward" of
-notebooks in this context requires discipline (due to the manual nature of
-virtual environments) and knowledge of Python packaging - a somewhat
-unreasonable expectation for domain experts who are focused on solving
-problems, not software engineering.
+notebooks requires discipline (due to the manual nature of virtual
+environments) and knowledge of Python packaging - a somewhat unreasonable
+expectation for domain experts who are focused on solving problems, not
+software engineering.
 
 You will often find a "getting started" guide in the wild like this:
 
@@ -95,47 +95,44 @@ jupyter lab
 ```
 
 Four lines of code, where a few things can go wrong. _What version of Python?_
-_What package version(s)?_ _What if we forget to activate the virtual
-environment?_
+_What package version(s)?_ _What if we forget to activate the environment?_
 
-The gold standard for a "getting started" guide is a **single command** (i.e,
-no guide).
+The gold standard for "getting started" is a **single command** (i.e, no
+guide).
 
 ```sh
 <magic tool> run notebook.ipynb
 ```
 
-However, this gold standard has long been out of reach for Jupyter notebooks.
-Why?
+However, this ideal has remained elusive for Jupyter notebooks. Why?
 
-First, **virtual environments are a leaky abstraction** and deeply ingrained in
-the Python psyche: _create_, _activate_, _install_, _run_. Their historical
-"cost" has forced us to treat them as entities that must be managed explicitly.
-In fact, an entire ecosystem of tooling and best practices are oriented around
-supporting long-lived environments, rather than something more ephemeral. End
-users separately _create_ and then _mutate_ virtual environments with low-level
-tools like `pip`. The manual nature and overhead of these steps encourages
-sharing environments across projects.
+- **Virtual environments are a leaky abstraction** deeply ingrained in the
+Python psyche: _create_, _activate_, _install_, _run_. Their historical "cost"
+has forced us to treat them as entities that must be managed explicitly. In
+fact, an entire ecosystem of tooling and best practices are oriented around
+long-lived environments, rather than something more ephemeral. End users
+separately _create_ and then _mutate_ virtual environments with low-level tools
+like `pip`. The manual nature and overhead of these steps encourages sharing
+environments across projects - a nightmare for reproducibility.
 
-Second, **only Python packages could historically specify their dependencies**.
-Lots of data science code lives in notebooks, not packages, and there has not
-been a way to specify dependencies for standalone scripts without external
-files (e.g., `requirements.txt`).
+- **Only Python packages could historically specify their dependencies**. Data
+science code often lives in notebooks rather than packages, with no way to
+specify dependencies for standalone scripts without external files like
+`requirements.txt`.
 
 *Aligning of the stars*
 
 Two key ideas have changed my perspective on this problem and inspired **juv**:
 
-- **Virtual environments are now "cheap"**. If you'd asked me a year ago, I
-would have said virtual environments were a necessary evil.
-[uv](https://peps.python.org/pep-0723/) is such a departure from the status quo
-that it forces us to rethink best practices. Environments are now created
-faster than JupyterLab starts - why keep them around at all?
+- **Virtual environments are now "cheap"**. A year ago, they were a necessary
+evil. [uv](https://peps.python.org/pep-0723/) is such a departure from the
+status quo that it forces us to rethink best practices. Environments are now
+created faster than JupyterLab starts - why keep them around at all?
 
 - **PEP 723**. [Inline script metadata](https://peps.python.org/pep-0723/)
-introduces a standard way to specify dependencies in standalone Python scripts.
-A single file can now contain everything needed to run it, without relying on
-external files like `requirements.txt` or `pyproject.toml`. 
+introduces a standard for specifying dependencies for standalone Python
+scripts. A single file can now contain everything needed to run it, without
+relying on external files like `requirements.txt` or `pyproject.toml`.
 
 So, what if:
 
@@ -149,7 +146,7 @@ This is the vision of **juv**
 > (non-linear execution being another). **juv** aims to solve this specific
 > pain point for the existing ecosystem. I'm personally excited for initiatives
 > that [rethink notebooks](https://marimo.io/blog/lessons-learned) from the
-> ground up and make a tool like **juv** obsolete.
+> ground up, making a tool like **juv** obsolete.
 
 ## How
 
