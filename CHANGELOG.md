@@ -1,3 +1,9 @@
+## 0.2.22
+
+### Enhancements
+
+- Clear widgets metadata in `clear` ([#49](https://github.com/manzt/juv/pull/49))
+
 ## 0.2.21
 
 ### Enhancements
