@@ -45,6 +45,9 @@ juv init --python=3.9 notebook.ipynb # specify a minimum Python version
 juv add notebook.ipynb pandas numpy
 juv add notebook.ipynb --requirements=requirements.txt
 
+# Pin a timestamp to constrain dependency resolution to a specific date
+juv stamp notebook.ipynb # now
+
 # launch the notebook
 juv run notebook.ipynb
 juv run --with=polars notebook.ipynb # additional dependencies for this session (not saved)

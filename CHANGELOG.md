@@ -1,3 +1,45 @@
+## 0.2.23
+
+### Enhancements
+
+- Add `juv stamp` for time-based dependency resolution pinning ([#50](https://github.com/manzt/juv/pull/50))
+
+### Notes
+
+`uv` supports time-based dependency resolution via [`exclude-newer`](https://simonwillison.net/2024/May/10/uv-pip-install-exclude-newer/), 
+allowing packages to be resolved as they existed at a specific moment in time.
+
+This feature greatly enhances the reproducibility of one-off scripts and notebooks without needing a lockfile.
+However, `exclude-newer` requires a full RFC 3339 timestamp (e.g., 2020-03-05T00:00:00-05:00), which can be tedious to manage manually.
+
+This release introduces `juv stamp`, a command that provides a high-level,
+ergonomic API for pinning and unpinning various relevant timestamps in **both
+standalone Python scripts and Jupyter notebooks**:
+
+```sh
+# Stamp a notebook
+juv init foo.ipynb
+juv stamp foo.ipynb
+
+# Stamp with a specific time
+juv stamp foo.ipynb --time "2020-03-05T00:00:00-05:00"
+juv stamp foo.ipynb --date 2022-01-03
+
+# Use Git revisions
+juv stamp foo.ipynb --rev e20c99
+juv stamp foo.ipynb --latest
+
+# Clear the pinned timestamp
+juv stamp foo.ipynb --clear
+```
+
+```sh
+# For Python scripts
+uv init --script foo.py
+uv add --script foo.py polars anywidget
+uvx juv stamp foo.py
+```
+
 ## 0.2.22
 
 ### Enhancements
