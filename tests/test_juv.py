@@ -796,7 +796,9 @@ def test_stamp(
         result = invoke(["stamp", "test.ipynb", "--rev", "e20c99"])
 
         assert result.exit_code == 0
-        assert result.stdout == snapshot("Stamped `test.ipynb` with 2024-11-07T19:39:11-05:00\n")
+        assert result.stdout == snapshot(
+            "Stamped `test.ipynb` with 2024-11-07T19:39:11-05:00\n"
+        )
         assert extract_meta_cell(tmp_path / "test.ipynb") == snapshot("""\
 # /// script
 # requires-python = ">=3.13"
@@ -821,7 +823,9 @@ def test_stamp_script(
         result = invoke(["stamp", "foo.py", "--rev", "e20c99"])
 
         assert result.exit_code == 0
-        assert result.stdout == snapshot("Stamped `foo.py` with 2024-11-07T19:39:11-05:00\n")
+        assert result.stdout == snapshot(
+            "Stamped `foo.py` with 2024-11-07T19:39:11-05:00\n"
+        )
         assert (tmp_path / "foo.py").read_text() == snapshot("""\
 # /// script
 # requires-python = ">=3.13"
@@ -838,4 +842,35 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+""")
+
+
+def test_stamp_clear(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # we need to run these tests in this folder because it uses the git history
+
+    with tempfile.TemporaryDirectory(dir=SELF_DIR) as tmpdir:
+        tmp_path = pathlib.Path(tmpdir)
+        monkeypatch.chdir(tmp_path)
+
+        with (tmp_path / "foo.py").open("w") as f:
+            f.write("""# /// script
+# requires-python = ">=3.13"
+# dependencies = []
+#
+# [tool.uv]
+# exclude-newer = "blah"
+# ///
+""")
+
+        result = invoke(["stamp", "foo.py", "--clear"])
+
+        assert result.exit_code == 0
+        assert result.stdout == snapshot("Removed blah from `foo.py`\n")
+        assert (tmp_path / "foo.py").read_text() == snapshot("""\
+# /// script
+# requires-python = ">=3.13"
+# dependencies = []
+# ///
 """)
