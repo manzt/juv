@@ -5,10 +5,10 @@ import pathlib
 import re
 
 import jupytext
-from jupytext.pandoc import tempfile
 import pytest
 from click.testing import CliRunner, Result
 from inline_snapshot import snapshot
+from jupytext.pandoc import tempfile
 from nbformat.v4.nbbase import new_code_cell, new_notebook
 
 from juv import cli

@@ -1,13 +1,11 @@
 from __future__ import annotations
 
 import subprocess
-import sys
 import typing
 from contextlib import suppress
 from dataclasses import dataclass
 
 import jupytext
-import rich
 import tomlkit
 from whenever import Date, OffsetDateTime, SystemDateTime
 

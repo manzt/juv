@@ -361,7 +361,6 @@ def stamp(
     """Stamp a notebook or script with a reproducible timestamp."""
     from ._stamp import CreateAction, DeleteAction, UpdateAction, stamp
 
-    # TODO: lift this up to share with other commands
     console = Console(file=sys.stderr, highlight=False)
     path = Path(file)
 
