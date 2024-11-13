@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import os
+import pathlib
 import re
-from typing import TYPE_CHECKING
 
 import jupytext
+from jupytext.pandoc import tempfile
 import pytest
 from click.testing import CliRunner, Result
 from inline_snapshot import snapshot
@@ -16,8 +17,7 @@ from juv._pep723 import parse_inline_script_metadata
 from juv._run import to_notebook
 from juv._uv import uv
 
-if TYPE_CHECKING:
-    import pathlib
+SELF_DIR = pathlib.Path(__file__).parent
 
 
 def invoke(args: list[str], uv_python: str = "3.13") -> Result:
@@ -780,4 +780,62 @@ def test_add_git_rev(
 # [tool.uv.sources]
 # httpx = { git = "https://github.com/encode/httpx", rev = "326b9431c761e1ef1e00b9f760d1f654c8db48c6" }
 # ///\
+""")
+
+
+def test_stamp(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # we need to run these tests in this folder because it uses the git history
+
+    with tempfile.TemporaryDirectory(dir=SELF_DIR) as tmpdir:
+        tmp_path = pathlib.Path(tmpdir)
+        monkeypatch.chdir(tmp_path)
+
+        invoke(["init", "test.ipynb"])
+        result = invoke(["stamp", "test.ipynb", "--rev", "e20c99"])
+
+        assert result.exit_code == 0
+        assert result.stdout == snapshot("Stamped `test.ipynb` with 2024-11-07T19:39:11-05:00\n")
+        assert extract_meta_cell(tmp_path / "test.ipynb") == snapshot("""\
+# /// script
+# requires-python = ">=3.13"
+# dependencies = []
+#
+# [tool.uv]
+# exclude-newer = "2024-11-07T19:39:11-05:00"
+# ///\
+""")
+
+
+def test_stamp_script(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # we need to run these tests in this folder because it uses the git history
+
+    with tempfile.TemporaryDirectory(dir=SELF_DIR) as tmpdir:
+        tmp_path = pathlib.Path(tmpdir)
+        monkeypatch.chdir(tmp_path)
+
+        uv(["init", "--script", "foo.py"], check=True)
+        result = invoke(["stamp", "foo.py", "--rev", "e20c99"])
+
+        assert result.exit_code == 0
+        assert result.stdout == snapshot("Stamped `foo.py` with 2024-11-07T19:39:11-05:00\n")
+        assert (tmp_path / "foo.py").read_text() == snapshot("""\
+# /// script
+# requires-python = ">=3.13"
+# dependencies = []
+#
+# [tool.uv]
+# exclude-newer = "2024-11-07T19:39:11-05:00"
+# ///
+
+
+def main() -> None:
+    print("Hello from foo.py!")
+
+
+if __name__ == "__main__":
+    main()
 """)
