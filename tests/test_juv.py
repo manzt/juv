@@ -30,6 +30,7 @@ def invoke(args: list[str], uv_python: str = "3.13") -> Result:
             "UV_PYTHON": uv_python,
             "JUV_RUN_MODE": "dry",
             "JUV_JUPYTER": "lab",
+            "JUV_TZ": "America/New_York",
         },
     )
 
@@ -795,11 +796,13 @@ def test_stamp(
         monkeypatch.chdir(tmp_path)
 
         invoke(["init", "test.ipynb"])
-        result = invoke(["stamp", "test.ipynb", "--rev", "e20c99"])
+        result = invoke(
+            ["stamp", "test.ipynb", "--timestamp", "2020-01-03 00:00:00-02:00"]
+        )
 
         assert result.exit_code == 0
         assert result.stdout == snapshot(
-            "Stamped `test.ipynb` with 2024-11-07T19:39:11-05:00\n"
+            "Stamped `test.ipynb` with 2020-01-03T00:00:00-02:00\n"
         )
         assert extract_meta_cell(tmp_path / "test.ipynb") == snapshot("""\
 # /// script
@@ -807,7 +810,7 @@ def test_stamp(
 # dependencies = []
 #
 # [tool.uv]
-# exclude-newer = "2024-11-07T19:39:11-05:00"
+# exclude-newer = "2020-01-03T00:00:00-02:00"
 # ///\
 """)
 
@@ -823,11 +826,11 @@ def test_stamp_script(
         monkeypatch.chdir(tmp_path)
 
         uv(["init", "--script", "foo.py"], check=True)
-        result = invoke(["stamp", "foo.py", "--rev", "e20c99"])
+        result = invoke(["stamp", "foo.py", "--date", "2006-01-02"])
 
         assert result.exit_code == 0
         assert result.stdout == snapshot(
-            "Stamped `foo.py` with 2024-11-07T19:39:11-05:00\n"
+            "Stamped `foo.py` with 2006-01-03T00:00:00-05:00\n"
         )
         assert (tmp_path / "foo.py").read_text() == snapshot("""\
 # /// script
@@ -835,7 +838,7 @@ def test_stamp_script(
 # dependencies = []
 #
 # [tool.uv]
-# exclude-newer = "2024-11-07T19:39:11-05:00"
+# exclude-newer = "2006-01-03T00:00:00-05:00"
 # ///
 
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import subprocess
 import typing
 from contextlib import suppress
@@ -7,7 +8,7 @@ from dataclasses import dataclass
 
 import jupytext
 import tomlkit
-from whenever import Date, OffsetDateTime, SystemDateTime
+from whenever import Date, OffsetDateTime, SystemDateTime, ZonedDateTime
 
 from ._nbutils import write_ipynb
 from ._pep723 import (
@@ -61,7 +62,13 @@ def parse_date(date_str: str) -> OffsetDateTime:
         msg = f"'{date_str}' could not be parsed as a valid date."
         raise ValueError(msg) from err
 
-    return SystemDateTime(date.year, date.month, date.day).to_fixed_offset()
+    if "JUV_TZ" in os.environ:
+        # used in tests
+        dt = ZonedDateTime(date.year, date.month, date.day, tz=os.environ["JUV_TZ"])
+    else:
+        dt = SystemDateTime(date.year, date.month, date.day)
+
+    return dt.to_fixed_offset()
 
 
 def get_git_timestamp(rev: str) -> OffsetDateTime:
