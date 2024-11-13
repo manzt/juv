@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import os
+import pathlib
 import re
-from typing import TYPE_CHECKING
+import sys
 
 import jupytext
 import pytest
 from click.testing import CliRunner, Result
 from inline_snapshot import snapshot
+from jupytext.pandoc import tempfile
 from nbformat.v4.nbbase import new_code_cell, new_notebook
 
 from juv import cli
@@ -16,8 +18,7 @@ from juv._pep723 import parse_inline_script_metadata
 from juv._run import to_notebook
 from juv._uv import uv
 
-if TYPE_CHECKING:
-    import pathlib
+SELF_DIR = pathlib.Path(__file__).parent
 
 
 def invoke(args: list[str], uv_python: str = "3.13") -> Result:
@@ -29,6 +30,7 @@ def invoke(args: list[str], uv_python: str = "3.13") -> Result:
             "UV_PYTHON": uv_python,
             "JUV_RUN_MODE": "dry",
             "JUV_JUPYTER": "lab",
+            "JUV_TZ": "America/New_York",
         },
     )
 
@@ -780,4 +782,115 @@ def test_add_git_rev(
 # [tool.uv.sources]
 # httpx = { git = "https://github.com/encode/httpx", rev = "326b9431c761e1ef1e00b9f760d1f654c8db48c6" }
 # ///\
+""")
+
+
+@pytest.mark.skipif(sys.version_info < (3, 9), reason="Requires Python 3.9 or higher")
+def test_stamp(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # we need to run these tests in this folder because it uses the git history
+
+    with tempfile.TemporaryDirectory(dir=SELF_DIR) as tmpdir:
+        tmp_path = pathlib.Path(tmpdir)
+        monkeypatch.chdir(tmp_path)
+
+        invoke(["init", "test.ipynb"])
+        result = invoke(
+            ["stamp", "test.ipynb", "--timestamp", "2020-01-03 00:00:00-02:00"]
+        )
+
+        assert result.exit_code == 0
+        assert result.stdout == snapshot(
+            "Stamped `test.ipynb` with 2020-01-03T00:00:00-02:00\n"
+        )
+        assert extract_meta_cell(tmp_path / "test.ipynb") == snapshot("""\
+# /// script
+# requires-python = ">=3.13"
+# dependencies = []
+#
+# [tool.uv]
+# exclude-newer = "2020-01-03T00:00:00-02:00"
+# ///\
+""")
+
+
+@pytest.mark.skipif(sys.version_info < (3, 9), reason="Requires Python 3.9 or higher")
+def test_stamp_script(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # we need to run these tests in this folder because it uses the git history
+
+    with tempfile.TemporaryDirectory(dir=SELF_DIR) as tmpdir:
+        tmp_path = pathlib.Path(tmpdir)
+        monkeypatch.chdir(tmp_path)
+
+        with (tmp_path / "foo.py").open("w") as f:
+            f.write("""# /// script
+# requires-python = ">=3.13"
+# dependencies = []
+# ///
+
+
+def main() -> None:                                                                                                                                                                                                               │
+    print("Hello from foo.py!")                                                                                                                                                                                                   │
+                                                                                                                                                                                                                                  │
+                                                                                                                                                                                                                                  │
+if __name__ == "__main__":                                                                                                                                                                                                        │
+    main()
+""")
+        result = invoke(["stamp", "foo.py", "--date", "2006-01-02"])
+
+        assert result.exit_code == 0
+        assert result.stdout == snapshot(
+            "Stamped `foo.py` with 2006-01-03T00:00:00-05:00\n"
+        )
+        assert (tmp_path / "foo.py").read_text() == snapshot("""\
+# /// script
+# requires-python = ">=3.13"
+# dependencies = []
+#
+# [tool.uv]
+# exclude-newer = "2006-01-03T00:00:00-05:00"
+# ///
+
+
+def main() -> None:                                                                                                                                                                                                               │
+    print("Hello from foo.py!")                                                                                                                                                                                                   │
+                                                                                                                                                                                                                                  │
+                                                                                                                                                                                                                                  │
+if __name__ == "__main__":                                                                                                                                                                                                        │
+    main()
+""")
+
+
+@pytest.mark.skipif(sys.version_info < (3, 9), reason="Requires Python 3.9 or higher")
+def test_stamp_clear(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # we need to run these tests in this folder because it uses the git history
+
+    with tempfile.TemporaryDirectory(dir=SELF_DIR) as tmpdir:
+        tmp_path = pathlib.Path(tmpdir)
+        monkeypatch.chdir(tmp_path)
+
+        with (tmp_path / "foo.py").open("w") as f:
+            f.write("""# /// script
+# requires-python = ">=3.13"
+# dependencies = []
+#
+# [tool.uv]
+# exclude-newer = "blah"
+# ///
+""")
+
+        result = invoke(["stamp", "foo.py", "--clear"])
+
+        assert result.exit_code == 0
+        assert result.stdout == snapshot("Removed blah from `foo.py`\n")
+        assert (tmp_path / "foo.py").read_text() == snapshot("""\
+# /// script
+# requires-python = ">=3.13"
+# dependencies = []
+# ///
 """)

@@ -24,4 +24,4 @@ def uv(args: list[str], *, check: bool) -> subprocess.CompletedProcess:
 
     """
     uv = os.fsdecode(find_uv_bin())
-    return subprocess.run([uv, *args], capture_output=True, check=check)  # noqa: S603
+    return subprocess.run([uv, *args], capture_output=True, check=check, env=os.environ)  # noqa: S603
