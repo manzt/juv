@@ -825,7 +825,20 @@ def test_stamp_script(
         tmp_path = pathlib.Path(tmpdir)
         monkeypatch.chdir(tmp_path)
 
-        uv(["init", "--script", "foo.py"], check=True)
+        with (tmp_path / "foo.py").open("w") as f:
+            f.write("""# /// script
+# requires-python = ">=3.13"
+# dependencies = []
+# ///
+
+
+def main() -> None:                                                                                                                                                                                                               │
+    print("Hello from foo.py!")                                                                                                                                                                                                   │
+                                                                                                                                                                                                                                  │
+                                                                                                                                                                                                                                  │
+if __name__ == "__main__":                                                                                                                                                                                                        │
+    main()
+""")
         result = invoke(["stamp", "foo.py", "--date", "2006-01-02"])
 
         assert result.exit_code == 0
@@ -842,11 +855,11 @@ def test_stamp_script(
 # ///
 
 
-def main() -> None:
-    print("Hello from foo.py!")
-
-
-if __name__ == "__main__":
+def main() -> None:                                                                                                                                                                                                               │
+    print("Hello from foo.py!")                                                                                                                                                                                                   │
+                                                                                                                                                                                                                                  │
+                                                                                                                                                                                                                                  │
+if __name__ == "__main__":                                                                                                                                                                                                        │
     main()
 """)
 
