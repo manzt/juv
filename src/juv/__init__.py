@@ -364,6 +364,14 @@ def stamp(  # noqa: PLR0913
     clear: bool,
 ) -> None:
     """Stamp a notebook or script with a reproducible timestamp."""
+
+    if sys.version_info < (3, 9):
+        rich.print(
+            "[bold red]error[/bold red] "
+            "Python 3.9 or latest is required for `juv stamp`",
+        )
+        sys.exit(1)
+
     from ._stamp import CreateAction, DeleteAction, UpdateAction, stamp
 
     console = Console(file=sys.stderr, highlight=False)

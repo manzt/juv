@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import pathlib
 import re
+import sys
 
 import jupytext
 import pytest
@@ -783,6 +784,7 @@ def test_add_git_rev(
 """)
 
 
+@pytest.mark.skipif(sys.version_info < (3, 9), reason="Requires Python 3.9 or higher")
 def test_stamp(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -810,6 +812,7 @@ def test_stamp(
 """)
 
 
+@pytest.mark.skipif(sys.version_info < (3, 9), reason="Requires Python 3.9 or higher")
 def test_stamp_script(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -845,6 +848,7 @@ if __name__ == "__main__":
 """)
 
 
+@pytest.mark.skipif(sys.version_info < (3, 9), reason="Requires Python 3.9 or higher")
 def test_stamp_clear(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

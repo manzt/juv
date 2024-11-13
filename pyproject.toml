@@ -8,14 +8,14 @@ version = "0.2.22"
 description = "A toolkit for reproducible Jupyter notebooks, powered by uv."
 readme = "README.md"
 authors = [{ name = "Trevor Manz", email = "trevor.j.manz@gmail.com" }]
-requires-python = ">=3.9"
+requires-python = ">=3.8"
 license = { text = "MIT" }
 dependencies = [
     "click>=8.1.7",
     "jupytext>=1.16.4",
     "rich>=13.9.2",
     "tomlkit>=0.13.2",
-    "whenever>=0.6.12",
+    "whenever>=0.6.12; python_version >= '3.9'",
     "uv>=0.4.25",
 ]
 classifiers = [
