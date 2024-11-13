@@ -8,6 +8,7 @@ from pathlib import Path
 
 import click
 import rich
+from rich.console import Console
 
 
 @click.group()
@@ -360,21 +361,22 @@ def stamp(
     """Stamp a notebook or script with a reproducible timestamp."""
     from ._stamp import CreateAction, DeleteAction, UpdateAction, stamp
 
+    # TODO: lift this up to share with other commands
+    console = Console(file=sys.stderr, highlight=False)
     path = Path(file)
 
     # time, rev, latest, and clear are mutually exclusive
     if sum([bool(time), bool(rev), latest, clear]) > 1:
-        rich.print(
+        console.print(
             "[bold red]Error:[/bold red] "
             "Only one of --time, --rev, --latest, or --clear may be specified",
-            file=sys.stderr,
         )
         sys.exit(1)
 
     try:
         action = stamp(path=path, time=time, rev=rev, latest=latest, clear=clear)
     except ValueError as e:
-        rich.print(f"[bold red]error[/bold red]: {e.args[0]}", file=sys.stderr)
+        console.print(f"[bold red]error[/bold red]: {e.args[0]}")
         sys.exit(1)
 
     path = os.path.relpath(path.resolve(), Path.cwd())
@@ -382,21 +384,18 @@ def stamp(
     if isinstance(action, DeleteAction):
         if action.previous is None:
             # there was no previosu timestamp, so ok but no-op
-            rich.print(f"No timestamp found in `[cyan]{path}[/cyan]`", file=sys.stderr)
+            console.print(f"No timestamp found in `[cyan]{path}[/cyan]`")
         else:
-            rich.print(
+            console.print(
                 f"Removed [green]{action.previous}[/green] from `[cyan]{path}[/cyan]`",
-                file=sys.stderr,
             )
     elif isinstance(action, CreateAction):
-        rich.print(
+        console.print(
             f"Stamped `[cyan]{path}[/cyan]` with [green]{action.value}[/green]",
-            file=sys.stderr,
         )
     elif isinstance(action, UpdateAction):
-        rich.print(
+        console.print(
             f"Updated `[cyan]{path}[/cyan]` with [green]{action.value}[/green]",
-            file=sys.stderr,
         )
 
 
