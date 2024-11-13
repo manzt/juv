@@ -41,7 +41,7 @@ dev = ["inline-snapshot>=0.13.3", "pytest>=8.3.3", "ruff>=0.7.0"]
 
 [tool.ruff]
 line-length = 88
-target-version = "py39"
+target-version = "py38"
 
 [tool.ruff.lint]
 select = ["ALL"]
