@@ -341,19 +341,24 @@ def cat(*, notebook: str, script: bool, pager: str | None) -> None:
 @cli.command()
 @click.argument("file", type=click.Path(exists=True))
 @click.option(
-    "--time",
+    "--timestamp",
+    help="An RFC 3339 timestamp (e.g., 2006-12-02T02:07:43Z).",
+)
+@click.option(
+    "--date",
     help=(
-        "Accepts both RFC 3339 timestamps (e.g., 2006-12-02T02:07:43Z) and local dates "
-        "in the same format (e.g., 2006-12-02) in your system's configured time zone."
+        "A local ISO 8601 date (e.g., 2006-12-02). "
+        "Resolves to midnight system's time zone."
     ),
 )
 @click.option("--rev", help="A Git revision to stamp the file with.")
 @click.option("--latest", is_flag=True, help="Use the latest Git revision.")
 @click.option("--clear", is_flag=True, help="Clear the `exclude-newer` field.")
-def stamp(
+def stamp(  # noqa: PLR0913
     *,
     file: str,
-    time: str | None,
+    timestamp: str | None,
+    date: str | None,
     rev: str | None,
     latest: bool,
     clear: bool,
@@ -365,15 +370,22 @@ def stamp(
     path = Path(file)
 
     # time, rev, latest, and clear are mutually exclusive
-    if sum([bool(time), bool(rev), latest, clear]) > 1:
+    if sum([bool(timestamp), bool(rev), bool(date), latest, clear]) > 1:
         console.print(
             "[bold red]Error:[/bold red] "
-            "Only one of --time, --rev, --latest, or --clear may be specified",
+            "Only one of --timestamp, --date, --rev, --latest, or --clear may be used",
         )
         sys.exit(1)
 
     try:
-        action = stamp(path=path, time=time, rev=rev, latest=latest, clear=clear)
+        action = stamp(
+            path=path,
+            timestamp=timestamp,
+            rev=rev,
+            latest=latest,
+            clear=clear,
+            date=date,
+        )
     except ValueError as e:
         console.print(f"[bold red]error[/bold red]: {e.args[0]}")
         sys.exit(1)

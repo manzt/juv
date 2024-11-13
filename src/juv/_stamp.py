@@ -39,25 +39,22 @@ class UpdateAction:
 Action = typing.Union[DeleteAction, CreateAction, UpdateAction]
 
 
-def parse_offset_datetime(date_str: str) -> OffsetDateTime:
-    """Parse a string into an `OffsetDateTime` object.
-
-    Tries to parse ISO 8601-compliant timestamps first.
-
-    If parsing fails, tries to parse an RFC 3339 timestamp.
-
-    If parsing fails, falls back to parsing a common ISO 8601 date string
-    (using the system's local timezone). If the date is successfully parsed
-    without a time component, it defaults to midnight in the local timezone.
-
-    This tries to follow the same logic as `uv run --exclude-newer=<value>`.
-    """
+def parse_timestamp(date_str: str) -> OffsetDateTime:
     with suppress(ValueError):
         return OffsetDateTime.parse_common_iso(date_str)
 
-    with suppress(ValueError) as err:
+    try:
         return OffsetDateTime.parse_rfc3339(date_str)
+    except ValueError as err:
+        msg = f"'{date_str}' could not be parsed as a valid timestamp."
+        raise ValueError(msg) from err
 
+
+def parse_date(date_str: str) -> OffsetDateTime:
+    """Parse a common ISO 8601 date string (using the system's local timezone).
+
+    Defaults to midnight in the local timezone.
+    """
     try:
         date = Date.parse_common_iso(date_str).add(days=1)
     except ValueError as err:
@@ -74,21 +71,6 @@ def get_git_timestamp(rev: str) -> OffsetDateTime:
         text=True,
     )
     return OffsetDateTime.parse_rfc3339(ts.strip())
-
-
-def resolve_offset_datetime(
-    *, time: str | None, rev: str | None, latest: bool, clear: bool
-) -> OffsetDateTime | None:
-    if clear:
-        return None
-    if latest:
-        return get_git_timestamp("HEAD")
-    if rev:
-        return get_git_timestamp(rev)
-    if time:
-        return parse_offset_datetime(time)
-    # Default to the current time
-    return SystemDateTime.now().to_fixed_offset()
 
 
 def update_inline_metadata(
@@ -142,12 +124,31 @@ def update_inline_metadata(
     return script.replace(meta_comment, new_meta_comment), action
 
 
-def stamp(
-    path: Path, *, time: str | None, latest: bool, rev: str | None, clear: bool
+def stamp(  # noqa: PLR0913
+    path: Path,
+    *,
+    timestamp: str | None,
+    latest: bool,
+    rev: str | None,
+    clear: bool,
+    date: str | None,
 ) -> Action:
     """Update the 'uv.tool.exclude-newer' metadata in a script or notebook."""
-    dt = resolve_offset_datetime(time=time, rev=rev, latest=latest, clear=clear)
+    # Determine the timestamp to use
     action = None
+    if clear:
+        dt = None
+    elif latest:
+        dt = get_git_timestamp("HEAD")
+    elif rev:
+        dt = get_git_timestamp(rev)
+    elif timestamp:
+        dt = parse_timestamp(timestamp)
+    elif date:
+        dt = parse_date(date)
+    else:
+        # Default to the current time
+        dt = SystemDateTime.now().to_fixed_offset()
 
     if path.suffix == ".ipynb":
         nb = jupytext.read(path)
