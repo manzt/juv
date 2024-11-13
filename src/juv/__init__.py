@@ -364,7 +364,6 @@ def stamp(  # noqa: PLR0913
     clear: bool,
 ) -> None:
     """Stamp a notebook or script with a reproducible timestamp."""
-
     if sys.version_info < (3, 9):
         rich.print(
             "[bold red]error[/bold red] "
