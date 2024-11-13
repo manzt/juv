@@ -8,13 +8,14 @@ version = "0.2.22"
 description = "A toolkit for reproducible Jupyter notebooks, powered by uv."
 readme = "README.md"
 authors = [{ name = "Trevor Manz", email = "trevor.j.manz@gmail.com" }]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = { text = "MIT" }
 dependencies = [
     "click>=8.1.7",
     "jupytext>=1.16.4",
     "rich>=13.9.2",
-    "toml>=0.10.2; python_version < '3.11'",
+    "tomlkit>=0.13.2",
+    "whenever>=0.6.12",
     "uv>=0.4.25",
 ]
 classifiers = [
@@ -55,13 +56,13 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*.py" = [
-    "D",      # No docstrings in tests
-    "S101",   # Use of assert
-    "SLF001", # Access private member
-    "W291",   # Trailing whitespace
-    "INP001", # Allow implicit namespace
-    "E501",   # Allow long lines (snapshots)
-    "PLC2701" # Import private member
+    "D",       # No docstrings in tests
+    "S101",    # Use of assert
+    "SLF001",  # Access private member
+    "W291",    # Trailing whitespace
+    "INP001",  # Allow implicit namespace
+    "E501",    # Allow long lines (snapshots)
+    "PLC2701", # Import private member
 ]
 
 [tool.rooster]
@@ -75,4 +76,3 @@ changelog_sections.bug = "Bug fixes"
 changelog_sections.documentation = "Documentation"
 changelog_sections.__unknown__ = "Other changes"
 changelog_contributors = true
-

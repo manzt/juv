@@ -228,7 +228,7 @@ def clear(*, files: list[str], check: bool) -> None:  # noqa: C901
 
     for path in paths:
         clear(path)
-        rich.print(path.resolve().absolute())
+        rich.print(path.resolve().absolute(), file=sys.stderr)
 
     rich.print(f"Cleared output from {len(paths)} notebooks", file=sys.stderr)
 
@@ -253,22 +253,22 @@ def edit(*, notebook: str, editor: str | None) -> None:
             "No editor specified. Please set the EDITOR environment variable "
             "or use the --editor option."
         )
-        rich.print(f"[bold red]Error:[/bold red] {msg}", file=sys.stderr)
+        rich.print(f"[bold red]error[/bold red]: {msg}", file=sys.stderr)
         return
 
     path = Path(notebook)
     if path.suffix != ".ipynb":
         rich.print(
-            f"[bold red]Error:[/bold red] `[cyan]{path}[/cyan]` is not a notebook",
+            f"[bold red]error[/bold red]: `[cyan]{path}[/cyan]` is not a notebook",
             file=sys.stderr,
         )
         return
 
     try:
         edit(path=path, editor=editor)
-        rich.print(f"Edited `[cyan]{notebook}[/cyan]`")
+        rich.print(f"Edited `[cyan]{notebook}[/cyan]`", file=sys.stderr)
     except EditorAbortedError as e:
-        rich.print(f"[bold red]Error:[/bold red] {e}", file=sys.stderr)
+        rich.print(f"[bold red]error[/bold red]: {e}", file=sys.stderr)
 
 
 def upgrade_legacy_jupyter_command(args: list[str]) -> None:
@@ -277,9 +277,10 @@ def upgrade_legacy_jupyter_command(args: list[str]) -> None:
         command = args[1]
         if command.startswith(("lab", "notebook", "nbclassic")):
             rich.print(
-                f"[bold]Warning:[/bold] The command '{command}' is deprecated. "
+                f"[bold]warning[/bold]: The command '{command}' is deprecated. "
                 f"Please use 'run' with `--jupyter={command}` "
                 f"or set JUV_JUPYTER={command}",
+                file=sys.stderr,
             )
             os.environ["JUV_JUPYTER"] = command
             args[1] = "run"
@@ -328,12 +329,75 @@ def cat(*, notebook: str, script: bool, pager: str | None) -> None:
     path = Path(notebook)
     if path.suffix != ".ipynb":
         rich.print(
-            f"[bold red]Error:[/bold red] `[cyan]{path}[/cyan]` is not a notebook",
+            f"[bold red]error[/bold red]: `[cyan]{path}[/cyan]` is not a notebook",
             file=sys.stderr,
         )
-        return
+        sys.exit(1)
 
     cat(path=path, script=script, pager=pager)
+
+
+@cli.command()
+@click.argument("file", type=click.Path(exists=True))
+@click.option(
+    "--time",
+    help=(
+        "Accepts both RFC 3339 timestamps (e.g., 2006-12-02T02:07:43Z) and local dates "
+        "in the same format (e.g., 2006-12-02) in your system's configured time zone."
+    ),
+)
+@click.option("--rev", help="A Git revision to stamp the file with.")
+@click.option("--latest", is_flag=True, help="Use the latest Git revision.")
+@click.option("--clear", is_flag=True, help="Clear the `exclude-newer` field.")
+def stamp(
+    *,
+    file: str,
+    time: str | None,
+    rev: str | None,
+    latest: bool,
+    clear: bool,
+) -> None:
+    """Stamp a notebook or script with a reproducible timestamp."""
+    from ._stamp import CreateAction, DeleteAction, UpdateAction, stamp
+
+    path = Path(file)
+
+    # time, rev, latest, and clear are mutually exclusive
+    if sum([bool(time), bool(rev), latest, clear]) > 1:
+        rich.print(
+            "[bold red]Error:[/bold red] "
+            "Only one of --time, --rev, --latest, or --clear may be specified",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    try:
+        action = stamp(path=path, time=time, rev=rev, latest=latest, clear=clear)
+    except ValueError as e:
+        rich.print(f"[bold red]error[/bold red]: {e.args[0]}", file=sys.stderr)
+        sys.exit(1)
+
+    path = os.path.relpath(path.resolve(), Path.cwd())
+
+    if isinstance(action, DeleteAction):
+        if action.previous is None:
+            # there was no previosu timestamp, so ok but no-op
+            rich.print(f"No timestamp found in `[cyan]{path}[/cyan]`", file=sys.stderr)
+        else:
+            rich.print(
+                f"Removed [green]{action.previous}[/green] from `[cyan]{path}[/cyan]`",
+                file=sys.stderr,
+            )
+    elif isinstance(action, CreateAction):
+        rich.print(
+            f"Stamped `[cyan]{path}[/cyan]` with [green]{action.value}[/green]",
+            file=sys.stderr,
+        )
+    elif isinstance(action, UpdateAction):
+        rich.print(
+            f"Updated `[cyan]{path}[/cyan]` with [green]{action.value}[/green]",
+            file=sys.stderr,
+        )
 
 
 def main() -> None:
