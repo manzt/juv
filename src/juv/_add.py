@@ -160,11 +160,11 @@ def add(  # noqa: PLR0913
     tag: str | None = None,
     branch: str | None = None,
     rev: str | None = None,
-    exact: bool = False,
+    pin: bool = False,
     editable: bool = False,
     exclude_newer: str | None = None,
 ) -> None:
-    if exact:
+    if pin:
         packages = uv_pip_compile(
             packages, requirements, exclude_newer=exclude_newer, no_deps=True
         )

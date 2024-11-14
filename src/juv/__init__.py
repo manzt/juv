@@ -88,7 +88,9 @@ def init(
 @click.option(
     "--rev", type=click.STRING, help="Commit to use when adding a dependency from Git."
 )
-@click.option("--exact", is_flag=True, help="Resolve packages to exact versions.")
+@click.option(
+    "--pin", is_flag=True, help="Resolve package specifiers to exact versions and pin."
+)
 @click.option(
     "--exclude-newer",
     type=click.STRING,
@@ -108,7 +110,7 @@ def add(  # noqa: PLR0913
     branch: str | None,
     rev: str | None,
     editable: bool,
-    exact: bool,
+    pin: bool,
     exclude_newer: str | None,
 ) -> None:
     """Add dependencies to a notebook or script."""
@@ -123,7 +125,7 @@ def add(  # noqa: PLR0913
         tag=tag,
         branch=branch,
         rev=rev,
-        exact=exact,
+        pin=pin,
         exclude_newer=exclude_newer,
     )
     path = os.path.relpath(Path(file).resolve(), Path.cwd())

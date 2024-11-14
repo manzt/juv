@@ -897,14 +897,14 @@ def test_stamp_clear(
 """)
 
 
-def test_add_exact_notebook(
+def test_add_notebook_pinned(
     tmp_path: pathlib.Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.chdir(tmp_path)
 
     invoke(["init", "test.ipynb"])
-    result = invoke(["add", "test.ipynb", "--exact", "anywidget"])
+    result = invoke(["add", "test.ipynb", "anywidget", "--pin"])
     assert result.exit_code == 0
     assert result.stdout == snapshot("Updated `test.ipynb`\n")
     assert extract_meta_cell(tmp_path / "test.ipynb") == snapshot("""\
@@ -917,7 +917,7 @@ def test_add_exact_notebook(
 """)
 
 
-def test_add_exact_script(
+def test_add_script_pinned(
     tmp_path: pathlib.Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -932,7 +932,7 @@ def test_add_exact_script(
 print("Hello from foo.py!")
 """)
 
-    result = invoke(["add", "foo.py", "--exact", "anywidget"])
+    result = invoke(["add", "foo.py", "anywidget", "--pin"])
     assert result.exit_code == 0
     assert result.stdout == snapshot("Updated `foo.py`\n")
     assert (tmp_path / "foo.py").read_text() == snapshot("""\
