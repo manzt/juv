@@ -88,6 +88,17 @@ def init(
 @click.option(
     "--rev", type=click.STRING, help="Commit to use when adding a dependency from Git."
 )
+@click.option(
+    "--pin", is_flag=True, help="Resolve package specifiers to exact versions and pin."
+)
+@click.option(
+    "--exclude-newer",
+    type=click.STRING,
+    help=(
+        "Limit candidate packages to those that were uploaded prior to the given date "
+        "[env: UV_EXCLUDE_NEWER=]"
+    ),
+)
 @click.argument("packages", nargs=-1)
 def add(  # noqa: PLR0913
     *,
@@ -99,8 +110,10 @@ def add(  # noqa: PLR0913
     branch: str | None,
     rev: str | None,
     editable: bool,
+    pin: bool,
+    exclude_newer: str | None,
 ) -> None:
-    """Add dependencies to a notebook."""
+    """Add dependencies to a notebook or script."""
     from ._add import add
 
     add(
@@ -112,6 +125,8 @@ def add(  # noqa: PLR0913
         tag=tag,
         branch=branch,
         rev=rev,
+        pin=pin,
+        exclude_newer=exclude_newer,
     )
     path = os.path.relpath(Path(file).resolve(), Path.cwd())
     rich.print(f"Updated `[cyan]{path}[/cyan]`")
