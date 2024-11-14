@@ -31,6 +31,7 @@ def invoke(args: list[str], uv_python: str = "3.13") -> Result:
             "JUV_RUN_MODE": "dry",
             "JUV_JUPYTER": "lab",
             "JUV_TZ": "America/New_York",
+            "UV_EXCLUDE_NEWER": "2024-07-07T00:00:00-02:00",
         },
     )
 
@@ -893,4 +894,54 @@ def test_stamp_clear(
 # requires-python = ">=3.13"
 # dependencies = []
 # ///
+""")
+
+
+def test_add_exact_notebook(
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    invoke(["init", "test.ipynb"])
+    result = invoke(["add", "test.ipynb", "--exact", "anywidget"])
+    assert result.exit_code == 0
+    assert result.stdout == snapshot("Updated `test.ipynb`\n")
+    assert extract_meta_cell(tmp_path / "test.ipynb") == snapshot("""\
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#     "anywidget==0.9.13",
+# ]
+# ///\
+""")
+
+
+def test_add_exact_script(
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    with (tmp_path / "foo.py").open("w") as f:
+        f.write("""# /// script
+# requires-python = ">=3.13"
+# dependencies = []
+# ///
+
+print("Hello from foo.py!")
+""")
+
+    result = invoke(["add", "foo.py", "--exact", "anywidget"])
+    assert result.exit_code == 0
+    assert result.stdout == snapshot("Updated `foo.py`\n")
+    assert (tmp_path / "foo.py").read_text() == snapshot("""\
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#     "anywidget==0.9.13",
+# ]
+# ///
+
+print("Hello from foo.py!")
 """)
