@@ -1,3 +1,34 @@
+## 0.2.24
+
+### Enhancements
+
+- Add support for regular Python script in `juv add` ([#51](https://github.com/manzt/juv/pull/51))
+- Add `--pin` flag for `juv add` ([#51](https://github.com/manzt/juv/pull/51))
+
+### Notes
+
+This release adds `--pin` flag to `juv add` to have package specifiers resolved to an exact version at the time of the command, and subsequently pinned in the notebook/script.
+
+```sh
+uvx juv init
+uvx juv add Untitled.ipynb 'numpy>=1.0.0' 'polars' # adds 'numpy>=1' 'polars'
+uvx juv add Untitled.ipynb numpy polars --pin      # adds 'numpy==2.1.3' 'polars==1.13.1'
+```
+
+This same behavior can be achieved without juv for regular scripts with a unix pipe:
+
+```sh
+echo 'numpy\npolars' | uv pip compile --no-deps - | grep '==' | xargs uv add --script foo.py
+```
+
+But alternatively you can use `juv add` for the same thing:
+
+```sh
+uv init --script foo.py
+uvx juv add foo.py numpy polars --pin
+```
+
+
 ## 0.2.23
 
 ### Enhancements
@@ -6,7 +37,7 @@
 
 ### Notes
 
-`uv` supports time-based dependency resolution via [`exclude-newer`](https://simonwillison.net/2024/May/10/uv-pip-install-exclude-newer/), 
+`uv` supports time-based dependency resolution via [`exclude-newer`](https://simonwillison.net/2024/May/10/uv-pip-install-exclude-newer/),
 allowing packages to be resolved as they existed at a specific moment in time.
 
 This feature greatly enhances the reproducibility of one-off scripts and notebooks without needing a lockfile.
