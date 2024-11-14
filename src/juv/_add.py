@@ -39,6 +39,7 @@ def uv_pip_compile(
     requirements: str | None,
     *,
     no_deps: bool,
+    exclude_newer: str | None,
 ) -> list[str]:
     """Use `pip compile` to generate exact versions of packages."""
     requirements_txt = "" if requirements is None else Path(requirements).read_text()
@@ -54,6 +55,7 @@ def uv_pip_compile(
             "pip",
             "compile",
             *(["--no-deps"] if no_deps else []),
+            *([f"--exclude-newer={exclude_newer}"] if exclude_newer else []),
             "-",
         ],
         input=requirements_txt.encode("utf-8"),
@@ -76,7 +78,7 @@ def uv_script(  # noqa: PLR0913
     branch: str | None,
     rev: str | None,
     tag: str | None,
-    exclude_newer: bool = False,
+    exclude_newer: str | None,
 ) -> None:
     uv(
         [
@@ -87,7 +89,7 @@ def uv_script(  # noqa: PLR0913
             *([f"--tag={tag}"] if tag else []),
             *([f"--branch={branch}"] if branch else []),
             *([f"--rev={rev}"] if rev else []),
-            *(["--exclude-newer"] if exclude_newer else []),
+            *([f"--exclude-newer={exclude_newer}"] if exclude_newer else []),
             "--script",
             str(script),
             *packages,
@@ -106,7 +108,7 @@ def add_notebook(  # noqa: PLR0913
     branch: str | None,
     rev: str | None,
     tag: str | None,
-    exclude_newer: bool = False,
+    exclude_newer: str | None,
 ) -> None:
     notebook = jupytext.read(path, fmt="ipynb")
 
@@ -160,10 +162,12 @@ def add(  # noqa: PLR0913
     rev: str | None = None,
     exact: bool = False,
     editable: bool = False,
-    exclude_newer: bool = False,
+    exclude_newer: str | None = None,
 ) -> None:
     if exact:
-        packages = uv_pip_compile(packages, requirements, no_deps=True)
+        packages = uv_pip_compile(
+            packages, requirements, exclude_newer=exclude_newer, no_deps=True
+        )
         requirements = None
 
     (add_notebook if path.suffix == ".ipynb" else uv_script)(

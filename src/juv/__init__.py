@@ -91,7 +91,7 @@ def init(
 @click.option("--exact", is_flag=True, help="Resolve packages to exact versions.")
 @click.option(
     "--exclude-newer",
-    is_flag=True,
+    type=click.STRING,
     help=(
         "Limit candidate packages to those that were uploaded prior to the given date "
         "[env: UV_EXCLUDE_NEWER=]"
@@ -109,7 +109,7 @@ def add(  # noqa: PLR0913
     rev: str | None,
     editable: bool,
     exact: bool,
-    exclude_newer: bool,
+    exclude_newer: str | None,
 ) -> None:
     """Add dependencies to a notebook or script."""
     from ._add import add

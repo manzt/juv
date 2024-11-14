@@ -31,7 +31,7 @@ def invoke(args: list[str], uv_python: str = "3.13") -> Result:
             "JUV_RUN_MODE": "dry",
             "JUV_JUPYTER": "lab",
             "JUV_TZ": "America/New_York",
-            "UV_EXCLUDE_NEWER": "2024-07-07T00:00:00-02:00",
+            "UV_EXCLUDE_NEWER": "2023-02-01T00:00:00-02:00",
         },
     )
 
@@ -911,7 +911,7 @@ def test_add_exact_notebook(
 # /// script
 # requires-python = ">=3.13"
 # dependencies = [
-#     "anywidget==0.9.13",
+#     "anywidget==0.1.0",
 # ]
 # ///\
 """)
@@ -939,7 +939,7 @@ print("Hello from foo.py!")
 # /// script
 # requires-python = ">=3.13"
 # dependencies = [
-#     "anywidget==0.9.13",
+#     "anywidget==0.1.0",
 # ]
 # ///
 
