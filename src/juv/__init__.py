@@ -116,20 +116,24 @@ def add(  # noqa: PLR0913
     """Add dependencies to a notebook or script."""
     from ._add import add
 
-    add(
-        path=Path(file),
-        packages=packages,
-        requirements=requirements,
-        extras=extras,
-        editable=editable,
-        tag=tag,
-        branch=branch,
-        rev=rev,
-        pin=pin,
-        exclude_newer=exclude_newer,
-    )
-    path = os.path.relpath(Path(file).resolve(), Path.cwd())
-    rich.print(f"Updated `[cyan]{path}[/cyan]`")
+    try:
+        add(
+            path=Path(file),
+            packages=packages,
+            requirements=requirements,
+            extras=extras,
+            editable=editable,
+            tag=tag,
+            branch=branch,
+            rev=rev,
+            pin=pin,
+            exclude_newer=exclude_newer,
+        )
+        path = os.path.relpath(Path(file).resolve(), Path.cwd())
+        rich.print(f"Updated `[cyan]{path}[/cyan]`")
+    except RuntimeError as e:
+        rich.print(e, file=sys.stderr)
+        sys.exit(1)
 
 
 @cli.command()
