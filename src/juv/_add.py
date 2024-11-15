@@ -61,8 +61,11 @@ def uv_pip_compile(
         input=requirements_txt.encode("utf-8"),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        check=True,
+        check=False,
     )
+
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr.decode())
 
     # filter only for the exact versions
     return [pkg for pkg in result.stdout.decode().split("\n") if "==" in pkg]
