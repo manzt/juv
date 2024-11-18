@@ -18,7 +18,14 @@ def code_cell(source: str, *, hidden: bool = False) -> dict:
 
 
 def new_notebook(cells: list[dict]) -> dict:
-    return nb.new_notebook(cells=cells)
+    notebook = nb.new_notebook(cells=cells)
+    if "kernelspec" not in notebook.metadata:
+        notebook.metadata.kernelspec = {
+            "display_name": "Python 3",
+            "language": "python",
+            "name": "python3",
+        }
+    return notebook
 
 
 def write_ipynb(nb: dict, file: Path) -> None:
