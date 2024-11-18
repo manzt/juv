@@ -1,3 +1,10 @@
+## 0.2.25
+
+### Enhancements
+
+- Bubble up uv errors from `juv add --pin` ([#52](https://github.com/manzt/juv/pull/52))
+- Add `kernelspec` metadata to new notebooks ([#53](https://github.com/manzt/juv/pull/53))
+
 ## 0.2.24
 
 ### Enhancements
@@ -27,7 +34,6 @@ But alternatively you can use `juv add` for the same thing:
 uv init --script foo.py
 uvx juv add foo.py numpy polars --pin
 ```
-
 
 ## 0.2.23
 
