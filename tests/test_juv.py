@@ -464,7 +464,13 @@ def test_init_creates_notebook_with_inline_meta(
    "source": []
   }
  ],
- "metadata": {},
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  }
+ },
  "nbformat": 4,
  "nbformat_minor": 5
 }\
@@ -511,7 +517,13 @@ def test_init_creates_notebook_with_specific_python_version(
    "source": []
   }
  ],
- "metadata": {},
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  }
+ },
  "nbformat": 4,
  "nbformat_minor": 5
 }\
@@ -573,7 +585,13 @@ def test_init_with_deps(
    "source": []
   }
  ],
- "metadata": {},
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  }
+ },
  "nbformat": 4,
  "nbformat_minor": 5
 }\
