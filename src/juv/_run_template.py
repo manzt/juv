@@ -75,7 +75,7 @@ from platformdirs import user_data_dir
 juv_data_dir = Path(user_data_dir("juv"))
 juv_data_dir.mkdir(parents=True, exist_ok=True)
 
-temp_dir = tempfile.TemporaryDirectory(dir=juv_data_dir)
+temp_dir = tempfile.TemporaryDirectory(dir=juv_data_dir, ignore_cleanup_errors=True)
 merged_dir = Path(temp_dir.name)
 
 def handle_termination(signum, frame):
@@ -129,7 +129,7 @@ if {is_managed}:
     version = importlib.metadata.version("jupyterlab")
     print("JUV_MANGED=" + "jupyterlab" + "," + version, file=sys.stderr)
 
-sys.argv = ["jupyter-lab", "{notebook}", *{args}]
+sys.argv = ["jupyter-lab", r"{notebook}", *{args}]
 main()
 """
 
@@ -148,7 +148,7 @@ if {is_managed}:
     version = importlib.metadata.version("notebook")
     print("JUV_MANGED=" + "notebook" + "," + version, file=sys.stderr)
 
-sys.argv = ["jupyter-notebook", "{notebook}", *{args}]
+sys.argv = ["jupyter-notebook", r"{notebook}", *{args}]
 main()
 """
 
@@ -167,7 +167,7 @@ if {is_managed}:
     version = importlib.metadata.version("notebook")
     print("JUV_MANGED=" + "notebook" + "," + version, file=sys.stderr)
 
-sys.argv = ["jupyter-notebook", "{notebook}", *{args}]
+sys.argv = ["jupyter-notebook", r"{notebook}", *{args}]
 main()
 """
 
@@ -187,7 +187,7 @@ if {is_managed}:
     print("JUV_MANGED=" + "nbclassic" + "," + version, file=sys.stderr)
 
 os.environ["JUPYTER_DATA_DIR"] = str(merged_dir)
-sys.argv = ["jupyter-nbclassic", "{notebook}", *{args}]
+sys.argv = ["jupyter-nbclassic", r"{notebook}", *{args}]
 main()
 """
 
