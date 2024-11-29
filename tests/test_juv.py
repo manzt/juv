@@ -810,7 +810,9 @@ def test_stamp(
 ) -> None:
     # we need to run these tests in this folder because it uses the git history
 
-    with tempfile.TemporaryDirectory(dir=SELF_DIR) as tmpdir:
+    with tempfile.TemporaryDirectory(
+        dir=SELF_DIR, ignore_cleanup_errors=True
+    ) as tmpdir:
         tmp_path = pathlib.Path(tmpdir)
         monkeypatch.chdir(tmp_path)
 
@@ -840,7 +842,9 @@ def test_stamp_script(
 ) -> None:
     # we need to run these tests in this folder because it uses the git history
 
-    with tempfile.TemporaryDirectory(dir=SELF_DIR) as tmpdir:
+    with tempfile.TemporaryDirectory(
+        dir=SELF_DIR, ignore_cleanup_errors=True
+    ) as tmpdir:
         tmp_path = pathlib.Path(tmpdir)
         monkeypatch.chdir(tmp_path)
 
@@ -851,11 +855,11 @@ def test_stamp_script(
 # ///
 
 
-def main() -> None:                                                                                                                                                                                                               │
-    print("Hello from foo.py!")                                                                                                                                                                                                   │
-                                                                                                                                                                                                                                  │
-                                                                                                                                                                                                                                  │
-if __name__ == "__main__":                                                                                                                                                                                                        │
+def main() -> None:                                                                                                                                                                                                               |
+    print("Hello from foo.py!")                                                                                                                                                                                                   |
+                                                                                                                                                                                                                                  |
+                                                                                                                                                                                                                                  |
+if __name__ == "__main__":                                                                                                                                                                                                        |
     main()
 """)
         result = invoke(["stamp", "foo.py", "--date", "2006-01-02"])
@@ -874,11 +878,11 @@ if __name__ == "__main__":                                                      
 # ///
 
 
-def main() -> None:                                                                                                                                                                                                               │
-    print("Hello from foo.py!")                                                                                                                                                                                                   │
-                                                                                                                                                                                                                                  │
-                                                                                                                                                                                                                                  │
-if __name__ == "__main__":                                                                                                                                                                                                        │
+def main() -> None:                                                                                                                                                                                                               |
+    print("Hello from foo.py!")                                                                                                                                                                                                   |
+                                                                                                                                                                                                                                  |
+                                                                                                                                                                                                                                  |
+if __name__ == "__main__":                                                                                                                                                                                                        |
     main()
 """)
 
@@ -889,7 +893,9 @@ def test_stamp_clear(
 ) -> None:
     # we need to run these tests in this folder because it uses the git history
 
-    with tempfile.TemporaryDirectory(dir=SELF_DIR) as tmpdir:
+    with tempfile.TemporaryDirectory(
+        dir=SELF_DIR, ignore_cleanup_errors=True
+    ) as tmpdir:
         tmp_path = pathlib.Path(tmpdir)
         monkeypatch.chdir(tmp_path)
 
