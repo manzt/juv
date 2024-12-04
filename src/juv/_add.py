@@ -42,7 +42,9 @@ def uv_pip_compile(
     exclude_newer: str | None,
 ) -> list[str]:
     """Use `pip compile` to generate exact versions of packages."""
-    requirements_txt = "" if requirements is None else Path(requirements).read_text()
+    requirements_txt = (
+        "" if requirements is None else Path(requirements).read_text(encoding="utf-8")
+    )
 
     # just append the packages on to the requirements
     for package in packages:

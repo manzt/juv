@@ -15,7 +15,7 @@ if typing.TYPE_CHECKING:
 
 
 def load_script_notebook(fp: Path) -> dict:
-    script = fp.read_text()
+    script = fp.read_text(encoding="utf-8")
     # we could read the whole thing with jupytext,
     # but is nice to ensure the script meta is at the top in it's own
     # cell (that we can hide by default in JupyterLab)

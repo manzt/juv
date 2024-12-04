@@ -174,6 +174,6 @@ def stamp(  # noqa: PLR0913
         write_ipynb(nb, path)
         return action
 
-    script, action = update_inline_metadata(path.read_text(), dt)
+    script, action = update_inline_metadata(path.read_text(encoding="utf-8"), dt)
     path.write_text(script)
     return action

@@ -301,7 +301,7 @@ def test_add_creates_inline_meta(
     result = invoke(["add", str(nb), "polars==1", "anywidget"], uv_python="3.11")
     assert result.exit_code == 0
     assert filter_tempfile_ipynb(result.stdout) == snapshot("Updated `foo.ipynb`\n")
-    assert filter_ids(nb.read_text()) == snapshot("""\
+    assert filter_ids(nb.read_text(encoding="utf-8")) == snapshot("""\
 {
  "cells": [
   {
@@ -344,7 +344,7 @@ def test_add_prepends_script_meta(
     result = invoke(["add", str(path), "polars==1", "anywidget"], uv_python="3.10")
     assert result.exit_code == 0
     assert filter_tempfile_ipynb(result.stdout) == snapshot("Updated `empty.ipynb`\n")
-    assert filter_ids(path.read_text()) == snapshot("""\
+    assert filter_ids(path.read_text(encoding="utf-8")) == snapshot("""\
 {
  "cells": [
   {
@@ -404,7 +404,7 @@ print('Hello, numpy!')"""),
     result = invoke(["add", str(path), "polars==1", "anywidget"], uv_python="3.13")
     assert result.exit_code == 0
     assert filter_tempfile_ipynb(result.stdout) == snapshot("Updated `empty.ipynb`\n")
-    assert filter_ids(path.read_text()) == snapshot("""\
+    assert filter_ids(path.read_text(encoding="utf-8")) == snapshot("""\
 {
  "cells": [
   {
@@ -444,7 +444,7 @@ def test_init_creates_notebook_with_inline_meta(
     assert filter_tempfile_ipynb(result.stdout) == snapshot(
         "Initialized notebook at `empty.ipynb`\n"
     )
-    assert filter_ids(path.read_text()) == snapshot("""\
+    assert filter_ids(path.read_text(encoding="utf-8")) == snapshot("""\
 {
  "cells": [
   {
@@ -497,7 +497,7 @@ def test_init_creates_notebook_with_specific_python_version(
     assert filter_tempfile_ipynb(result.stdout) == snapshot(
         "Initialized notebook at `empty.ipynb`\n"
     )
-    assert filter_ids(path.read_text()) == snapshot("""\
+    assert filter_ids(path.read_text(encoding="utf-8")) == snapshot("""\
 {
  "cells": [
   {
@@ -558,7 +558,7 @@ def test_init_with_deps(
     assert result.stdout == snapshot("Initialized notebook at `Untitled.ipynb`\n")
 
     path = tmp_path / "Untitled.ipynb"
-    assert filter_ids(path.read_text()) == snapshot("""\
+    assert filter_ids(path.read_text(encoding="utf-8")) == snapshot("""\
 {
  "cells": [
   {
@@ -853,18 +853,18 @@ def test_stamp_script(
         tmp_path = pathlib.Path(tmpdir)
         monkeypatch.chdir(tmp_path)
 
-        with (tmp_path / "foo.py").open("w") as f:
+        with (tmp_path / "foo.py").open("w", encoding="utf-8") as f:
             f.write("""# /// script
 # requires-python = ">=3.13"
 # dependencies = []
 # ///
 
 
-def main() -> None:                                                                                                                                                                                                               |
-    print("Hello from foo.py!")                                                                                                                                                                                                   |
-                                                                                                                                                                                                                                  |
-                                                                                                                                                                                                                                  |
-if __name__ == "__main__":                                                                                                                                                                                                        |
+def main() -> None:                                                                                                                                                                                                               
+    print("Hello from foo.py!")                                                                                                                                                                                                   
+
+
+if __name__ == "__main__":                                                                                                                                                                                                        
     main()
 """)
         result = invoke(["stamp", "foo.py", "--date", "2006-01-02"])
@@ -873,7 +873,7 @@ if __name__ == "__main__":                                                      
         assert result.stdout == snapshot(
             "Stamped `foo.py` with 2006-01-03T00:00:00-05:00\n"
         )
-        assert (tmp_path / "foo.py").read_text() == snapshot("""\
+        assert (tmp_path / "foo.py").read_text(encoding="utf-8") == snapshot("""\
 # /// script
 # requires-python = ">=3.13"
 # dependencies = []
@@ -883,11 +883,11 @@ if __name__ == "__main__":                                                      
 # ///
 
 
-def main() -> None:                                                                                                                                                                                                               |
-    print("Hello from foo.py!")                                                                                                                                                                                                   |
-                                                                                                                                                                                                                                  |
-                                                                                                                                                                                                                                  |
-if __name__ == "__main__":                                                                                                                                                                                                        |
+def main() -> None:                                                                                                                                                                                                               
+    print("Hello from foo.py!")                                                                                                                                                                                                   
+
+
+if __name__ == "__main__":                                                                                                                                                                                                        
     main()
 """)
 
@@ -902,7 +902,7 @@ def test_stamp_clear(
         tmp_path = pathlib.Path(tmpdir)
         monkeypatch.chdir(tmp_path)
 
-        with (tmp_path / "foo.py").open("w") as f:
+        with (tmp_path / "foo.py").open("w", encoding="utf-8") as f:
             f.write("""# /// script
 # requires-python = ">=3.13"
 # dependencies = []
@@ -916,7 +916,7 @@ def test_stamp_clear(
 
         assert result.exit_code == 0
         assert result.stdout == snapshot("Removed blah from `foo.py`\n")
-        assert (tmp_path / "foo.py").read_text() == snapshot("""\
+        assert (tmp_path / "foo.py").read_text(encoding="utf-8") == snapshot("""\
 # /// script
 # requires-python = ">=3.13"
 # dependencies = []
@@ -950,7 +950,7 @@ def test_add_script_pinned(
 ) -> None:
     monkeypatch.chdir(tmp_path)
 
-    with (tmp_path / "foo.py").open("w") as f:
+    with (tmp_path / "foo.py").open("w", encoding="utf-8") as f:
         f.write("""# /// script
 # requires-python = ">=3.13"
 # dependencies = []
@@ -962,7 +962,7 @@ print("Hello from foo.py!")
     result = invoke(["add", "foo.py", "anywidget", "--pin"])
     assert result.exit_code == 0
     assert result.stdout == snapshot("Updated `foo.py`\n")
-    assert (tmp_path / "foo.py").read_text() == snapshot("""\
+    assert (tmp_path / "foo.py").read_text(encoding="utf-8") == snapshot("""\
 # /// script
 # requires-python = ">=3.13"
 # dependencies = [
