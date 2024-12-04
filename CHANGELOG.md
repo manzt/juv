@@ -1,3 +1,16 @@
+## 0.2.27
+
+### Enhancements
+
+- Force UTF-8 encoding when reading/writing text ([#56](https://github.com/manzt/juv/pull/56))
+
+### Bug fixes
+
+- Use TemporaryDirectoryIgnoreErrors in replacement template ([#57](https://github.com/manzt/juv/pull/57))
+
+### Contributors
+- [@manzt](https://github.com/manzt)
+
 ## 0.2.26
 
 ### Enhancements
