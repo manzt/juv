@@ -1,3 +1,12 @@
+## 0.2.26
+
+### Enhancements
+
+- Support windows with `juv run` ([#54](https://github.com/manzt/juv/pull/54))
+
+### Contributors
+- [@ATL2001](https://github.com/ATL2001)
+
 ## 0.2.25
 
 ### Enhancements
