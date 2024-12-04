@@ -84,7 +84,7 @@ class TemporaryDirectoryIgnoreErrors(tempfile.TemporaryDirectory):
         except Exception:
             pass  # Ignore cleanup errors
 
-temp_dir = TemporaryDirectory(dir=juv_data_dir)
+temp_dir = TemporaryDirectoryIgnoreErrors(dir=juv_data_dir)
 merged_dir = Path(temp_dir.name)
 
 def handle_termination(signum, frame):
