@@ -75,7 +75,16 @@ from platformdirs import user_data_dir
 juv_data_dir = Path(user_data_dir("juv"))
 juv_data_dir.mkdir(parents=True, exist_ok=True)
 
-temp_dir = tempfile.TemporaryDirectory(dir=juv_data_dir, ignore_cleanup_errors=True)
+# Custom TemporaryDirectory for Python < 3.10
+# TODO: Use `ignore_cleanup_errors=True` in Python 3.10+
+class TemporaryDirectoryIgnoreErrors(tempfile.TemporaryDirectory):
+    def cleanup(self):
+        try:
+            super().cleanup()
+        except Exception:
+            pass  # Ignore cleanup errors
+
+temp_dir = TemporaryDirectory(dir=juv_data_dir)
 merged_dir = Path(temp_dir.name)
 
 def handle_termination(signum, frame):

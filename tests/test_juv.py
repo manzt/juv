@@ -21,6 +21,16 @@ from juv._uv import uv
 SELF_DIR = pathlib.Path(__file__).parent
 
 
+# Custom TemporaryDirectory for Python < 3.10
+# TODO: Use `ignore_cleanup_errors=True` in Python 3.10+
+class TemporaryDirectoryIgnoreErrors(tempfile.TemporaryDirectory):
+    def cleanup(self):
+        try:
+            super().cleanup()
+        except Exception:
+            pass  # Ignore cleanup errors
+
+
 def invoke(args: list[str], uv_python: str = "3.13") -> Result:
     return CliRunner().invoke(
         cli,
@@ -810,9 +820,7 @@ def test_stamp(
 ) -> None:
     # we need to run these tests in this folder because it uses the git history
 
-    with tempfile.TemporaryDirectory(
-        dir=SELF_DIR, ignore_cleanup_errors=True
-    ) as tmpdir:
+    with TemporaryDirectoryIgnoreErrors(dir=SELF_DIR) as tmpdir:
         tmp_path = pathlib.Path(tmpdir)
         monkeypatch.chdir(tmp_path)
 
@@ -842,9 +850,7 @@ def test_stamp_script(
 ) -> None:
     # we need to run these tests in this folder because it uses the git history
 
-    with tempfile.TemporaryDirectory(
-        dir=SELF_DIR, ignore_cleanup_errors=True
-    ) as tmpdir:
+    with TemporaryDirectoryIgnoreErrors(dir=SELF_DIR) as tmpdir:
         tmp_path = pathlib.Path(tmpdir)
         monkeypatch.chdir(tmp_path)
 
@@ -893,9 +899,7 @@ def test_stamp_clear(
 ) -> None:
     # we need to run these tests in this folder because it uses the git history
 
-    with tempfile.TemporaryDirectory(
-        dir=SELF_DIR, ignore_cleanup_errors=True
-    ) as tmpdir:
+    with TemporaryDirectoryIgnoreErrors(dir=SELF_DIR) as tmpdir:
         tmp_path = pathlib.Path(tmpdir)
         monkeypatch.chdir(tmp_path)
 

@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import os
-import platform
 import signal
 import subprocess
 import sys
 
 from uv import find_uv_bin
 
-IS_WINDOWS = platform.system()
+IS_WINDOWS = sys.platform.startswith("win")
+
 
 def run(script: str, args: list[str]) -> None:
     if not IS_WINDOWS:
@@ -25,8 +25,8 @@ def run(script: str, args: list[str]) -> None:
             stdin=subprocess.PIPE,
             stdout=sys.stdout,
             stderr=sys.stderr,
-            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
-        ) 
+            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+        )
 
     assert process.stdin is not None  # noqa: S101
     process.stdin.write(script.encode())
