@@ -860,11 +860,11 @@ def test_stamp_script(
 # ///
 
 
-def main() -> None:                                                                                                                                                                                                               
-    print("Hello from foo.py!")                                                                                                                                                                                                   
+def main() -> None:
+    print("Hello from foo.py!")
 
 
-if __name__ == "__main__":                                                                                                                                                                                                        
+if __name__ == "__main__":
     main()
 """)
         result = invoke(["stamp", "foo.py", "--date", "2006-01-02"])
@@ -883,11 +883,11 @@ if __name__ == "__main__":
 # ///
 
 
-def main() -> None:                                                                                                                                                                                                               
-    print("Hello from foo.py!")                                                                                                                                                                                                   
+def main() -> None:
+    print("Hello from foo.py!")
 
 
-if __name__ == "__main__":                                                                                                                                                                                                        
+if __name__ == "__main__":
     main()
 """)
 
