@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import os
 import pathlib
 import re
@@ -22,13 +23,11 @@ SELF_DIR = pathlib.Path(__file__).parent
 
 
 # Custom TemporaryDirectory for Python < 3.10
-# TODO: Use `ignore_cleanup_errors=True` in Python 3.10+
+# TODO: Use `ignore_cleanup_errors=True` in Python 3.10+  # noqa: TD002, TD003
 class TemporaryDirectoryIgnoreErrors(tempfile.TemporaryDirectory):
-    def cleanup(self):
-        try:
+    def cleanup(self) -> None:
+        with contextlib.suppress(Exception):
             super().cleanup()
-        except Exception:
-            pass  # Ignore cleanup errors
 
 
 def invoke(args: list[str], uv_python: str = "3.13") -> Result:
