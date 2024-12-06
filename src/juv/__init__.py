@@ -436,6 +436,29 @@ def stamp(  # noqa: PLR0913
         )
 
 
+@cli.command()
+@click.argument("file", type=click.Path(exists=True), required=True)
+@click.argument("packages", nargs=-1)
+def remove(
+    *,
+    file: str,
+    packages: tuple[str, ...],
+) -> None:
+    """Remove dependencies from a notebook."""
+    from ._remove import remove
+
+    try:
+        remove(
+            path=Path(file),
+            packages=packages,
+        )
+        path = os.path.relpath(Path(file).resolve(), Path.cwd())
+        rich.print(f"Updated `[cyan]{path}[/cyan]`")
+    except RuntimeError as e:
+        rich.print(e, file=sys.stderr)
+        sys.exit(1)
+
+
 def main() -> None:
     """Run the CLI."""
     upgrade_legacy_jupyter_command(sys.argv)

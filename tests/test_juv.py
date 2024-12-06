@@ -972,3 +972,39 @@ print("Hello from foo.py!")
 
 print("Hello from foo.py!")
 """)
+
+
+def test_remove(
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    invoke(["init", "test.ipynb"])
+    result = invoke(
+        ["add", "test.ipynb", "anywidget", "numpy==1.21.0", "polars==1.0.0"]
+    )
+    assert result.exit_code == 0
+    assert result.stdout == snapshot("Updated `test.ipynb`\n")
+    assert extract_meta_cell(tmp_path / "test.ipynb") == snapshot("""\
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#     "anywidget",
+#     "numpy==1.21.0",
+#     "polars==1.0.0",
+# ]
+# ///\
+""")
+
+    result = invoke(["remove", "test.ipynb", "anywidget", "polars"])
+    assert result.exit_code == 0
+    assert result.stdout == snapshot("Updated `test.ipynb`\n")
+    assert extract_meta_cell(tmp_path / "test.ipynb") == snapshot("""\
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#     "numpy==1.21.0",
+# ]
+# ///\
+""")
