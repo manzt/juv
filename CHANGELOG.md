@@ -1,3 +1,25 @@
+## 0.2.28
+
+### Other changes
+
+- Add `remove` command ([#59](https://github.com/manzt/juv/pull/59))
+
+### Contributors
+- [@manzt](https://github.com/manzt)
+
+### Notes
+
+This release adds `juv remove` to remove packages from a notebook or script.
+Dependencies are removed from the PEP-723 inline metadata. The command follows
+uv's semantics. See the [uv
+docs](https://docs.astral.sh/uv/reference/cli/#uv-remove) for more information.
+
+```sh
+uvx juv init
+uvx juv add Untitled.ipynb 'numpy>=1.0.0' 'polars' # adds 'numpy>=1.0.0' 'polars'
+uvx juv remove Untitled.ipynb numpy # removes 'numpy>=1.0.0'
+```
+
 ## 0.2.27
 
 ### Enhancements
