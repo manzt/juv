@@ -6,11 +6,11 @@ from dataclasses import dataclass
 if typing.TYPE_CHECKING:
     import pathlib
 
-RuntimeName = typing.Literal["notebook", "lab", "nbclassic"]
+RuntimeName = typing.Literal["notebook", "lab", "nbclassic", "code"]
 
 
 def is_notebook_kind(kind: str) -> typing.TypeGuard[RuntimeName]:
-    return kind in {"notebook", "lab", "nbclassic"}
+    return kind in {"notebook", "lab", "nbclassic", "code"}
 
 
 @dataclass
@@ -45,12 +45,19 @@ class Runtime:
             return NOTEBOOK
         if self.name == "nbclassic":
             return NBCLASSIC
+        if self.name == "code":
+            return VSCODE
         msg = f"Invalid self: {self.name}"
         raise ValueError(msg)
 
     def as_with_arg(self) -> str:
-        # lab is actually jupyterlab
-        with_ = "jupyterlab" if self.name == "lab" else self.name
+        with_ = {
+            "lab": "jupyterlab",
+            "notebook": "notebook",
+            "nbclassic": "nbclassic",
+            # vscode needs ipykernel to be in the environment
+            "code": "ipykernel",
+        }[self.name]
 
         # append version if present
         if self.version:
@@ -198,6 +205,14 @@ if {is_managed}:
 os.environ["JUPYTER_DATA_DIR"] = str(merged_dir)
 sys.argv = ["jupyter-nbclassic", r"{notebook}", *{args}]
 main()
+"""
+
+VSCODE = """
+{meta}
+import subprocess
+import os
+
+subprocess.run(["code", r"{notebook}"], check=True, env=os.environ)
 """
 
 

@@ -83,7 +83,7 @@ def run(  # noqa: PLR0913
     if mode == "dry":
         print(f"uv {' '.join(args)}")  # noqa: T201
 
-    elif mode == "managed":
+    elif mode == "managed" and runtime.name != "code":
         from ._run_managed import run as run_managed
 
         run_managed(script, args, str(path))
