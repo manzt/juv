@@ -459,6 +459,24 @@ def remove(
         sys.exit(1)
 
 
+@cli.command()
+@click.argument("file", type=click.Path(exists=True), required=True)
+def lock(
+    *,
+    file: str,
+) -> None:
+    """Update the notebooks's lockfile."""
+    from ._lock import lock
+
+    try:
+        lock(path=Path(file))
+        path = os.path.relpath(Path(file).resolve(), Path.cwd())
+        rich.print(f"Locked `[cyan]{path}[/cyan]`")
+    except RuntimeError as e:
+        rich.print(e, file=sys.stderr)
+        sys.exit(1)
+
+
 def main() -> None:
     """Run the CLI."""
     upgrade_legacy_jupyter_command(sys.argv)
