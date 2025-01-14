@@ -16,6 +16,7 @@ def remove(
     packages: typing.Sequence[str],
 ) -> None:
     notebook = jupytext.read(path, fmt="ipynb")
+    lockfile_contents = notebook.get("metadata", {}).get("uv.lock")
 
     # need a reference so we can modify the cell["source"]
     cell = find(
@@ -37,8 +38,13 @@ def remove(
         dir=path.parent,
         encoding="utf-8",
     ) as f:
+        lockfile = Path(f"{f.name}.lock")
         f.write(cell["source"].strip())
         f.flush()
+
+        if lockfile_contents:
+            lockfile.write_text(lockfile_contents)
+
         uv(
             [
                 "remove",
@@ -50,5 +56,9 @@ def remove(
         )
         f.seek(0)
         cell["source"] = f.read().strip()
+
+        if lockfile.exists():
+            notebook["metadata"]["uv.lock"] = lockfile.read_text()
+            lockfile.unlink(missing_ok=True)
 
     write_ipynb(notebook, path.with_suffix(".ipynb"))
