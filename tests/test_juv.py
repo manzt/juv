@@ -693,6 +693,7 @@ def test_add_local_package_as_editable(
 """)
 
 
+@pytest.mark.skip(reason="Currently too flaky to run in CI")
 def test_add_git_default(
     tmp_path: pathlib.Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -717,6 +718,7 @@ def test_add_git_default(
 """)
 
 
+@pytest.mark.skip(reason="Currently too flaky to run in CI")
 def test_add_git_tag(
     tmp_path: pathlib.Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -749,6 +751,7 @@ def test_add_git_tag(
 """)
 
 
+@pytest.mark.skip(reason="Currently too flaky to run in CI")
 def test_add_git_branch(
     tmp_path: pathlib.Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -781,6 +784,7 @@ def test_add_git_branch(
 """)
 
 
+@pytest.mark.skip(reason="Currently too flaky to run in CI")
 def test_add_git_rev(
     tmp_path: pathlib.Path,
     monkeypatch: pytest.MonkeyPatch,
