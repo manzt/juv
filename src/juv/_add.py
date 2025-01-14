@@ -96,6 +96,7 @@ def add_notebook(  # noqa: PLR0913
     exclude_newer: str | None,
 ) -> None:
     notebook = jupytext.read(path, fmt="ipynb")
+    lockfile_contents = notebook.get("metadata", {}).get("uv.lock")
 
     # need a reference so we can modify the cell["source"]
     cell = find(
@@ -117,8 +118,14 @@ def add_notebook(  # noqa: PLR0913
         dir=path.parent,
         encoding="utf-8",
     ) as f:
+        lockfile = Path(f"{f.name}.lock")
+
         f.write(cell["source"].strip())
         f.flush()
+
+        if lockfile_contents:
+            lockfile.write_text(lockfile_contents)
+
         uv_script(
             script=f.name,
             packages=packages,
@@ -132,6 +139,10 @@ def add_notebook(  # noqa: PLR0913
         )
         f.seek(0)
         cell["source"] = f.read().strip()
+
+        if lockfile.exists():
+            notebook["metadata"]["uv.lock"] = lockfile.read_text()
+            lockfile.unlink(missing_ok=True)
 
     write_ipynb(notebook, path.with_suffix(".ipynb"))
 
