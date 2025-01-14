@@ -28,6 +28,9 @@ def run(script: str, args: list[str], lockfile_contents: str | None) -> None:
         if lockfile_contents:
             # Write the contents so UV picks it up
             lockfile.write_text(lockfile_contents)
+            # Forward path to underlying process.
+            # We rewrite the lockfile entry (if necessary) within that process.
+            env["JUV_LOCKFILE_PATH"] = str(lockfile)
 
         if not IS_WINDOWS:
             process = subprocess.Popen(  # noqa: S603
