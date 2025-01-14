@@ -225,5 +225,6 @@ def prepare_run_script_and_uv_run_args(  # noqa: PLR0913
         *([f"--python={python}"] if python else []),
         f"--with={runtime.as_with_arg()}",
         *(["--with=" + ",".join(with_args)] if with_args else []),
+        "--script",
     ]
     return script, args
