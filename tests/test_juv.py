@@ -1156,3 +1156,21 @@ requires-python = ">=3.13"
 [options]
 exclude-newer = "2023-02-01T02:00:00Z"
 """)
+
+
+def test_tree(
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    invoke(["init", "test.ipynb"])
+    invoke(["add", "test.ipynb", "rich"])
+    result = invoke(["tree", "test.ipynb"])
+    assert result.exit_code == 0
+    assert result.stdout == snapshot("""\
+rich v13.3.1
+├── markdown-it-py v2.1.0
+│   └── mdurl v0.1.2
+└── pygments v2.14.0
+""")
