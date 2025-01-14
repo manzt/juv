@@ -56,6 +56,7 @@ def run(  # noqa: PLR0913
     """Launch a notebook or script."""
     runtime = Runtime.try_from_specifier(jupyter)
     meta, nb = to_notebook(path)
+    lockfile_contents = nb.get("metadata", {}).get("uv.lock")
 
     if path.suffix == ".py":
         path = path.with_suffix(".ipynb")
@@ -86,8 +87,8 @@ def run(  # noqa: PLR0913
     elif mode == "managed":
         from ._run_managed import run as run_managed
 
-        run_managed(script, args, str(path))
+        run_managed(script, args, str(path), lockfile_contents)
     else:
         from ._run_replace import run as run_replace
 
-        run_replace(script, args)
+        run_replace(script, args, lockfile_contents)

@@ -63,6 +63,32 @@ class Runtime:
         return with_
 
 
+UPDATE_LOCKFILE = """
+import json
+import os
+
+def update_uv_lock(notebook_path: str):
+    lockfile_path = os.environ.get("JUV_LOCKFILE_PATH")
+
+    if not lockfile_path:
+        return
+
+    with open(lockfile_path, "r", encoding="utf-8") as lockfile:
+        lock_contents = lockfile.read()
+
+    with open(notebook_path, "r", encoding="utf-8") as f:
+        nb = json.load(f)
+
+    # Replace contents and rewrite notebook file before opening
+    nb.setdefault("metadata", {{}})["uv.lock"] = lock_contents
+    with open(notebook_path, "w", encoding="utf-8") as f:
+        json.dump(nb, f, ensure_ascii=False, indent=1)
+        f.write("\\n")
+
+update_uv_lock(r"{notebook}")
+"""
+
+
 SETUP_JUPYTER_DATA_DIR = """
 import tempfile
 import signal
@@ -130,6 +156,7 @@ import sys
 
 from jupyterlab.labapp import main
 
+{UPDATE_LOCKFILE}
 {SETUP_JUPYTER_DATA_DIR}
 
 if {is_managed}:
@@ -149,6 +176,7 @@ import sys
 
 from notebook.app import main
 
+{UPDATE_LOCKFILE}
 {SETUP_JUPYTER_DATA_DIR}
 
 if {is_managed}:
@@ -168,6 +196,7 @@ import sys
 
 from notebook.notebookapp import main
 
+{UPDATE_LOCKFILE}
 {SETUP_JUPYTER_DATA_DIR}
 
 if {is_managed}:
@@ -187,6 +216,7 @@ import sys
 
 from nbclassic.notebookapp import main
 
+{UPDATE_LOCKFILE}
 {SETUP_JUPYTER_DATA_DIR}
 
 if {is_managed}:
@@ -195,7 +225,6 @@ if {is_managed}:
     version = importlib.metadata.version("nbclassic")
     print("JUV_MANGED=" + "nbclassic" + "," + version, file=sys.stderr)
 
-os.environ["JUPYTER_DATA_DIR"] = str(merged_dir)
 sys.argv = ["jupyter-nbclassic", r"{notebook}", *{args}]
 main()
 """
@@ -217,6 +246,7 @@ def prepare_run_script_and_uv_run_args(  # noqa: PLR0913
         notebook=target,
         args=jupyter_args,
         SETUP_JUPYTER_DATA_DIR=SETUP_JUPYTER_DATA_DIR,
+        UPDATE_LOCKFILE=UPDATE_LOCKFILE.format(notebook=target),
         is_managed=mode == "managed",
     )
     args = [
@@ -225,6 +255,6 @@ def prepare_run_script_and_uv_run_args(  # noqa: PLR0913
         *([f"--python={python}"] if python else []),
         f"--with={runtime.as_with_arg()}",
         *(["--with=" + ",".join(with_args)] if with_args else []),
-        "-",
+        "--script",
     ]
     return script, args

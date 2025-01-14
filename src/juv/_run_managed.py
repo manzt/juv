@@ -11,7 +11,9 @@ import os
 import re
 import signal
 import subprocess
+import tempfile
 import time
+from pathlib import Path
 from queue import Queue
 from threading import Thread
 
@@ -103,41 +105,51 @@ def process_output(
 
 
 def run(
-    script: str,
-    args: list[str],
-    filename: str,
+    script: str, args: list[str], filename: str, lockfile_contents: str | None
 ) -> None:
     console = Console()
     output_queue = Queue()
-    process = subprocess.Popen(  # noqa: S603
-        [os.fsdecode(find_uv_bin()), *args],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        preexec_fn=os.setsid,  # noqa: PLW1509
-        text=True,
-        env=os.environ,
-    )
-    assert process.stdin is not None  # noqa: S101
-    process.stdin.write(script)
-    process.stdin.flush()
-    process.stdin.close()
 
-    output_thread = Thread(
-        target=process_output,
-        args=(console, filename, output_queue),
-    )
-    output_thread.start()
+    with tempfile.NamedTemporaryFile(
+        mode="w+",
+        delete=True,
+        suffix=".py",
+        encoding="utf-8",
+    ) as f:
+        lockfile = Path(f"{f.name}.lock")
+        f.write(script)
+        f.flush()
+        env = os.environ.copy()
 
-    try:
-        while True and process.stdout:
-            line = process.stdout.readline()
-            if not line and process.poll() is not None:
-                break
-            output_queue.put(line)
-    except KeyboardInterrupt:
-        with console.status("Shutting down..."):
-            os.killpg(os.getpgid(process.pid), signal.SIGTERM)
-    finally:
-        output_queue.put(None)
-        output_thread.join()
+        if lockfile_contents:
+            lockfile.write_text(lockfile_contents)
+            env["JUV_LOCKFILE_PATH"] = str(lockfile)
+
+        process = subprocess.Popen(  # noqa: S603
+            [os.fsdecode(find_uv_bin()), *args, f.name],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            preexec_fn=os.setsid,  # noqa: PLW1509
+            text=True,
+            env=env,
+        )
+
+        output_thread = Thread(
+            target=process_output,
+            args=(console, filename, output_queue),
+        )
+        output_thread.start()
+
+        try:
+            while True and process.stdout:
+                line = process.stdout.readline()
+                if not line and process.poll() is not None:
+                    break
+                output_queue.put(line)
+        except KeyboardInterrupt:
+            with console.status("Shutting down..."):
+                os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+        finally:
+            lockfile.unlink(missing_ok=True)
+            output_queue.put(None)
+            output_thread.join()
