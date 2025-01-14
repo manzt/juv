@@ -23,7 +23,10 @@ def run(script: str, args: list[str], lockfile_contents: str | None) -> None:
         f.write(script)
         f.flush()
 
+        env = os.environ.copy()
+
         if lockfile_contents:
+            # Write the contents so UV picks it up
             lockfile.write_text(lockfile_contents)
 
         if not IS_WINDOWS:
@@ -32,6 +35,7 @@ def run(script: str, args: list[str], lockfile_contents: str | None) -> None:
                 stdout=sys.stdout,
                 stderr=sys.stderr,
                 preexec_fn=os.setsid,  # noqa: PLW1509
+                env=env,
             )
         else:
             process = subprocess.Popen(  # noqa: S603
@@ -39,6 +43,7 @@ def run(script: str, args: list[str], lockfile_contents: str | None) -> None:
                 stdout=sys.stdout,
                 stderr=sys.stderr,
                 creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+                env=env,
             )
 
         try:
