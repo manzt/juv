@@ -87,7 +87,7 @@ def run(  # noqa: PLR0913
     elif mode == "managed":
         from ._run_managed import run as run_managed
 
-        run_managed(script, args, str(path))
+        run_managed(script, args, str(path), lockfile_contents)
     else:
         from ._run_replace import run as run_replace
 
