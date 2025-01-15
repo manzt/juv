@@ -4,7 +4,7 @@ from pathlib import Path
 
 import jupytext
 
-from ._nbutils import code_cell
+from ._nbutils import code_cell, write_ipynb
 from ._pep723 import includes_inline_metadata
 from ._utils import find
 from ._uv import uv
@@ -50,4 +50,5 @@ def tree(
 
         if lockfile.exists():
             notebook.metadata["uv.lock"] = lockfile.read_text(encoding="utf-8")
+            write_ipynb(notebook, path)
             lockfile.unlink(missing_ok=True)
