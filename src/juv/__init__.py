@@ -477,6 +477,18 @@ def lock(
         sys.exit(1)
 
 
+@cli.command()
+@click.argument("file", type=click.Path(exists=True), required=True)
+def tree(
+    *,
+    file: str,
+) -> None:
+    """Display the notebook's dependency tree."""
+    from ._tree import tree
+
+    tree(path=Path(file))
+
+
 def main() -> None:
     """Run the CLI."""
     upgrade_legacy_jupyter_command(sys.argv)

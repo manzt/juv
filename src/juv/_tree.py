@@ -1,3 +1,4 @@
+import sys
 import tempfile
 from pathlib import Path
 
@@ -9,11 +10,13 @@ from ._utils import find
 from ._uv import uv
 
 
-def lock(
+def tree(
     path: Path,
 ) -> None:
     notebook = jupytext.read(path, fmt="ipynb")
+    lockfile_contents = notebook.get("metadata", {}).get("uv.lock")
 
+    # need a reference so we can modify the cell["source"]
     cell = find(
         lambda cell: (
             cell["cell_type"] == "code"
@@ -32,16 +35,20 @@ def lock(
         suffix=".py",
         dir=path.parent,
         encoding="utf-8",
-    ) as temp_file:
-        temp_file.write(cell["source"].strip())
-        temp_file.flush()
+    ) as f:
+        lockfile = Path(f"{f.name}.lock")
 
-        uv(["lock", "--script", temp_file.name], check=True)
+        f.write(cell["source"].strip())
+        f.flush()
 
-        lock_file = Path(f"{temp_file.name}.lock")
+        if lockfile_contents:
+            lockfile.write_text(lockfile_contents)
 
-        notebook["metadata"]["uv.lock"] = lock_file.read_text(encoding="utf-8")
+        result = uv(["tree", "--script", f.name], check=True)
 
-        lock_file.unlink(missing_ok=True)
+        sys.stdout.write(result.stdout.decode("utf-8"))
 
-    write_ipynb(notebook, path.with_suffix(".ipynb"))
+        if lockfile.exists():
+            notebook.metadata["uv.lock"] = lockfile.read_text(encoding="utf-8")
+            write_ipynb(notebook, path)
+            lockfile.unlink(missing_ok=True)

@@ -58,7 +58,7 @@ def remove(
         cell["source"] = f.read().strip()
 
         if lockfile.exists():
-            notebook["metadata"]["uv.lock"] = lockfile.read_text()
+            notebook["metadata"]["uv.lock"] = lockfile.read_text(encoding="utf-8")
             lockfile.unlink(missing_ok=True)
 
     write_ipynb(notebook, path.with_suffix(".ipynb"))
