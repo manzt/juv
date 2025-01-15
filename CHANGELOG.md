@@ -1,13 +1,51 @@
-## 0.2.28
+## 0.3.0
 
-### Other changes
+### Release Notes
 
-- Add `remove` command ([#59](https://github.com/manzt/juv/pull/59))
+This release adds support for generating lockfiles from Jupyter notebooks using
+inline metadata, as defined in PEP 723.
+
+By default, notebooks remain unlocked. To lock a notebook, run `juv lock /path/to/notebook.ipynb`,
+which generates and embeds a lockfile in the notebook's metadata under the
+`"uv.lock"` key. The lockfile is respected and updated automatically when using
+`juv run`, `uv add`, or `uv remove`.
+
+Additional commands:
+
+- **`juv export`**: Outputs an alternative lockfile format (requirements.txt
+style) to stdout.
+- **`uv tree`**: Displays the dependency tree for a script.
+
+Both commands work with notebooks, whether locked or unlocked.
+
+This release is considered **breaking** due to the lockfile support, which
+requires a minimum `uv` 0.5.18 and modifies execution.
+
+### Breaking changes
+
+- Upgrade minimum uv to v0.5 ([#63](https://github.com/manzt/juv/pull/63))
+- Respect lockfile in `run` ([#67](https://github.com/manzt/juv/pull/67))
+
+### Enhancements
+
+- Add `--clear` flag to `lock` to clear lockfile metadata ([#69](https://github.com/manzt/juv/pull/69))
+- Add `export` command ([#70](https://github.com/manzt/juv/pull/70))
+- Add `lock` command ([#64](https://github.com/manzt/juv/pull/64))
+- Add `tree` command ([#68](https://github.com/manzt/juv/pull/68))
+- Sync lockfile during `add` command ([#65](https://github.com/manzt/juv/pull/65))
+- Sync lockfile during `remove` command ([#66](https://github.com/manzt/juv/pull/66))
+
+### Bug fixes
+
+- Require at least one package for `add` and `remove` ([#73](https://github.com/manzt/juv/pull/73))
+- Support relative paths in the `run` command ([#72](https://github.com/manzt/juv/pull/72))
 
 ### Contributors
 - [@manzt](https://github.com/manzt)
 
-### Notes
+## 0.2.28
+
+### Release Notes
 
 This release adds `juv remove` to remove packages from a notebook or script.
 Dependencies are removed from the PEP-723 inline metadata. The command follows
@@ -19,6 +57,13 @@ uvx juv init
 uvx juv add Untitled.ipynb 'numpy>=1.0.0' 'polars' # adds 'numpy>=1.0.0' 'polars'
 uvx juv remove Untitled.ipynb numpy # removes 'numpy>=1.0.0'
 ```
+
+### Other changes
+
+- Add `remove` command ([#59](https://github.com/manzt/juv/pull/59))
+
+### Contributors
+- [@manzt](https://github.com/manzt)
 
 ## 0.2.27
 
@@ -51,12 +96,7 @@ uvx juv remove Untitled.ipynb numpy # removes 'numpy>=1.0.0'
 
 ## 0.2.24
 
-### Enhancements
-
-- Add support for regular Python script in `juv add` ([#51](https://github.com/manzt/juv/pull/51))
-- Add `--pin` flag for `juv add` ([#51](https://github.com/manzt/juv/pull/51))
-
-### Notes
+### Release Notes
 
 This release adds `--pin` flag to `juv add` to have package specifiers resolved to an exact version at the time of the command, and subsequently pinned in the notebook/script.
 
@@ -79,13 +119,14 @@ uv init --script foo.py
 uvx juv add foo.py numpy polars --pin
 ```
 
-## 0.2.23
-
 ### Enhancements
 
-- Add `juv stamp` for time-based dependency resolution pinning ([#50](https://github.com/manzt/juv/pull/50))
+- Add support for regular Python script in `juv add` ([#51](https://github.com/manzt/juv/pull/51))
+- Add `--pin` flag for `juv add` ([#51](https://github.com/manzt/juv/pull/51))
 
-### Notes
+## 0.2.23
+
+### Release Notes
 
 `uv` supports time-based dependency resolution via [`exclude-newer`](https://simonwillison.net/2024/May/10/uv-pip-install-exclude-newer/),
 allowing packages to be resolved as they existed at a specific moment in time.
@@ -120,6 +161,10 @@ uv init --script foo.py
 uv add --script foo.py polars anywidget
 uvx juv stamp foo.py
 ```
+
+### Enhancements
+
+- Add `juv stamp` for time-based dependency resolution pinning ([#50](https://github.com/manzt/juv/pull/50))
 
 ## 0.2.22
 
@@ -160,6 +205,8 @@ uvx juv stamp foo.py
 - Change directories prior to running uv ([#41](https://github.com/manzt/juv/pull/41))
 
 ## 0.2.17
+
+### Release Notes
 
 This release adds some nice cli flags to `juv add` for configuring various kinds of dependency sources:
 
