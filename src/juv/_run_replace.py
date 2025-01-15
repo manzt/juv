@@ -12,11 +12,12 @@ from uv import find_uv_bin
 IS_WINDOWS = sys.platform.startswith("win")
 
 
-def run(script: str, args: list[str], lockfile_contents: str | None) -> None:
+def run(script: str, args: list[str], lockfile_contents: str | None, dir: Path) -> None:  # noqa: A002
     with tempfile.NamedTemporaryFile(
         mode="w+",
         delete=True,
         suffix=".py",
+        dir=dir,
         encoding="utf-8",
     ) as f:
         lockfile = Path(f"{f.name}.lock")

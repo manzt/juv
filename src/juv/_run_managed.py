@@ -105,7 +105,11 @@ def process_output(
 
 
 def run(
-    script: str, args: list[str], filename: str, lockfile_contents: str | None
+    script: str,
+    args: list[str],
+    filename: str,
+    lockfile_contents: str | None,
+    dir: Path,  # noqa: A002
 ) -> None:
     console = Console()
     output_queue = Queue()
@@ -114,6 +118,7 @@ def run(
         mode="w+",
         delete=True,
         suffix=".py",
+        dir=dir,
         encoding="utf-8",
     ) as f:
         lockfile = Path(f"{f.name}.lock")
