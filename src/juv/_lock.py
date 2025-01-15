@@ -9,10 +9,13 @@ from ._utils import find
 from ._uv import uv
 
 
-def lock(
-    path: Path,
-) -> None:
+def lock(*, path: Path, clear: bool) -> None:
     notebook = jupytext.read(path, fmt="ipynb")
+
+    if clear:
+        notebook.get("metadata", {}).pop("uv.lock", None)
+        write_ipynb(notebook, path)
+        return
 
     cell = find(
         lambda cell: (
