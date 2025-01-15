@@ -461,17 +461,22 @@ def remove(
 
 @cli.command()
 @click.argument("file", type=click.Path(exists=True), required=True)
+@click.option("--clear", is_flag=True, help="Clear the lockfile contents.")
 def lock(
     *,
     file: str,
+    clear: bool,
 ) -> None:
     """Update the notebooks's lockfile."""
     from ._lock import lock
 
     try:
-        lock(path=Path(file))
+        lock(path=Path(file), clear=clear)
         path = os.path.relpath(Path(file).resolve(), Path.cwd())
-        rich.print(f"Locked `[cyan]{path}[/cyan]`")
+        if clear:
+            rich.print(f"Cleared lockfile `[cyan]{path}[/cyan]`")
+        else:
+            rich.print(f"Locked `[cyan]{path}[/cyan]`")
     except RuntimeError as e:
         rich.print(e, file=sys.stderr)
         sys.exit(1)

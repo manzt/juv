@@ -1221,3 +1221,38 @@ requires-python = ">=3.8"
 [options]
 exclude-newer = "2023-02-01T02:00:00Z"
 """)
+
+
+def test_clear_lock(
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    invoke(["init", "test.ipynb"])
+    invoke(["add", "test.ipynb", "attrs"])
+    invoke(["lock", "test.ipynb"])
+    assert jupytext.read(tmp_path / "test.ipynb").metadata.get("uv.lock") == snapshot("""\
+version = 1
+requires-python = ">=3.13"
+
+[options]
+exclude-newer = "2023-02-01T02:00:00Z"
+
+[manifest]
+requirements = [{ name = "attrs" }]
+
+[[package]]
+name = "attrs"
+version = "22.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/21/31/3f468da74c7de4fcf9b25591e682856389b3400b4b62f201e65f15ea3e07/attrs-22.2.0.tar.gz", hash = "sha256:c9227bfc2f01993c03f68db37d1d15c9690188323c067c641f1a35ca58185f99", size = 215900 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fb/6e/6f83bf616d2becdf333a1640f1d463fef3150e2e926b7010cb0f81c95e88/attrs-22.2.0-py3-none-any.whl", hash = "sha256:29e95c7f6778868dbd49170f98f8818f78f3dc5e0e37c0b1f474e3561b240836", size = 60018 },
+]
+""")
+
+    result = invoke(["lock", "test.ipynb", "--clear"])
+    assert result.exit_code == 0
+    assert result.stdout == snapshot("Cleared lockfile `test.ipynb`\n")
+    assert jupytext.read(tmp_path / "test.ipynb").metadata.get("uv.lock") is None
