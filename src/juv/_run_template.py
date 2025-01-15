@@ -88,6 +88,20 @@ def update_uv_lock(notebook_path: str):
 update_uv_lock(r"{notebook}")
 """
 
+DELETE_RUN_SCRIPT_AND_LOCKFILE = """
+import os
+from pathlib import Path
+
+def delete_run_script_and_lockfile():
+    Path(str(__file__)).unlink(missing_ok=True)
+    lockfile_path = os.environ.get("JUV_LOCKFILE_PATH")
+    if not lockfile_path:
+        return
+    Path(lockfile_path).unlink(missing_ok=True)
+
+delete_run_script_and_lockfile()
+"""
+
 
 SETUP_JUPYTER_DATA_DIR = """
 import tempfile
@@ -157,6 +171,7 @@ import sys
 from jupyterlab.labapp import main
 
 {UPDATE_LOCKFILE}
+{DELETE_RUN_SCRIPT_AND_LOCKFILE}
 {SETUP_JUPYTER_DATA_DIR}
 
 if {is_managed}:
@@ -177,6 +192,7 @@ import sys
 from notebook.app import main
 
 {UPDATE_LOCKFILE}
+{DELETE_RUN_SCRIPT_AND_LOCKFILE}
 {SETUP_JUPYTER_DATA_DIR}
 
 if {is_managed}:
@@ -197,6 +213,7 @@ import sys
 from notebook.notebookapp import main
 
 {UPDATE_LOCKFILE}
+{DELETE_RUN_SCRIPT_AND_LOCKFILE}
 {SETUP_JUPYTER_DATA_DIR}
 
 if {is_managed}:
@@ -217,6 +234,7 @@ import sys
 from nbclassic.notebookapp import main
 
 {UPDATE_LOCKFILE}
+{DELETE_RUN_SCRIPT_AND_LOCKFILE}
 {SETUP_JUPYTER_DATA_DIR}
 
 if {is_managed}:
@@ -247,6 +265,7 @@ def prepare_run_script_and_uv_run_args(  # noqa: PLR0913
         args=jupyter_args,
         SETUP_JUPYTER_DATA_DIR=SETUP_JUPYTER_DATA_DIR,
         UPDATE_LOCKFILE=UPDATE_LOCKFILE.format(notebook=target),
+        DELETE_RUN_SCRIPT_AND_LOCKFILE=DELETE_RUN_SCRIPT_AND_LOCKFILE,
         is_managed=mode == "managed",
     )
     args = [
