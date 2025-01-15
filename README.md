@@ -37,18 +37,18 @@ uvx juv
 dependencies management to Jupyter notebooks.
 
 ```sh
-# create a notebook
+# Create a notebook
 juv init notebook.ipynb
 juv init --python=3.9 notebook.ipynb # specify a minimum Python version
 
-# add dependencies to the notebook
+# Add dependencies to the notebook
 juv add notebook.ipynb pandas numpy
 juv add notebook.ipynb --requirements=requirements.txt
 
 # Pin a timestamp to constrain dependency resolution to a specific date
 juv stamp notebook.ipynb # now
 
-# launch the notebook
+# Launch the notebook
 juv run notebook.ipynb
 juv run --with=polars notebook.ipynb # additional dependencies for this session (not saved)
 juv run --jupyter=notebook@6.4.0 notebook.ipynb # pick a specific Jupyter frontend
@@ -57,6 +57,18 @@ juv run --jupyter=nbclassic notebook.ipynb -- --no-browser # pass additional arg
 # JUV_JUPYTER env var to set preferred Jupyter frontend (default: lab)
 export JUV_JUPYTER=nbclassic
 juv run notebook.ipynb
+
+# Lock the dependencies of a notebook
+# The lockfile is respected (and updated) when using `juv run`/`juv add`/`juv remove`
+juv lock Untitled.ipynb
+# Print the lockfile
+cat Untitled.ipynb | jq -r '.metadata["uv.lock"]'
+
+# See dependency tree of notebook
+juv tree Untitled.ipynb
+
+# Export a lockfile in a pip-compatable format
+juv export Untitled.ipynb
 ```
 
 If a script is provided to `run`, it will be converted to a notebook before
