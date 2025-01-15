@@ -99,7 +99,7 @@ def init(
         "[env: UV_EXCLUDE_NEWER=]"
     ),
 )
-@click.argument("packages", nargs=-1)
+@click.argument("packages", nargs=-1, required=True)
 def add(  # noqa: PLR0913
     *,
     file: str,
@@ -438,7 +438,7 @@ def stamp(  # noqa: PLR0913
 
 @cli.command()
 @click.argument("file", type=click.Path(exists=True), required=True)
-@click.argument("packages", nargs=-1)
+@click.argument("packages", nargs=-1, required=True)
 def remove(
     *,
     file: str,
