@@ -494,6 +494,18 @@ def tree(
     tree(path=Path(file))
 
 
+@cli.command()
+@click.argument("file", type=click.Path(exists=True), required=True)
+def export(
+    *,
+    file: str,
+) -> None:
+    """Export the notebook's lockfile to an alternate format."""
+    from ._export import export
+
+    export(path=Path(file))
+
+
 def main() -> None:
     """Run the CLI."""
     upgrade_legacy_jupyter_command(sys.argv)
