@@ -1038,6 +1038,7 @@ def test_lock(
     nb = jupytext.read(tmp_path / "test.ipynb")
     assert nb.metadata["uv.lock"] == snapshot("""\
 version = 1
+revision = 1
 requires-python = ">=3.13"
 
 [options]
@@ -1079,6 +1080,7 @@ def test_add_updates_lock(
 """)
     assert jupytext.read(tmp_path / "test.ipynb").metadata["uv.lock"] == snapshot("""\
 version = 1
+revision = 1
 requires-python = ">=3.13"
 
 [options]
@@ -1089,6 +1091,7 @@ exclude-newer = "2023-02-01T02:00:00Z"
     assert result.exit_code == 0
     assert jupytext.read(tmp_path / "test.ipynb").metadata["uv.lock"] == snapshot("""\
 version = 1
+revision = 1
 requires-python = ">=3.13"
 
 [options]
@@ -1125,6 +1128,7 @@ def test_remove_updates_lock(
     assert result.stdout == snapshot("Locked `test.ipynb`\n")
     assert jupytext.read(tmp_path / "test.ipynb").metadata["uv.lock"] == snapshot("""\
 version = 1
+revision = 1
 requires-python = ">=3.13"
 
 [options]
@@ -1151,6 +1155,7 @@ wheels = [
     assert result.exit_code == 0
     assert jupytext.read(tmp_path / "test.ipynb").metadata["uv.lock"] == snapshot("""\
 version = 1
+revision = 1
 requires-python = ">=3.13"
 
 [options]
@@ -1187,6 +1192,7 @@ def test_clear_lock(
     invoke(["lock", "test.ipynb"])
     assert jupytext.read(tmp_path / "test.ipynb").metadata.get("uv.lock") == snapshot("""\
 version = 1
+revision = 1
 requires-python = ">=3.13"
 
 [options]
@@ -1252,6 +1258,7 @@ def test_commands_update_lock(
     notebook = jupytext.read(tmp_path / "test.ipynb")
     assert notebook.metadata["uv.lock"] == snapshot("""\
 version = 1
+revision = 1
 requires-python = ">=3.13"
 
 [options]
@@ -1279,6 +1286,7 @@ wheels = [
     invoke([command, "test.ipynb"])
     assert jupytext.read(tmp_path / "test.ipynb").metadata["uv.lock"] == snapshot("""\
 version = 1
+revision = 1
 requires-python = ">=3.8"
 
 [options]
