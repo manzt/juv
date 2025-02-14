@@ -99,6 +99,18 @@ def init(
         "[env: UV_EXCLUDE_NEWER=]"
     ),
 )
+@click.option(
+    "--index",
+    type=click.STRING,
+    help="The URLs to use when resolving dependencies, in addition to the default "
+    "index [env: UV_INDEX=]",
+)
+@click.option(
+    "--default-index",
+    type=click.STRING,
+    help="The URL of the default package index (by default: <https://pypi.org/simple>) "
+    "[env: UV_DEFAULT_INDEX=]",
+)
 @click.argument("packages", nargs=-1, required=True)
 def add(  # noqa: PLR0913
     *,
@@ -112,6 +124,8 @@ def add(  # noqa: PLR0913
     editable: bool,
     pin: bool,
     exclude_newer: str | None,
+    index: str | None,
+    default_index: str | None,
 ) -> None:
     """Add dependencies to a notebook or script."""
     from ._add import add
@@ -128,6 +142,8 @@ def add(  # noqa: PLR0913
             rev=rev,
             pin=pin,
             exclude_newer=exclude_newer,
+            index=index,
+            default_index=default_index,
         )
         path = os.path.relpath(Path(file).resolve(), Path.cwd())
         rich.print(f"Updated `[cyan]{path}[/cyan]`")
