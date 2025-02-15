@@ -64,6 +64,8 @@ def uv_script(  # noqa: PLR0913
     rev: str | None,
     tag: str | None,
     exclude_newer: str | None,
+    index: str | None,
+    default_index: str | None,
 ) -> None:
     uv(
         [
@@ -75,6 +77,8 @@ def uv_script(  # noqa: PLR0913
             *([f"--branch={branch}"] if branch else []),
             *([f"--rev={rev}"] if rev else []),
             *([f"--exclude-newer={exclude_newer}"] if exclude_newer else []),
+            *([f"--index={index}"] if index else []),
+            *([f"--default-index={default_index}"] if default_index else []),
             "--script",
             str(script),
             *packages,
@@ -94,6 +98,8 @@ def add_notebook(  # noqa: PLR0913
     rev: str | None,
     tag: str | None,
     exclude_newer: str | None,
+    index: str | None,
+    default_index: str | None,
 ) -> None:
     notebook = jupytext.read(path, fmt="ipynb")
     lockfile_contents = notebook.get("metadata", {}).get("uv.lock")
@@ -136,6 +142,8 @@ def add_notebook(  # noqa: PLR0913
             rev=rev,
             tag=tag,
             exclude_newer=exclude_newer,
+            index=index,
+            default_index=default_index,
         )
         f.seek(0)
         cell["source"] = f.read().strip()
@@ -159,6 +167,8 @@ def add(  # noqa: PLR0913
     pin: bool = False,
     editable: bool = False,
     exclude_newer: str | None = None,
+    index: str | None = None,
+    default_index: str | None = None,
 ) -> None:
     if pin:
         packages = uv_pip_compile(
@@ -176,4 +186,6 @@ def add(  # noqa: PLR0913
         rev=rev,
         tag=tag,
         exclude_newer=exclude_newer,
+        index=index,
+        default_index=default_index,
     )

@@ -292,6 +292,105 @@ def filter_tempfile_ipynb(output: str) -> str:
     return re.sub(pattern, replacement, output)
 
 
+def test_add_index(tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    nb = tmp_path / "foo.ipynb"
+    write_ipynb(new_notebook(), nb)
+    result = invoke(
+        [
+            "add",
+            str(nb),
+            "polars",
+            "--index",
+            "https://pip.repos.neuron.amazonaws.com",
+        ]
+    )
+    assert result.exit_code == 0
+    assert filter_tempfile_ipynb(result.stdout) == snapshot("Updated `foo.ipynb`\n")
+    assert filter_ids(nb.read_text(encoding="utf-8")) == snapshot("""\
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "<ID>",
+   "metadata": {
+    "jupyter": {
+     "source_hidden": true
+    }
+   },
+   "outputs": [],
+   "source": [
+    "# /// script\\n",
+    "# requires-python = \\">=3.13\\"\\n",
+    "# dependencies = [\\n",
+    "#     \\"polars\\",\\n",
+    "# ]\\n",
+    "#\\n",
+    "# [[tool.uv.index]]\\n",
+    "# url = \\"https://pip.repos.neuron.amazonaws.com/\\"\\n",
+    "# ///"
+   ]
+  }
+ ],
+ "metadata": {},
+ "nbformat": 4,
+ "nbformat_minor": 5
+}\
+""")
+
+
+def test_add_default_index(
+    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    nb = tmp_path / "foo.ipynb"
+    write_ipynb(new_notebook(), nb)
+    result = invoke(
+        [
+            "add",
+            str(nb),
+            "polars",
+            "--default-index",
+            "https://pip.repos.neuron.amazonaws.com",
+        ]
+    )
+    assert result.exit_code == 0
+    assert filter_tempfile_ipynb(result.stdout) == snapshot("Updated `foo.ipynb`\n")
+    assert filter_ids(nb.read_text(encoding="utf-8")) == snapshot("""\
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "<ID>",
+   "metadata": {
+    "jupyter": {
+     "source_hidden": true
+    }
+   },
+   "outputs": [],
+   "source": [
+    "# /// script\\n",
+    "# requires-python = \\">=3.13\\"\\n",
+    "# dependencies = [\\n",
+    "#     \\"polars\\",\\n",
+    "# ]\\n",
+    "#\\n",
+    "# [[tool.uv.index]]\\n",
+    "# url = \\"https://pip.repos.neuron.amazonaws.com/\\"\\n",
+    "# default = true\\n",
+    "# ///"
+   ]
+  }
+ ],
+ "metadata": {},
+ "nbformat": 4,
+ "nbformat_minor": 5
+}\
+""")
+
+
 def test_add_creates_inline_meta(
     tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
