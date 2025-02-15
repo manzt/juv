@@ -1,3 +1,12 @@
+## 0.3.1
+
+### Enhancements
+
+- Add `--index` and `--default-index` flags to `juv add` ([#76](https://github.com/manzt/juv/pull/76))
+
+### Contributors
+- [@manzt](https://github.com/manzt)
+
 ## 0.3.0
 
 ### Release Notes
