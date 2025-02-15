@@ -14,9 +14,9 @@ jobs:
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v3
+      - uses: astral-sh/setup-uv@v5
         with:
-          version: "0.5.x"
+          version: "0.6.x"
       - run: |
           uv run ruff format --check
           uv run ruff check
@@ -40,9 +40,9 @@ jobs:
           - "3.13"
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v3
+      - uses: astral-sh/setup-uv@v5
         with:
-          version: "0.5.x"
+          version: "0.6.x"
       - run: uv run pytest
         env:
           UV_PYTHON: ${{ matrix.python-version }}

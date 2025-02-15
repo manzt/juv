@@ -33,8 +33,8 @@ uv run pytest      # run tests
 To release a new version of **juv**, run the following:
 
 ```sh
-uv tool run --from 'rooster-blue==0.0.8' --isolated rooster release # [--bump major|minor|patch]
-uv sync
+uvx --from 'rooster-blue>=0.0.9' rooster release # [--bump major|minor|patch]
+uv sync # sync version in lockfile
 ```
 
 This will bump the version of **juv** and update the CHANGELOG.md. Changelog

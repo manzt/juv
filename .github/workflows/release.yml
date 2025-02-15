@@ -22,9 +22,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v3
+      - uses: astral-sh/setup-uv@v5
         with:
-          version: "0.5.x"
+          version: "0.6.x"
 
       - name: Build distribution
         run: uv build
@@ -43,5 +43,5 @@ jobs:
           gh release create v$VERSION
           git fetch --tags
           awk '/^## / {if (p++) exit} p && NR > 2' CHANGELOG.md > release-notes.md
-          uvx --from 'rooster-blue>=0.0.8' --isolated rooster contributors --version=v$VERSION --quiet >> release-notes.md
+          uvx --from 'rooster-blue>=0.0.9' rooster contributors --version=v$VERSION --quiet >> release-notes.md
           gh release edit v$VERSION --notes-file release-notes.md
