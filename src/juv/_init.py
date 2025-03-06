@@ -62,7 +62,7 @@ def get_first_non_conflicting_untitled_ipynb(directory: Path) -> Path:
 def init(
     path: Path | None,
     python: str | None,
-    packages: typing.Sequence[str] = [],
+    packages: typing.Sequence[str] | None = None,
 ) -> Path:
     """Initialize a new notebook.
 
@@ -81,6 +81,7 @@ def init(
         The path to the new notebook.
 
     """
+    packages = packages or []
     if not path:
         path = get_first_non_conflicting_untitled_ipynb(Path.cwd())
 

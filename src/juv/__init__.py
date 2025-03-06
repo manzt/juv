@@ -522,6 +522,50 @@ def export(
     export(path=Path(file))
 
 
+@cli.command()
+@click.option(
+    "--from",
+    "from_",
+    type=click.Path(exists=True),
+    required=True,
+    help="The notebook from which to derive the virtual environment.",
+)
+@click.option(
+    "--python",
+    "-p",
+    type=click.STRING,
+    required=False,
+    help="The Python interpreter to use to determine the minimum supported Python version. [env: UV_PYTHON=]",  # noqa: E501
+)
+@click.option(
+    "--seed", is_flag=True, help="Install `ipykernel` into the virtual environment."
+)
+@click.argument(
+    "path",
+    required=False,
+)
+def venv(
+    *,
+    from_: str,
+    python: str | None,
+    seed: bool,
+    path: str | None,
+) -> None:
+    """Create a virtual enviroment from a notebook."""
+    from ._venv import venv
+
+    try:
+        venv(
+            source=Path(from_),
+            python=python,
+            path=Path(path) if path else None,
+            seed=seed,
+        )
+    except RuntimeError as e:
+        rich.print(e, file=sys.stderr)
+        sys.exit(1)
+
+
 def main() -> None:
     """Run the CLI."""
     upgrade_legacy_jupyter_command(sys.argv)
