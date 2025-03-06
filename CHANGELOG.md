@@ -1,3 +1,29 @@
+## 0.3.3
+
+### Enhancements
+
+- Extend `juv venv` regular python scripts as well ([#82](https://github.com/manzt/juv/pull/82))
+
+Allows for passing a script with inline script metadata to `juv venv`.
+
+```sh
+uv init --script foo.py
+uv add --script foo.py attrs
+juv venv --from=foo.py
+# Using CPython 3.13.0
+# Creating virtual environment at: .venv
+# Activate with: source .venv/bin/activate
+# Using Python 3.13.0 environment at: .venv
+# Resolved 1 package in 0.62ms
+# Installed 1 package in 1ms
+# + attrs==25.1.0
+```
+
+Useful for quickly creating a `.venv` for a standalone script, which can be used by other tools like text editors or IDEs.
+
+### Contributors
+- [@manzt](https://github.com/manzt)
+
 ## 0.3.2
 
 ### Enhancements
@@ -5,7 +31,7 @@
 - Add `juv venv` to support exporting explicit notebook enviroments ([#80](https://github.com/manzt/juv/pull/80))
 
 Some editors and enviroments are missing the benefits from `juv` standalone
-notebooks, simply because we don't make it easy to _use_ the specified virtual
+notebooks, simply because we don't make it easy to *use* the specified virtual
 enviroment outside of spawning a Jupyter runtime with `juv run`.
 
 We normally try to hide virtual environments, but they remain crucial for
