@@ -528,7 +528,7 @@ def export(
     "from_",
     type=click.Path(exists=True),
     required=True,
-    help="The notebook from which to derive the virtual environment.",
+    help="The notebook or script from which to derive the virtual environment.",
 )
 @click.option(
     "--python",
