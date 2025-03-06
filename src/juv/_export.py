@@ -12,7 +12,18 @@ from ._uv import uv
 
 def export(
     path: Path,
+    *,
+    frozen: bool = False,
 ) -> None:
+    contents = export_to_string(path, frozen=frozen)
+    sys.stdout.write(contents)
+
+
+def export_to_string(
+    path: Path,
+    *,
+    frozen: bool = False,
+) -> str:
     notebook = jupytext.read(path, fmt="ipynb")
     lockfile_contents = notebook.get("metadata", {}).get("uv.lock")
 
@@ -45,10 +56,11 @@ def export(
             lockfile.write_text(lockfile_contents)
 
         result = uv(["export", "--script", f.name], check=True)
+        contents = result.stdout.decode("utf-8")
 
-        sys.stdout.write(result.stdout.decode("utf-8"))
-
-        if lockfile.exists():
+        if not frozen and lockfile.exists():
             notebook.metadata["uv.lock"] = lockfile.read_text(encoding="utf-8")
             write_ipynb(notebook, path)
             lockfile.unlink(missing_ok=True)
+
+    return contents
