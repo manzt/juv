@@ -1,3 +1,38 @@
+## 0.3.2
+
+### Enhancements
+
+- Add `juv venv` to support exporting explicit notebook enviroments ([#80](https://github.com/manzt/juv/pull/80))
+
+Some editors and enviroments are missing the benefits from `juv` standalone
+notebooks, simply because we don't make it easy to _use_ the specified virtual
+enviroment outside of spawning a Jupyter runtime with `juv run`.
+
+We normally try to hide virtual environments, but they remain crucial for
+ecosystem like language servers, autocomplete, and intellisense, and exposing
+some way to quickly make a notebok enviroment is the easiest way to bring `juv`
+standalone notebooks to unknown tools.
+
+To improve compatibility with more editors and tools, this release adds `juv venv`:
+
+```sh
+juv venv --from=Untitled.ipynb
+```
+
+This command creates a virtual environment with the dependencies and locking
+behavior expected from `juv`, and adds `ipykernel` for running the notebook.
+The resulting environment can be selected in an editor like VS Code.
+
+To create a venv with only the locked dependencies (i.e., with `ipykernel`),
+add the `--no-kernel` flag:
+
+```sh
+juv venv --from=Untitled.ipynb --no-kernel
+```
+
+### Contributors
+- [@manzt](https://github.com/manzt)
+
 ## 0.3.1
 
 ### Enhancements
