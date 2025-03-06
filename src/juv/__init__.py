@@ -538,7 +538,7 @@ def export(
     help="The Python interpreter to use to determine the minimum supported Python version. [env: UV_PYTHON=]",  # noqa: E501
 )
 @click.option(
-    "--seed", is_flag=True, help="Install `ipykernel` into the virtual environment."
+    "--no-kernel", is_flag=True, help="Exclude `ipykernel` from the enviroment."
 )
 @click.argument(
     "path",
@@ -548,7 +548,7 @@ def venv(
     *,
     from_: str,
     python: str | None,
-    seed: bool,
+    no_kernel: bool,
     path: str | None,
 ) -> None:
     """Create a virtual enviroment from a notebook."""
@@ -559,7 +559,7 @@ def venv(
             source=Path(from_),
             python=python,
             path=Path(path) if path else None,
-            seed=seed,
+            no_kernel=no_kernel,
         )
     except RuntimeError as e:
         rich.print(e, file=sys.stderr)

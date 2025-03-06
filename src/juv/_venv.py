@@ -16,7 +16,7 @@ def venv(
     source: pathlib.Path,
     python: str | None,
     path: pathlib.Path | None,
-    seed: bool,
+    no_kernel: bool,
 ) -> None:
     uv_piped(
         [
@@ -28,7 +28,7 @@ def venv(
     )
 
     locked_requirements = export_to_string(source)
-    if seed:
+    if not no_kernel:
         locked_requirements += "ipykernel\n"
 
     env = os.environ.copy()
