@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import typing
 
-from juv._uv import uv_piped
+from juv._uv import uv, uv_piped
 
 from ._export import export_to_string
 
@@ -27,9 +27,14 @@ def venv(
         check=True,
     )
 
-    locked_requirements = export_to_string(source)
-    if not no_kernel:
-        locked_requirements += "ipykernel\n"
+    if source.suffix == ".py":
+        # just defer to uv behavior
+        result = uv(["export", "--script", str(source)], check=True)
+        locked_requirements = result.stdout.decode("utf-8")
+    else:
+        locked_requirements = export_to_string(source)
+        if not no_kernel:
+            locked_requirements += "ipykernel\n"
 
     env = os.environ.copy()
     if path:
