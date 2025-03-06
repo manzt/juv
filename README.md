@@ -79,6 +79,32 @@ uvx juv run script.py
 # Launching Jupyter session...
 ```
 
+### Exporting virtual environments for editors and IDEs
+
+**juv** manages notebooks with dependencies and runs them in a Jupyter UI using
+_ephemeral_ virtual environments. To make these environments available to other
+editors and IDEs, use `juv venv` to export a virtual environment with a kernel.
+
+```
+juv venv --from=Untitled.ipynb
+# Using CPython 3.13.0
+# Creating virtual environment at: .venv
+# Activate with: source .venv/bin/activate
+```
+
+Most editors (e.g., VS Code) allow selecting this environment for running
+notebooks and enabling features like autocomplete and type checking. To omit
+adding `ipykernel` to the exported enviroment, you can add `--no-kernel` flag:
+
+```sh
+juv venv --from=Untitled.ipynb --no-kernel
+```
+
+> [!NOTE]
+> We **do not** recommend modifying this environment directly (e.g., with `pip`
+> or `uv`, see below). Instead, recreate it by running `juv venv` again
+> whenever you update dependencies to keep it up to date.
+
 ## Motivation
 
 _Rethinking the "getting started" guide for notebooks_
