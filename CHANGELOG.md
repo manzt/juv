@@ -28,29 +28,20 @@ Useful for quickly creating a `.venv` for a standalone script, which can be used
 
 ### Enhancements
 
-- Add `juv venv` to support exporting explicit notebook enviroments ([#80](https://github.com/manzt/juv/pull/80))
+- Add `juv venv` to support exporting explicit notebook environments ([#80](https://github.com/manzt/juv/pull/80))
 
-Some editors and enviroments are missing the benefits from `juv` standalone
-notebooks, simply because we don't make it easy to *use* the specified virtual
-enviroment outside of spawning a Jupyter runtime with `juv run`.
-
-We normally try to hide virtual environments, but they remain crucial for
-ecosystem like language servers, autocomplete, and intellisense, and exposing
-some way to quickly make a notebok enviroment is the easiest way to bring `juv`
-standalone notebooks to unknown tools.
-
-To improve compatibility with more editors and tools, this release adds `juv venv`:
+Some editors and environments are missing the benefits of standalone notebooks because **juv** manages virtual environments transparently within `juv run`. To improve compatibility with other tools (e.g., editors & IDEs), this release adds `juv venv` to _export_ a virtual environment with all a notebook's specified dependencies (and `ipykernel`):
 
 ```sh
 juv venv --from=Untitled.ipynb
+# Using CPython 3.13.0
+# Creating virtual environment at: .venv
+# Activate with: source .venv/bin/activate
 ```
 
-This command creates a virtual environment with the dependencies and locking
-behavior expected from `juv`, and adds `ipykernel` for running the notebook.
-The resulting environment can be selected in an editor like VS Code.
+The resulting environment (i.e., `.venv`) can be selected in an editor like VS Code to run the notebook.
 
-To create a venv with only the locked dependencies (i.e., with `ipykernel`),
-add the `--no-kernel` flag:
+To create a virtual environment with _only_ the locked dependencies (i.e., without `ipykernel`), use the `--no-kernel` flag:
 
 ```sh
 juv venv --from=Untitled.ipynb --no-kernel
