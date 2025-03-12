@@ -65,7 +65,7 @@ def init(
 @click.option(
     "--requirements",
     "-r",
-    type=click.Path(exists=True),
+    type=click.STRING,
     required=False,
     help="Add all packages listed in the given `requirements.txt` file.",
 )
@@ -111,7 +111,7 @@ def init(
     help="The URL of the default package index (by default: <https://pypi.org/simple>) "
     "[env: UV_DEFAULT_INDEX=]",
 )
-@click.argument("packages", nargs=-1, required=True)
+@click.argument("packages", nargs=-1, required=False)
 def add(  # noqa: PLR0913
     *,
     file: str,
@@ -129,6 +129,10 @@ def add(  # noqa: PLR0913
 ) -> None:
     """Add dependencies to a notebook or script."""
     from ._add import add
+
+    if requirements is None and len(packages) == 0:
+        msg = "Must provide one of --requirements or PACKAGES."
+        raise click.UsageError(msg)
 
     try:
         add(
