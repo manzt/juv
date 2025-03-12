@@ -1,3 +1,12 @@
+## 0.3.4
+
+### Bug fixes
+
+- Support stdin `--requirements` with `juv add` ([#83](https://github.com/manzt/juv/pull/83))
+
+### Contributors
+- [@manzt](https://github.com/manzt)
+
 ## 0.3.3
 
 ### Enhancements
@@ -30,7 +39,7 @@ Useful for quickly creating a `.venv` for a standalone script, which can be used
 
 - Add `juv venv` to support exporting explicit notebook environments ([#80](https://github.com/manzt/juv/pull/80))
 
-Some editors and environments are missing the benefits of standalone notebooks because **juv** manages virtual environments transparently within `juv run`. To improve compatibility with other tools (e.g., editors & IDEs), this release adds `juv venv` to _export_ a virtual environment with all a notebook's specified dependencies (and `ipykernel`):
+Some editors and environments are missing the benefits of standalone notebooks because **juv** manages virtual environments transparently within `juv run`. To improve compatibility with other tools (e.g., editors & IDEs), this release adds `juv venv` to *export* a virtual environment with all a notebook's specified dependencies (and `ipykernel`):
 
 ```sh
 juv venv --from=Untitled.ipynb
@@ -41,7 +50,7 @@ juv venv --from=Untitled.ipynb
 
 The resulting environment (i.e., `.venv`) can be selected in an editor like VS Code to run the notebook.
 
-To create a virtual environment with _only_ the locked dependencies (i.e., without `ipykernel`), use the `--no-kernel` flag:
+To create a virtual environment with *only* the locked dependencies (i.e., without `ipykernel`), use the `--no-kernel` flag:
 
 ```sh
 juv venv --from=Untitled.ipynb --no-kernel
