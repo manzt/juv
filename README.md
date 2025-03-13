@@ -1,14 +1,14 @@
-# juv
+<h1>
+<p align="center">
+  <img src="./assets/logo.svg" alt="juv logo" width="80">
+  <br>juv
+</h1>
+  <p align="center">
+    <span>A toolkit for reproducible Jupyter notebooks, powered by <a href="https://docs.astral.sh/uv/">uv</a>.</span>
+  </p>
+</p>
 
-[![version](https://img.shields.io/pypi/v/juv.svg?labelColor=0273B7&color=0C3141)](https://pypi.org/pypi/juv)
-[![license](https://img.shields.io/pypi/l/juv.svg)](https://github.com/manzt/juv/blob/main/LICENSE)
-[![Actions status](https://github.com/manzt/juv/actions/workflows/ci.yml/badge.svg)](https://github.com/manzt/juv/actions)
-
-A toolkit for reproducible Jupyter notebooks, powered by [uv](https://docs.astral.sh/uv/).
-
-## Features
-
-- 🗂️ Create, manage, and run reproducible notebooks
+- 🗂️ Create, manage, and run Jupyter notebooks with their dependencies
 - 📌 Pin dependencies with [PEP 723 - inline script metadata](https://peps.python.org/pep-0723)
 - 🚀 Launch ephemeral sessions for multiple front ends (e.g., JupyterLab, Notebook, NbClassic)
 - ⚡ Powered by [uv](https://docs.astral.sh/uv/) for fast dependency management
