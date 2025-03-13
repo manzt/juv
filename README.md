@@ -1,14 +1,14 @@
-# juv
+<h1>
+<p align="center">
+  <img src="./assets/logo.svg" alt="juv logo" width="80">
+  <br>juv
+</h1>
+  <p align="center">
+    <span>A toolkit for reproducible Jupyter notebooks, powered by <a href="https://docs.astral.sh/uv/">uv</a>.</span>
+  </p>
+</p>
 
-[![version](https://img.shields.io/pypi/v/juv.svg?labelColor=0273B7&color=0C3141)](https://pypi.org/pypi/juv)
-[![license](https://img.shields.io/pypi/l/juv.svg)](https://github.com/manzt/juv/blob/main/LICENSE)
-[![Actions status](https://github.com/manzt/juv/actions/workflows/ci.yml/badge.svg)](https://github.com/manzt/juv/actions)
-
-A toolkit for reproducible Jupyter notebooks, powered by [uv](https://docs.astral.sh/uv/).
-
-## Features
-
-- 🗂️ Create, manage, and run reproducible notebooks
+- 🗂️ Create, manage, and run Jupyter notebooks with their dependencies
 - 📌 Pin dependencies with [PEP 723 - inline script metadata](https://peps.python.org/pep-0723)
 - 🚀 Launch ephemeral sessions for multiple front ends (e.g., JupyterLab, Notebook, NbClassic)
 - ⚡ Powered by [uv](https://docs.astral.sh/uv/) for fast dependency management
@@ -79,11 +79,11 @@ uvx juv run script.py
 # Launching Jupyter session...
 ```
 
-### Exporting virtual environments for editors and IDEs
+### Exporting virtual environments
 
 **juv** manages notebooks with dependencies and runs them in a Jupyter UI using
 _ephemeral_ virtual environments. To make these environments available to other
-editors and IDEs, use `juv venv` to export a virtual environment with a kernel.
+tools, use `juv venv` to export a virtual environment with a kernel.
 
 ```
 juv venv --from=Untitled.ipynb
@@ -104,6 +104,13 @@ juv venv --from=Untitled.ipynb --no-kernel
 > We **do not** recommend modifying this environment directly (e.g., with `pip`
 > or `uv`, see below). Instead, recreate it by running `juv venv` again
 > whenever you update dependencies to keep it up to date.
+
+### Other Jupyter front ends (e.g., VS Code)
+
+**juv** has a [VS Code
+extension](https://marketplace.visualstudio.com/items?itemName=manzt.juv) that
+provides a more integrated experience. Notebooks created with the `juv` CLI can
+be run with the extension and vice versa.
 
 ## Motivation
 
