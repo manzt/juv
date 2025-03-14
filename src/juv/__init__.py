@@ -562,7 +562,7 @@ def venv(
         venv(
             source=Path(from_),
             python=python,
-            path=Path(path) if path else None,
+            path=Path.cwd() / ".venv" if path is None else Path(path),
             no_kernel=no_kernel,
         )
     except RuntimeError as e:
