@@ -85,7 +85,7 @@ uvx juv run script.py
 _ephemeral_ virtual environments. To make these environments available to other
 tools, use `juv venv` to export a virtual environment with a kernel.
 
-```
+```sh
 juv venv --from=Untitled.ipynb
 # Using CPython 3.13.0
 # Creating virtual environment at: .venv
