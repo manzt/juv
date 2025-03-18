@@ -570,6 +570,66 @@ def venv(
         sys.exit(1)
 
 
+@cli.command()
+@click.option(
+    "--target",
+    type=click.Path(exists=False),
+    required=False,
+    help="Path to virtual environment to sync. Falls back to `.venv` in current directory.",  # noqa: E501
+)
+@click.option(
+    "--active",
+    is_flag=True,
+    help="Sync dependencies to the active virtual environment. Overrides --target.",
+)
+@click.option(
+    "--python",
+    "-p",
+    type=click.STRING,
+    required=False,
+    help="The Python interpreter to use to determine the minimum supported Python version. [env: UV_PYTHON=]",  # noqa: E501
+)
+@click.option(
+    "--no-kernel", is_flag=True, help="Exclude `ipykernel` from the environment."
+)
+@click.argument(
+    "path",
+    required=True,
+)
+def sync(
+    *,
+    target: str | None,
+    active: bool,
+    python: str | None,
+    no_kernel: bool,
+    path: str,
+) -> None:
+    """Sync a virtual enviroment for a notebook."""
+    from ._venv import venv
+
+    if target is not None and active:
+        msg = "Provide either --target or --active, but not both."
+        raise click.UsageError(msg)
+
+    if active:
+        venv_target = Path(os.environ.get("VIRTUAL_ENV", Path.cwd() / ".venv"))
+    elif target:
+        venv_target = Path(target)
+    else:
+        venv_target = Path.cwd() / ".venv"
+
+    try:
+        venv(
+            source=Path(path),
+            python=python,
+            path=venv_target,
+            no_kernel=no_kernel,
+        )
+    except RuntimeError as e:
+        rich.print(e, file=sys.stderr)
+        sys.exit(1)
+
+
 def main() -> None:
     """Run the CLI."""
     upgrade_legacy_jupyter_command(sys.argv)
