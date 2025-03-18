@@ -1,3 +1,25 @@
+## 0.4.0
+
+### Release Notes
+
+This release is considered **breaking** since it sets a minimum bound on `uv`
+dependency to v0.6.7 or later. This could potentially affect environments where
+both `juv` and `uv` are Python dependencies, and there is an upper bound on the
+`uv` version (unlikely).
+
+There are no intentional breaking changes to `juv` commands.
+
+### Enhancements
+
+- Add explicit `juv sync` command ([#84](https://github.com/manzt/juv/pull/84))
+
+### Breaking changes
+
+- Replace `juv venv` internals with `uv sync --script` ([#84](https://github.com/manzt/juv/pull/84))
+
+### Contributors
+- [@manzt](https://github.com/manzt)
+
 ## 0.3.4
 
 ### Bug fixes
