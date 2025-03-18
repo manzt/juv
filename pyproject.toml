@@ -16,7 +16,7 @@ dependencies = [
     "rich>=13.9.2",
     "tomlkit>=0.13.2",
     "whenever>=0.6.12; python_version >= '3.9'",
-    "uv>=0.5.18",
+    "uv>=0.6.7",
 ]
 classifiers = [
     "Environment :: Console",
