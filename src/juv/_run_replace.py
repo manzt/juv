@@ -18,7 +18,7 @@ def run(script: str, args: list[str], lockfile_contents: str | None, dir: Path) 
         delete=False,
         suffix=".py",
         dir=dir,
-        prefix="juv_",
+        prefix="juv.tmp.",
         encoding="utf-8",
     ) as f:
         script_path = Path(f.name)
