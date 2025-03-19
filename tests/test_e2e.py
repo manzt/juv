@@ -11,7 +11,9 @@ import pytest
 
 pytest.importorskip("playwright")
 
-from playwright.sync_api import Page, expect
+
+if typing.TYPE_CHECKING:
+    from playwright.sync_api import Page
 
 SELF_DIR = pathlib.Path(__file__).parent
 ROOT = SELF_DIR / ".."

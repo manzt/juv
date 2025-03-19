@@ -61,6 +61,8 @@ def run(script: str, args: list[str], lockfile_contents: str | None, dir: Path) 
                 os.kill(process.pid, signal.SIGTERM)
         finally:
             lockfile.unlink(missing_ok=True)
-            process.wait()
-            # unlink after process has exited
-            script_path.unlink(missing_ok=True)
+
+        # ensure the process is fully cleaned up before deleting script
+        process.wait()
+        # unlink after process has exited
+        script_path.unlink(missing_ok=True)
