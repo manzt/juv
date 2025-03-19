@@ -67,4 +67,4 @@ jobs:
           uv run --all-groups playwright install chromium
 
       - run: |
-          uv run --all-groups pytest
+          uv run --all-groups pytest -rA --capture=no -vv
