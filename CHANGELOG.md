@@ -1,3 +1,12 @@
+## 0.4.1
+
+### Bug fixes
+
+- Manually clean up temp file in `juv run` on Windows ([#87](https://github.com/manzt/juv/pull/87))
+
+### Contributors
+- [@manzt](https://github.com/manzt)
+
 ## 0.4.0
 
 ### Release Notes
