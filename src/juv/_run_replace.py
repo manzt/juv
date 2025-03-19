@@ -60,6 +60,7 @@ def run(script: str, args: list[str], lockfile_contents: str | None, dir: Path) 
             else:
                 os.kill(process.pid, signal.SIGTERM)
         finally:
-            script_path.unlink(missing_ok=True)
             lockfile.unlink(missing_ok=True)
             process.wait()
+            # unlink after process has exited
+            script_path.unlink(missing_ok=True)

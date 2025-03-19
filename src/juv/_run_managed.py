@@ -157,7 +157,7 @@ def run(
             with console.status("Shutting down..."):
                 os.killpg(os.getpgid(process.pid), signal.SIGTERM)
         finally:
-            script_path.unlink(missing_ok=True)
             lockfile.unlink(missing_ok=True)
             output_queue.put(None)
             output_thread.join()
+            script_path.unlink(missing_ok=True)
