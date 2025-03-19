@@ -45,6 +45,7 @@ def test_juv_run(page: Page, notebook: pathlib.Path) -> None:
             "--port=8888",
             "--NotebookApp.token=''",
             "--NotebookApp.password=''",
+            "--no-browser",
         ],
         wait_and_check=False,
     )
