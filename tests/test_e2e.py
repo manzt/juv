@@ -50,7 +50,7 @@ def test_juv_run(page: Page, notebook: pathlib.Path) -> None:
         ],
         wait_and_check=False,
     )
-    url = f"http://127.0.0.1:8888/lab/tree/{notebook.name}"
+    url = "http://127.0.0.1:8888/lab"
     wait_for_webserver(url)
     page.goto(url)
     # Menu
