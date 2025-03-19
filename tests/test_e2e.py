@@ -13,7 +13,6 @@ pytest.importorskip("playwright")
 
 from playwright.sync_api import Page, expect
 
-
 SELF_DIR = pathlib.Path(__file__).parent
 ROOT = SELF_DIR / ".."
 
