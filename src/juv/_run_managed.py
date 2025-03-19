@@ -116,11 +116,13 @@ def run(
 
     with tempfile.NamedTemporaryFile(
         mode="w+",
-        delete=True,
+        delete=False,
         suffix=".py",
         dir=dir,
+        prefix="juv_",
         encoding="utf-8",
     ) as f:
+        script_path = Path(f.name)
         lockfile = Path(f"{f.name}.lock")
         f.write(script)
         f.flush()
@@ -155,6 +157,7 @@ def run(
             with console.status("Shutting down..."):
                 os.killpg(os.getpgid(process.pid), signal.SIGTERM)
         finally:
+            script_path.unlink(missing_ok=True)
             lockfile.unlink(missing_ok=True)
             output_queue.put(None)
             output_thread.join()
