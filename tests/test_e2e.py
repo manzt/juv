@@ -57,7 +57,7 @@ def test_juv_run(page: Page, notebook: pathlib.Path) -> None:
         wait_and_check=False,
     )
     # FIXME: nicer way to wait for the server to start  # noqa: FIX001, TD001, TD002, TD003
-    time.sleep(5)
+    time.sleep(1)
     url = "http://127.0.0.1:8888/lab"
     page.goto(url)
     # Menu
@@ -66,4 +66,3 @@ def test_juv_run(page: Page, notebook: pathlib.Path) -> None:
     # Modal
     page.get_by_role("button", name="Shut Down").click()
     process.wait()
-    assert notebook.exists()

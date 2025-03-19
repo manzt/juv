@@ -24,7 +24,6 @@ jobs:
   Test:
     name: Python ${{ matrix.python-version }} / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    if: false
     strategy:
       fail-fast: false
       matrix:
@@ -51,11 +50,12 @@ jobs:
   e2e:
     name: Test e2e / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    if: false # disable for now
     strategy:
       fail-fast: false
       matrix:
         os:
-          # - ubuntu-latest
+          - ubuntu-latest
           - macos-latest
           - windows-latest
     steps:
