@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pathlib
 import subprocess
+import sys
 import time
 import typing
 
@@ -24,13 +25,12 @@ def notebook() -> typing.Generator[pathlib.Path]:
     path.unlink(missing_ok=True)
 
 
-def juv(args: list[str], *, wait_and_check: bool = True) -> subprocess.Popen[str]:
+def juv(args: list[str], *, wait_and_check: bool = True) -> subprocess.Popen[bytes]:
     process = subprocess.Popen(  # noqa: S603
         ["uv", "run", "juv", *args],  # noqa: S607
         cwd=ROOT,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
+        stdout=sys.stdout,
+        stderr=sys.stderr,
     )
     if wait_and_check:
         exit_code = process.wait(2)
@@ -58,9 +58,6 @@ def test_juv_run(page: Page, notebook: pathlib.Path) -> None:
     )
     # FIXME: nicer way to wait for the server to start  # noqa: FIX001, TD001, TD002, TD003
     time.sleep(2)
-    if process.poll() is not None:
-        msg = "OH NO" if process.stdout is None else process.stdout.readlines()
-        raise ValueError(msg)
     url = "http://127.0.0.1:8888/lab"
     page.goto(url)
     # Menu
