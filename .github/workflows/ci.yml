@@ -63,6 +63,9 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           version: "0.6.x"
+
       - run: |
           uv run --all-groups playwright install chromium
+
+      - run: |
           uv run --all-groups pytest

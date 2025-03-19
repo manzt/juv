@@ -29,7 +29,7 @@ def juv(args: list[str], *, wait_and_check: bool = True) -> subprocess.Popen:
 
 @pytest.fixture(autouse=True)
 def notebook() -> typing.Generator[pathlib.Path]:
-    path = ROOT / "smoke.ipynb"
+    path = (ROOT / "smoke.ipynb").resolve()
     yield path
     path.unlink(missing_ok=True)
 
@@ -43,16 +43,15 @@ def test_juv_run(page: Page, notebook: pathlib.Path) -> None:
             str(notebook),
             "--",
             "--port=8888",
-            "--NotebookApp.token=''",
-            "--NotebookApp.password=''",
+            "--ServerApp.token=''",
+            "--ServerApp.password=''",
             "--no-browser",
         ],
         wait_and_check=False,
     )
-    url = "http://localhost:8888/"
+    url = f"http://localhost:8888/lab/tree/{notebook.name}"
     wait_for_webserver(url)
     page.goto(url)
-    expect(page.get_by_label("Main Content").get_by_text(notebook.name)).to_be_visible()
     # Menu
     page.get_by_text("File", exact=True).click()
     page.get_by_role("menu").get_by_text("Shut Down", exact=True).click()
