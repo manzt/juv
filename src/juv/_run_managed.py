@@ -7,6 +7,7 @@ Supports Jupyter Lab, Notebook, and NBClassic variants.
 
 from __future__ import annotations
 
+import atexit
 import os
 import re
 import signal
@@ -164,4 +165,4 @@ def run(
         # ensure the process is fully cleaned up before deleting script
         process.wait()
         # unlink after process has exited
-        script_path.unlink(missing_ok=True)
+        atexit.register(lambda: script_path.unlink(missing_ok=True))
