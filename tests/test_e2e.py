@@ -42,6 +42,7 @@ def test_juv_run(page: Page, notebook: pathlib.Path) -> None:
             "run",
             str(notebook),
             "--",
+            "--host=127.0.0.1",
             "--port=8888",
             "--ServerApp.token=''",
             "--ServerApp.password=''",
@@ -49,7 +50,7 @@ def test_juv_run(page: Page, notebook: pathlib.Path) -> None:
         ],
         wait_and_check=False,
     )
-    url = f"http://localhost:8888/lab/tree/{notebook.name}"
+    url = f"http://127.0.0.1:8888/lab/tree/{notebook.name}"
     wait_for_webserver(url)
     page.goto(url)
     # Menu
