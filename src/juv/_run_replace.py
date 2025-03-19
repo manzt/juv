@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import atexit
 import os
 import signal
 import subprocess
@@ -15,11 +16,13 @@ IS_WINDOWS = sys.platform.startswith("win")
 def run(script: str, args: list[str], lockfile_contents: str | None, dir: Path) -> None:  # noqa: A002
     with tempfile.NamedTemporaryFile(
         mode="w+",
-        delete=True,
+        delete=False,
         suffix=".py",
         dir=dir,
+        prefix="juv.tmp.",
         encoding="utf-8",
     ) as f:
+        script_path = Path(f.name)
         lockfile = Path(f"{f.name}.lock")
         f.write(script)
         f.flush()
@@ -59,4 +62,7 @@ def run(script: str, args: list[str], lockfile_contents: str | None, dir: Path) 
                 os.kill(process.pid, signal.SIGTERM)
         finally:
             lockfile.unlink(missing_ok=True)
-            process.wait()
+
+        # ensure the process is fully cleaned up before deleting script
+        process.wait()
+        atexit.register(lambda: script_path.unlink(missing_ok=True))

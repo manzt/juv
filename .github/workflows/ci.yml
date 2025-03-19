@@ -46,3 +46,26 @@ jobs:
       - run: uv run pytest
         env:
           UV_PYTHON: ${{ matrix.python-version }}
+
+  e2e:
+    name: Test e2e / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    if: false # disable for now
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.6.x"
+
+      - run: |
+          uv run --all-groups playwright install chromium
+
+      - run: |
+          uv run --all-groups pytest -rA --capture=no -vv
