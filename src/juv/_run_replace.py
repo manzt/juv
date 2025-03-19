@@ -1,11 +1,11 @@
 from __future__ import annotations
 
+import atexit
 import os
 import signal
 import subprocess
 import sys
 import tempfile
-import time
 from pathlib import Path
 
 from uv import find_uv_bin
@@ -65,6 +65,4 @@ def run(script: str, args: list[str], lockfile_contents: str | None, dir: Path) 
 
         # ensure the process is fully cleaned up before deleting script
         process.wait()
-        time.sleep(0.1)
-        # unlink after process has exited
-        script_path.unlink(missing_ok=True)
+        atexit.register(lambda: script_path.unlink(missing_ok=True))
