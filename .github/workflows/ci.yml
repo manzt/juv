@@ -63,5 +63,5 @@ jobs:
         with:
           version: "0.6.x"
       - run: |
-          uv run --all-groups playwright install
+          uv run --all-groups playwright install chromium
           uv run --all-groups pytest
