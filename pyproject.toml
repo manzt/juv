@@ -37,12 +37,8 @@ classifiers = [
 juv = "juv:main"
 
 [dependency-groups]
-dev = [
-    "inline-snapshot>=0.13.3",
-    "pytest>=8.3.3",
-    "pytest-playwright>=0.5.2",
-    "ruff>=0.7.0",
-]
+dev = ["inline-snapshot>=0.13.3", "pytest>=8.3.3", "ruff>=0.7.0"]
+e2e = ["pytest-playwright>=0.5.2"]
 
 [tool.ruff]
 line-length = 88
