@@ -39,7 +39,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION=$(uv run juv version --output-format=json | jq -r '.version')
+          VERSION=$(uv run --quiet juv version --output-format=json | jq -r '.version')
           gh release create v$VERSION
           git fetch --tags
           awk '/^## / {if (p++) exit} p && NR > 2' CHANGELOG.md > release-notes.md
