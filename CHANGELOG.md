@@ -1,3 +1,16 @@
+## 0.4.2
+
+### Enhancements
+
+- Correctly resolve Jupyter data/config dirs on Windows ([#89](https://github.com/manzt/juv/pull/89))
+
+### Other changes
+
+- Move `juv run` Jupyter setup logic to static module ([#88](https://github.com/manzt/juv/pull/88))
+
+### Contributors
+- [@manzt](https://github.com/manzt)
+
 ## 0.4.1
 
 ### Bug fixes
