@@ -47,7 +47,8 @@ target-version = "py38"
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
-    "FIX002", # Fixable issue
+    "TD",     # TODOS
+    "FIX",    # Fixable issue
     "S404",   # Allow imports of subprocess
     "D203",   # Conflict with formatter
     "COM812",
