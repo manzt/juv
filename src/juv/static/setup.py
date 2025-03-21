@@ -5,19 +5,32 @@ import sys
 from pathlib import Path
 
 
-def setup_jupyter_data_dirs() -> "tuple[list[Path], list[Path]]":  # noqa: D103
+def find_jupyter_paths() -> "tuple[list[Path], list[Path]]":
+    """Locate Jupyter directories within the current virtual environment.
+
+    Ref: https://docs.jupyter.org/en/stable/use/jupyter-directories.html
+    """
+    jupyter_paths = [Path(sys.prefix) / "share" / "jupyter"]
     config_paths: "list[Path]" = []  # noqa: UP037
-    root_data_dir = Path(sys.prefix) / "share" / "jupyter"
-    jupyter_paths = [root_data_dir]
     for path in map(Path, sys.path):
         if path.name != "site-packages":
             continue
-        venv_path = path.parent.parent.parent
-        config_paths.append(venv_path / "etc" / "jupyter")
-        data_dir = venv_path / "share" / "jupyter"
-        if not data_dir.exists() or str(data_dir) == str(root_data_dir):
-            continue
-        jupyter_paths.append(data_dir)
+
+        if os.name == "nt":  # noqa: SIM108
+            # Windows: <venv>/Lib/site-packages → go up 2 levels
+            venv = path.parent.parent
+        else:
+            # Unix: <venv>/lib/pythonX.Y/site-packages → go up 3 levels
+            venv = path.parent.parent.parent
+
+        jupyter_path = (venv / "share" / "jupyter").resolve()
+        if jupyter_path.exists() and jupyter_path not in jupyter_paths:
+            jupyter_paths.append(jupyter_path)
+
+        config_path = (venv / "etc" / "jupyter").resolve()
+        if config_path.exists() and config_path not in config_paths:
+            config_paths.append(config_path)
+
     return jupyter_paths, config_paths
 
 
@@ -59,7 +72,7 @@ def setup(notebook: str, jupyter: str, run_mode: str) -> None:  # noqa: D103
         print(f"JUV_MANGED={jupyter},{version}", file=sys.stderr)  # noqa: T201
 
     # wire up juptyer dirs for this enviroment
-    jupyter_paths, jupyter_config_paths = setup_jupyter_data_dirs()
+    jupyter_paths, jupyter_config_paths = find_jupyter_paths()
     os.environ["JUPYTER_PATH"] = os.pathsep.join(map(str, jupyter_paths))
     os.environ["JUPYTER_CONFIG_PATH"] = os.pathsep.join(map(str, jupyter_config_paths))
 
