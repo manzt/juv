@@ -23,6 +23,8 @@ def run(script: str, args: list[str], lockfile_contents: str | None, dir: Path) 
         encoding="utf-8",
     ) as f:
         script_path = Path(f.name)
+        atexit.register(lambda: script_path.unlink(missing_ok=True))
+
         lockfile = Path(f"{f.name}.lock")
         f.write(script)
         f.flush()
@@ -36,12 +38,15 @@ def run(script: str, args: list[str], lockfile_contents: str | None, dir: Path) 
             # We rewrite the lockfile entry (if necessary) within that process.
             env["JUV_LOCKFILE_PATH"] = str(lockfile)
 
-        if not IS_WINDOWS:
+        if IS_WINDOWS:
             process = subprocess.Popen(  # noqa: S603
                 [os.fsdecode(find_uv_bin()), *args, f.name],
                 stdout=sys.stdout,
                 stderr=sys.stderr,
-                preexec_fn=os.setsid,  # noqa: PLW1509
+                # Required so the subprocess is attached to our console;
+                # needed for CTRL_BREAK_EVENT to propagate to the process group
+                stdin=sys.stdin,
+                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
                 env=env,
             )
         else:
@@ -49,20 +54,18 @@ def run(script: str, args: list[str], lockfile_contents: str | None, dir: Path) 
                 [os.fsdecode(find_uv_bin()), *args, f.name],
                 stdout=sys.stdout,
                 stderr=sys.stderr,
-                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+                preexec_fn=os.setsid,  # noqa: PLW1509
                 env=env,
             )
 
         try:
             process.wait()
         except KeyboardInterrupt:
-            if not IS_WINDOWS:
-                os.killpg(os.getpgid(process.pid), signal.SIGTERM)
-            else:
+            if IS_WINDOWS:
                 os.kill(process.pid, signal.SIGTERM)
+            else:
+                # Send CTRL_BREAK_EVENT to the process group on Windows
+                process.send_signal(signal.CTRL_BREAK_EVENT)
         finally:
             lockfile.unlink(missing_ok=True)
-
-        # ensure the process is fully cleaned up before deleting script
-        process.wait()
-        atexit.register(lambda: script_path.unlink(missing_ok=True))
+            process.wait()
