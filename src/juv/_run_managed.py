@@ -124,6 +124,8 @@ def run(
         encoding="utf-8",
     ) as f:
         script_path = Path(f.name)
+        atexit.register(lambda: script_path.unlink(missing_ok=True))
+
         lockfile = Path(f"{f.name}.lock")
         f.write(script)
         f.flush()
@@ -161,8 +163,5 @@ def run(
             lockfile.unlink(missing_ok=True)
             output_queue.put(None)
             output_thread.join()
-
-        # ensure the process is fully cleaned up before deleting script
-        process.wait()
-        # unlink after process has exited
-        atexit.register(lambda: script_path.unlink(missing_ok=True))
+            # ensure the process is fully cleaned up before deleting script
+            process.wait()
