@@ -1137,7 +1137,7 @@ def test_lock(
     nb = jupytext.read(tmp_path / "test.ipynb")
     assert nb.metadata["uv.lock"] == snapshot("""\
 version = 1
-revision = 1
+revision = 2
 requires-python = ">=3.13"
 
 [options]
@@ -1150,13 +1150,13 @@ requirements = [{ name = "polars" }]
 name = "polars"
 version = "0.16.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a2/6d/e34f5677393a986b5a6b0b8284da31154bdf0ed55a1feffc73cc8c0dfa4e/polars-0.16.1.tar.gz", hash = "sha256:ebba7a51581084adb85dde10579b1dd8b648f7c5ca38a6839eee64d2e4827612", size = 1352066 }
+sdist = { url = "https://files.pythonhosted.org/packages/a2/6d/e34f5677393a986b5a6b0b8284da31154bdf0ed55a1feffc73cc8c0dfa4e/polars-0.16.1.tar.gz", hash = "sha256:ebba7a51581084adb85dde10579b1dd8b648f7c5ca38a6839eee64d2e4827612", size = 1352066, upload-time = "2023-01-29T17:36:21.445Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4d/aa/ecf2df7468dab00f8ad7b5fdcd834ca4bffee8e6095e011153c9d82d5df0/polars-0.16.1-cp37-abi3-macosx_10_7_x86_64.whl", hash = "sha256:180172c8db33f950b3f2ff7793d2cf3de9d3ad9b13c5f0181cda0ac3e7db5977", size = 14844819 },
-    { url = "https://files.pythonhosted.org/packages/f2/c5/f19a2b3f1d3251615ee136fb03f251eb00e4566688afa3b84f0d1cb4f4d3/polars-0.16.1-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:6c391546a158233172589ce810fcafd71a60d776add8421364bdd5ff05af2cd9", size = 12930182 },
-    { url = "https://files.pythonhosted.org/packages/32/bc/5f674384f48dfad969a634918487dc0b207ee08702d57433d24d0da6a3fb/polars-0.16.1-cp37-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e2096a1384a5fecf003bb3915264212c63d1c43e8790126ee8fcdd682f1782ac", size = 13382356 },
-    { url = "https://files.pythonhosted.org/packages/7e/82/ee89b63d8cd638d12b79515fb0c63d602ca8fc5eb8d1c4b6b9f690a1a02d/polars-0.16.1-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:934bca853a0086a30800c40ac615578894531b378afc1ba4c1a7e15855218c64", size = 15291186 },
-    { url = "https://files.pythonhosted.org/packages/d8/4d/3b371736693c952b616dac469d91fb9a42217758bf0f79ac4170c032069d/polars-0.16.1-cp37-abi3-win_amd64.whl", hash = "sha256:a670586eee6fad98a2daafbe3f6dfc845b35a22e44bc4daaca93d4f0f4d05229", size = 16264469 },
+    { url = "https://files.pythonhosted.org/packages/4d/aa/ecf2df7468dab00f8ad7b5fdcd834ca4bffee8e6095e011153c9d82d5df0/polars-0.16.1-cp37-abi3-macosx_10_7_x86_64.whl", hash = "sha256:180172c8db33f950b3f2ff7793d2cf3de9d3ad9b13c5f0181cda0ac3e7db5977", size = 14844819, upload-time = "2023-01-29T17:58:42.738Z" },
+    { url = "https://files.pythonhosted.org/packages/f2/c5/f19a2b3f1d3251615ee136fb03f251eb00e4566688afa3b84f0d1cb4f4d3/polars-0.16.1-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:6c391546a158233172589ce810fcafd71a60d776add8421364bdd5ff05af2cd9", size = 12930182, upload-time = "2023-01-29T17:51:15.361Z" },
+    { url = "https://files.pythonhosted.org/packages/32/bc/5f674384f48dfad969a634918487dc0b207ee08702d57433d24d0da6a3fb/polars-0.16.1-cp37-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e2096a1384a5fecf003bb3915264212c63d1c43e8790126ee8fcdd682f1782ac", size = 13382356, upload-time = "2023-01-29T17:38:12.192Z" },
+    { url = "https://files.pythonhosted.org/packages/7e/82/ee89b63d8cd638d12b79515fb0c63d602ca8fc5eb8d1c4b6b9f690a1a02d/polars-0.16.1-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:934bca853a0086a30800c40ac615578894531b378afc1ba4c1a7e15855218c64", size = 15291186, upload-time = "2023-01-29T17:36:17.331Z" },
+    { url = "https://files.pythonhosted.org/packages/d8/4d/3b371736693c952b616dac469d91fb9a42217758bf0f79ac4170c032069d/polars-0.16.1-cp37-abi3-win_amd64.whl", hash = "sha256:a670586eee6fad98a2daafbe3f6dfc845b35a22e44bc4daaca93d4f0f4d05229", size = 16264469, upload-time = "2023-01-29T17:44:56.226Z" },
 ]
 """)
 
@@ -1179,7 +1179,7 @@ def test_add_updates_lock(
 """)
     assert jupytext.read(tmp_path / "test.ipynb").metadata["uv.lock"] == snapshot("""\
 version = 1
-revision = 1
+revision = 2
 requires-python = ">=3.13"
 
 [options]
@@ -1190,7 +1190,7 @@ exclude-newer = "2023-02-01T02:00:00Z"
     assert result.exit_code == 0
     assert jupytext.read(tmp_path / "test.ipynb").metadata["uv.lock"] == snapshot("""\
 version = 1
-revision = 1
+revision = 2
 requires-python = ">=3.13"
 
 [options]
@@ -1203,13 +1203,13 @@ requirements = [{ name = "polars", specifier = ">=0.16.1" }]
 name = "polars"
 version = "0.16.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a2/6d/e34f5677393a986b5a6b0b8284da31154bdf0ed55a1feffc73cc8c0dfa4e/polars-0.16.1.tar.gz", hash = "sha256:ebba7a51581084adb85dde10579b1dd8b648f7c5ca38a6839eee64d2e4827612", size = 1352066 }
+sdist = { url = "https://files.pythonhosted.org/packages/a2/6d/e34f5677393a986b5a6b0b8284da31154bdf0ed55a1feffc73cc8c0dfa4e/polars-0.16.1.tar.gz", hash = "sha256:ebba7a51581084adb85dde10579b1dd8b648f7c5ca38a6839eee64d2e4827612", size = 1352066, upload-time = "2023-01-29T17:36:21.445Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4d/aa/ecf2df7468dab00f8ad7b5fdcd834ca4bffee8e6095e011153c9d82d5df0/polars-0.16.1-cp37-abi3-macosx_10_7_x86_64.whl", hash = "sha256:180172c8db33f950b3f2ff7793d2cf3de9d3ad9b13c5f0181cda0ac3e7db5977", size = 14844819 },
-    { url = "https://files.pythonhosted.org/packages/f2/c5/f19a2b3f1d3251615ee136fb03f251eb00e4566688afa3b84f0d1cb4f4d3/polars-0.16.1-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:6c391546a158233172589ce810fcafd71a60d776add8421364bdd5ff05af2cd9", size = 12930182 },
-    { url = "https://files.pythonhosted.org/packages/32/bc/5f674384f48dfad969a634918487dc0b207ee08702d57433d24d0da6a3fb/polars-0.16.1-cp37-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e2096a1384a5fecf003bb3915264212c63d1c43e8790126ee8fcdd682f1782ac", size = 13382356 },
-    { url = "https://files.pythonhosted.org/packages/7e/82/ee89b63d8cd638d12b79515fb0c63d602ca8fc5eb8d1c4b6b9f690a1a02d/polars-0.16.1-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:934bca853a0086a30800c40ac615578894531b378afc1ba4c1a7e15855218c64", size = 15291186 },
-    { url = "https://files.pythonhosted.org/packages/d8/4d/3b371736693c952b616dac469d91fb9a42217758bf0f79ac4170c032069d/polars-0.16.1-cp37-abi3-win_amd64.whl", hash = "sha256:a670586eee6fad98a2daafbe3f6dfc845b35a22e44bc4daaca93d4f0f4d05229", size = 16264469 },
+    { url = "https://files.pythonhosted.org/packages/4d/aa/ecf2df7468dab00f8ad7b5fdcd834ca4bffee8e6095e011153c9d82d5df0/polars-0.16.1-cp37-abi3-macosx_10_7_x86_64.whl", hash = "sha256:180172c8db33f950b3f2ff7793d2cf3de9d3ad9b13c5f0181cda0ac3e7db5977", size = 14844819, upload-time = "2023-01-29T17:58:42.738Z" },
+    { url = "https://files.pythonhosted.org/packages/f2/c5/f19a2b3f1d3251615ee136fb03f251eb00e4566688afa3b84f0d1cb4f4d3/polars-0.16.1-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:6c391546a158233172589ce810fcafd71a60d776add8421364bdd5ff05af2cd9", size = 12930182, upload-time = "2023-01-29T17:51:15.361Z" },
+    { url = "https://files.pythonhosted.org/packages/32/bc/5f674384f48dfad969a634918487dc0b207ee08702d57433d24d0da6a3fb/polars-0.16.1-cp37-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e2096a1384a5fecf003bb3915264212c63d1c43e8790126ee8fcdd682f1782ac", size = 13382356, upload-time = "2023-01-29T17:38:12.192Z" },
+    { url = "https://files.pythonhosted.org/packages/7e/82/ee89b63d8cd638d12b79515fb0c63d602ca8fc5eb8d1c4b6b9f690a1a02d/polars-0.16.1-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:934bca853a0086a30800c40ac615578894531b378afc1ba4c1a7e15855218c64", size = 15291186, upload-time = "2023-01-29T17:36:17.331Z" },
+    { url = "https://files.pythonhosted.org/packages/d8/4d/3b371736693c952b616dac469d91fb9a42217758bf0f79ac4170c032069d/polars-0.16.1-cp37-abi3-win_amd64.whl", hash = "sha256:a670586eee6fad98a2daafbe3f6dfc845b35a22e44bc4daaca93d4f0f4d05229", size = 16264469, upload-time = "2023-01-29T17:44:56.226Z" },
 ]
 """)
 
@@ -1227,7 +1227,7 @@ def test_remove_updates_lock(
     assert result.stdout == snapshot("Locked `test.ipynb`\n")
     assert jupytext.read(tmp_path / "test.ipynb").metadata["uv.lock"] == snapshot("""\
 version = 1
-revision = 1
+revision = 2
 requires-python = ">=3.13"
 
 [options]
@@ -1240,13 +1240,13 @@ requirements = [{ name = "polars" }]
 name = "polars"
 version = "0.16.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a2/6d/e34f5677393a986b5a6b0b8284da31154bdf0ed55a1feffc73cc8c0dfa4e/polars-0.16.1.tar.gz", hash = "sha256:ebba7a51581084adb85dde10579b1dd8b648f7c5ca38a6839eee64d2e4827612", size = 1352066 }
+sdist = { url = "https://files.pythonhosted.org/packages/a2/6d/e34f5677393a986b5a6b0b8284da31154bdf0ed55a1feffc73cc8c0dfa4e/polars-0.16.1.tar.gz", hash = "sha256:ebba7a51581084adb85dde10579b1dd8b648f7c5ca38a6839eee64d2e4827612", size = 1352066, upload-time = "2023-01-29T17:36:21.445Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4d/aa/ecf2df7468dab00f8ad7b5fdcd834ca4bffee8e6095e011153c9d82d5df0/polars-0.16.1-cp37-abi3-macosx_10_7_x86_64.whl", hash = "sha256:180172c8db33f950b3f2ff7793d2cf3de9d3ad9b13c5f0181cda0ac3e7db5977", size = 14844819 },
-    { url = "https://files.pythonhosted.org/packages/f2/c5/f19a2b3f1d3251615ee136fb03f251eb00e4566688afa3b84f0d1cb4f4d3/polars-0.16.1-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:6c391546a158233172589ce810fcafd71a60d776add8421364bdd5ff05af2cd9", size = 12930182 },
-    { url = "https://files.pythonhosted.org/packages/32/bc/5f674384f48dfad969a634918487dc0b207ee08702d57433d24d0da6a3fb/polars-0.16.1-cp37-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e2096a1384a5fecf003bb3915264212c63d1c43e8790126ee8fcdd682f1782ac", size = 13382356 },
-    { url = "https://files.pythonhosted.org/packages/7e/82/ee89b63d8cd638d12b79515fb0c63d602ca8fc5eb8d1c4b6b9f690a1a02d/polars-0.16.1-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:934bca853a0086a30800c40ac615578894531b378afc1ba4c1a7e15855218c64", size = 15291186 },
-    { url = "https://files.pythonhosted.org/packages/d8/4d/3b371736693c952b616dac469d91fb9a42217758bf0f79ac4170c032069d/polars-0.16.1-cp37-abi3-win_amd64.whl", hash = "sha256:a670586eee6fad98a2daafbe3f6dfc845b35a22e44bc4daaca93d4f0f4d05229", size = 16264469 },
+    { url = "https://files.pythonhosted.org/packages/4d/aa/ecf2df7468dab00f8ad7b5fdcd834ca4bffee8e6095e011153c9d82d5df0/polars-0.16.1-cp37-abi3-macosx_10_7_x86_64.whl", hash = "sha256:180172c8db33f950b3f2ff7793d2cf3de9d3ad9b13c5f0181cda0ac3e7db5977", size = 14844819, upload-time = "2023-01-29T17:58:42.738Z" },
+    { url = "https://files.pythonhosted.org/packages/f2/c5/f19a2b3f1d3251615ee136fb03f251eb00e4566688afa3b84f0d1cb4f4d3/polars-0.16.1-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:6c391546a158233172589ce810fcafd71a60d776add8421364bdd5ff05af2cd9", size = 12930182, upload-time = "2023-01-29T17:51:15.361Z" },
+    { url = "https://files.pythonhosted.org/packages/32/bc/5f674384f48dfad969a634918487dc0b207ee08702d57433d24d0da6a3fb/polars-0.16.1-cp37-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e2096a1384a5fecf003bb3915264212c63d1c43e8790126ee8fcdd682f1782ac", size = 13382356, upload-time = "2023-01-29T17:38:12.192Z" },
+    { url = "https://files.pythonhosted.org/packages/7e/82/ee89b63d8cd638d12b79515fb0c63d602ca8fc5eb8d1c4b6b9f690a1a02d/polars-0.16.1-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:934bca853a0086a30800c40ac615578894531b378afc1ba4c1a7e15855218c64", size = 15291186, upload-time = "2023-01-29T17:36:17.331Z" },
+    { url = "https://files.pythonhosted.org/packages/d8/4d/3b371736693c952b616dac469d91fb9a42217758bf0f79ac4170c032069d/polars-0.16.1-cp37-abi3-win_amd64.whl", hash = "sha256:a670586eee6fad98a2daafbe3f6dfc845b35a22e44bc4daaca93d4f0f4d05229", size = 16264469, upload-time = "2023-01-29T17:44:56.226Z" },
 ]
 """)
 
@@ -1254,7 +1254,7 @@ wheels = [
     assert result.exit_code == 0
     assert jupytext.read(tmp_path / "test.ipynb").metadata["uv.lock"] == snapshot("""\
 version = 1
-revision = 1
+revision = 2
 requires-python = ">=3.13"
 
 [options]
@@ -1291,7 +1291,7 @@ def test_clear_lock(
     invoke(["lock", "test.ipynb"])
     assert jupytext.read(tmp_path / "test.ipynb").metadata.get("uv.lock") == snapshot("""\
 version = 1
-revision = 1
+revision = 2
 requires-python = ">=3.13"
 
 [options]
@@ -1304,9 +1304,9 @@ requirements = [{ name = "attrs" }]
 name = "attrs"
 version = "22.2.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/21/31/3f468da74c7de4fcf9b25591e682856389b3400b4b62f201e65f15ea3e07/attrs-22.2.0.tar.gz", hash = "sha256:c9227bfc2f01993c03f68db37d1d15c9690188323c067c641f1a35ca58185f99", size = 215900 }
+sdist = { url = "https://files.pythonhosted.org/packages/21/31/3f468da74c7de4fcf9b25591e682856389b3400b4b62f201e65f15ea3e07/attrs-22.2.0.tar.gz", hash = "sha256:c9227bfc2f01993c03f68db37d1d15c9690188323c067c641f1a35ca58185f99", size = 215900, upload-time = "2022-12-21T09:48:51.773Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fb/6e/6f83bf616d2becdf333a1640f1d463fef3150e2e926b7010cb0f81c95e88/attrs-22.2.0-py3-none-any.whl", hash = "sha256:29e95c7f6778868dbd49170f98f8818f78f3dc5e0e37c0b1f474e3561b240836", size = 60018 },
+    { url = "https://files.pythonhosted.org/packages/fb/6e/6f83bf616d2becdf333a1640f1d463fef3150e2e926b7010cb0f81c95e88/attrs-22.2.0-py3-none-any.whl", hash = "sha256:29e95c7f6778868dbd49170f98f8818f78f3dc5e0e37c0b1f474e3561b240836", size = 60018, upload-time = "2022-12-21T09:48:49.401Z" },
 ]
 """)
 
@@ -1357,7 +1357,7 @@ def test_commands_update_lock(
     notebook = jupytext.read(tmp_path / "test.ipynb")
     assert notebook.metadata["uv.lock"] == snapshot("""\
 version = 1
-revision = 1
+revision = 2
 requires-python = ">=3.13"
 
 [options]
@@ -1370,9 +1370,9 @@ requirements = [{ name = "attrs", specifier = ">=22.2.0" }]
 name = "attrs"
 version = "22.2.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/21/31/3f468da74c7de4fcf9b25591e682856389b3400b4b62f201e65f15ea3e07/attrs-22.2.0.tar.gz", hash = "sha256:c9227bfc2f01993c03f68db37d1d15c9690188323c067c641f1a35ca58185f99", size = 215900 }
+sdist = { url = "https://files.pythonhosted.org/packages/21/31/3f468da74c7de4fcf9b25591e682856389b3400b4b62f201e65f15ea3e07/attrs-22.2.0.tar.gz", hash = "sha256:c9227bfc2f01993c03f68db37d1d15c9690188323c067c641f1a35ca58185f99", size = 215900, upload-time = "2022-12-21T09:48:51.773Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fb/6e/6f83bf616d2becdf333a1640f1d463fef3150e2e926b7010cb0f81c95e88/attrs-22.2.0-py3-none-any.whl", hash = "sha256:29e95c7f6778868dbd49170f98f8818f78f3dc5e0e37c0b1f474e3561b240836", size = 60018 },
+    { url = "https://files.pythonhosted.org/packages/fb/6e/6f83bf616d2becdf333a1640f1d463fef3150e2e926b7010cb0f81c95e88/attrs-22.2.0-py3-none-any.whl", hash = "sha256:29e95c7f6778868dbd49170f98f8818f78f3dc5e0e37c0b1f474e3561b240836", size = 60018, upload-time = "2022-12-21T09:48:49.401Z" },
 ]
 """)
 
@@ -1385,7 +1385,7 @@ wheels = [
     invoke([command, "test.ipynb"])
     assert jupytext.read(tmp_path / "test.ipynb").metadata["uv.lock"] == snapshot("""\
 version = 1
-revision = 1
+revision = 2
 requires-python = ">=3.8"
 
 [options]

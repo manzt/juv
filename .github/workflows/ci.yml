@@ -14,9 +14,7 @@ jobs:
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
-        with:
-          version: "0.6.x"
+      - uses: astral-sh/setup-uv@v6
       - run: |
           uv run ruff format --check
           uv run ruff check
@@ -40,9 +38,7 @@ jobs:
           - "3.13"
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
-        with:
-          version: "0.6.x"
+      - uses: astral-sh/setup-uv@v6
       - run: uv run pytest
         env:
           UV_PYTHON: ${{ matrix.python-version }}
@@ -60,12 +56,8 @@ jobs:
           - windows-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
-        with:
-          version: "0.6.x"
-
+      - uses: astral-sh/setup-uv@v6
       - run: |
           uv run --all-groups playwright install chromium
-
       - run: |
           uv run --all-groups pytest -rA --capture=no -vv
