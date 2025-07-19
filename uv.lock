@@ -396,7 +396,7 @@ requires-dist = [
     { name = "jupytext", specifier = ">=1.16.4" },
     { name = "rich", specifier = ">=13.9.2" },
     { name = "tomlkit", specifier = ">=0.13.2" },
-    { name = "uv", specifier = ">=0.6.7,<0.8.0" },
+    { name = "uv", specifier = ">=0.7.0,<0.8.0" },
     { name = "whenever", marker = "python_full_version >= '3.9'", specifier = ">=0.6.12" },
 ]
 

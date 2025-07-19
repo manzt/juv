@@ -16,7 +16,7 @@ dependencies = [
     "rich>=13.9.2",
     "tomlkit>=0.13.2",
     "whenever>=0.6.12; python_version >= '3.9'",
-    "uv>=0.6.7,<0.8.0",
+    "uv>=0.7.0,<0.8.0",
 ]
 classifiers = [
     "Environment :: Console",
@@ -80,4 +80,4 @@ changelog_sections.__unknown__ = "Other changes"
 changelog_contributors = true
 
 [tool.uv]
-required-version = ">=0.8.0"
+required-version = ">=0.7.0"
