@@ -1,3 +1,12 @@
+## 0.4.3
+
+### Bug fixes
+
+- Pin `uv` upper bound to <0.8.0 to preserve Jupyter static asset layering ([#96](https://github.com/manzt/juv/pull/96))
+
+### Contributors
+- [@manzt](https://github.com/manzt)
+
 ## 0.4.2
 
 ### Enhancements
