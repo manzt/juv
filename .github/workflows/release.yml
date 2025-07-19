@@ -22,9 +22,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
-        with:
-          version: "0.6.x"
+      - uses: astral-sh/setup-uv@v6
 
       - name: Build distribution
         run: uv build
@@ -41,6 +39,3 @@ jobs:
         run: |
           VERSION=$(uv run --quiet juv version --output-format=json | jq -r '.version')
           gh release create v$VERSION
-          git fetch --tags
-          awk '/^## / {if (p++) exit} p && NR > 2' CHANGELOG.md > release-notes.md
-          gh release edit v$VERSION --notes-file release-notes.md
