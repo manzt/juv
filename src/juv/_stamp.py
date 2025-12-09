@@ -8,7 +8,7 @@ from dataclasses import dataclass
 
 import jupytext
 import tomlkit
-from whenever import Date, OffsetDateTime, SystemDateTime, ZonedDateTime
+from whenever import Date, OffsetDateTime, ZonedDateTime
 
 from ._nbutils import write_ipynb
 from ._pep723 import (
@@ -42,7 +42,7 @@ Action = typing.Union[DeleteAction, CreateAction, UpdateAction]
 
 def parse_timestamp(date_str: str) -> OffsetDateTime:
     with suppress(ValueError):
-        return OffsetDateTime.parse_common_iso(date_str)
+        return OffsetDateTime.parse_iso(date_str)
 
     try:
         return OffsetDateTime.parse_rfc3339(date_str)
@@ -57,7 +57,7 @@ def parse_date(date_str: str) -> OffsetDateTime:
     Defaults to midnight in the local timezone.
     """
     try:
-        date = Date.parse_common_iso(date_str).add(days=1)
+        date = Date.parse_iso(date_str).add(days=1)
     except ValueError as err:
         msg = f"'{date_str}' could not be parsed as a valid date."
         raise ValueError(msg) from err
@@ -66,7 +66,7 @@ def parse_date(date_str: str) -> OffsetDateTime:
         # used in tests
         dt = ZonedDateTime(date.year, date.month, date.day, tz=os.environ["JUV_TZ"])
     else:
-        dt = SystemDateTime(date.year, date.month, date.day)
+        dt = ZonedDateTime.from_system_tz(date.year, date.month, date.day)
 
     return dt.to_fixed_offset()
 
@@ -112,7 +112,7 @@ def update_inline_metadata(
                 meta.pop("tool")
     else:
         previous = uv.get("exclude-newer", None)
-        current = dt.format_common_iso()
+        current = dt.format_iso()
         uv["exclude-newer"] = current
         action = (
             CreateAction(value=current)
@@ -155,7 +155,7 @@ def stamp(  # noqa: PLR0913
         dt = parse_date(date)
     else:
         # Default to the current time
-        dt = SystemDateTime.now().to_fixed_offset()
+        dt = ZonedDateTime.now_in_system_tz().to_fixed_offset()
 
     if path.suffix == ".ipynb":
         nb = jupytext.read(path)
