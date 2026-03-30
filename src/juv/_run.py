@@ -4,8 +4,8 @@ import os
 import typing
 
 import jupytext
-import rich
 
+from ._console import console
 from ._nbutils import code_cell, write_ipynb
 from ._pep723 import extract_inline_meta
 from ._run_template import Runtime, prepare_run_script_and_uv_run_args
@@ -61,7 +61,7 @@ def run(  # noqa: PLR0913
     if path.suffix == ".py":
         path = path.with_suffix(".ipynb")
         write_ipynb(nb, path)
-        rich.print(
+        console.print(
             f"Converted script to notebook `[cyan]{path.resolve().absolute()}[/cyan]`",
         )
 

@@ -18,9 +18,9 @@ from pathlib import Path
 from queue import Queue
 from threading import Thread
 
-from rich.console import Console
 from uv import find_uv_bin
 
+from ._console import console
 from ._version import __version__
 
 
@@ -39,7 +39,6 @@ def format_url(url: str, path: str) -> str:
 
 
 def process_output(
-    console: Console,
     filename: str,
     output_queue: Queue,
 ) -> None:
@@ -112,7 +111,6 @@ def run(
     lockfile_contents: str | None,
     dir: Path,  # noqa: A002
 ) -> None:
-    console = Console()
     output_queue = Queue()
 
     with tempfile.NamedTemporaryFile(
@@ -144,7 +142,7 @@ def run(
 
         output_thread = Thread(
             target=process_output,
-            args=(console, filename, output_queue),
+            args=(filename, output_queue),
         )
         output_thread.start()
 

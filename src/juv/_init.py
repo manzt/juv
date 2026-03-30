@@ -5,8 +5,7 @@ import tempfile
 import typing
 from pathlib import Path
 
-import rich
-
+from ._console import err_console
 from ._nbutils import code_cell, new_notebook, write_ipynb
 from ._uv import uv
 
@@ -86,7 +85,7 @@ def init(
         path = get_first_non_conflicting_untitled_ipynb(Path.cwd())
 
     if path.suffix != ".ipynb":
-        rich.print("File must have a `[cyan].ipynb[/cyan]` extension.", file=sys.stderr)
+        err_console.print("File must have a `[cyan].ipynb[/cyan]` extension.")
         sys.exit(1)
 
     notebook = new_notebook_with_inline_metadata(path.parent, python)

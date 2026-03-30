@@ -6,11 +6,10 @@ import typing
 from pathlib import Path
 
 import jupytext
-import rich
-from rich.console import Console
 
 from juv._uv import uv
 
+from ._console import console
 from ._nbutils import code_cell, write_ipynb
 from ._pep723 import includes_inline_metadata
 from ._utils import find
@@ -102,12 +101,11 @@ def venv(
     path: pathlib.Path,
     no_kernel: bool,
 ) -> None:
-    console = Console()
     rel_path = os.path.relpath(path.resolve(), Path.cwd())
     if path.exists():
-        rich.print(f"Using notebook environment at: `[cyan]{rel_path}[/cyan]`")
+        console.print(f"Using notebook environment at: `[cyan]{rel_path}[/cyan]`")
     else:
-        rich.print(f"Creating notebook environment at: `[cyan]{rel_path}[/cyan]`")
+        console.print(f"Creating notebook environment at: `[cyan]{rel_path}[/cyan]`")
 
     uv_output = sync(source, python=python, env_path=path)
     env = os.environ.copy()

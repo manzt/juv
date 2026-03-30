@@ -7,8 +7,8 @@ import sys
 from pathlib import Path
 
 import click
-import rich
-from rich.console import Console
+
+from ._console import console, err_console
 
 
 @click.group()
@@ -57,7 +57,7 @@ def init(
         packages=[p for w in with_args for p in w.split(",")],
     )
     path = os.path.relpath(path.resolve(), Path.cwd())
-    rich.print(f"Initialized notebook at `[cyan]{path}[/cyan]`")
+    console.print(f"Initialized notebook at `[cyan]{path}[/cyan]`")
 
 
 @cli.command()
@@ -150,9 +150,9 @@ def add(  # noqa: PLR0913
             default_index=default_index,
         )
         path = os.path.relpath(Path(file).resolve(), Path.cwd())
-        rich.print(f"Updated `[cyan]{path}[/cyan]`")
+        console.print(f"Updated `[cyan]{path}[/cyan]`")
     except RuntimeError as e:
-        rich.print(e, file=sys.stderr)
+        err_console.print(e)
         sys.exit(1)
 
 
@@ -233,10 +233,9 @@ def clear(*, files: list[str], check: bool) -> None:  # noqa: C901
                 continue
 
             if path.suffix != ".ipynb":
-                rich.print(
+                err_console.print(
                     f"[bold yellow]Warning:[/bold yellow] Skipping "
                     f"`[cyan]{path}[/cyan]` because it is not a notebook",
-                    file=sys.stderr,
                 )
                 continue
 
@@ -246,31 +245,30 @@ def clear(*, files: list[str], check: bool) -> None:  # noqa: C901
         any_cleared = False
         for path in paths:
             if not is_cleared(path):
-                rich.print(path.resolve().absolute(), file=sys.stderr)
+                err_console.print(path.resolve().absolute())
                 any_cleared = True
 
         if any_cleared:
-            rich.print(
+            err_console.print(
                 "Some notebooks are not cleared. "
                 "Use `[green b]juv clear[/green b]` to fix.",
-                file=sys.stderr,
             )
             sys.exit(1)
 
-        rich.print("All notebooks are cleared", file=sys.stderr)
+        err_console.print("All notebooks are cleared")
         return
 
     if len(paths) == 1:
         clear(paths[0])
         path = os.path.relpath(paths[0].resolve(), Path.cwd())
-        rich.print(f"Cleared output from `[cyan]{path}[/cyan]`", file=sys.stderr)
+        err_console.print(f"Cleared output from `[cyan]{path}[/cyan]`")
         return
 
     for path in paths:
         clear(path)
-        rich.print(path.resolve().absolute(), file=sys.stderr)
+        err_console.print(path.resolve().absolute())
 
-    rich.print(f"Cleared output from {len(paths)} notebooks", file=sys.stderr)
+    err_console.print(f"Cleared output from {len(paths)} notebooks")
 
 
 @cli.command()
@@ -293,22 +291,21 @@ def edit(*, notebook: str, editor: str | None) -> None:
             "No editor specified. Please set the EDITOR environment variable "
             "or use the --editor option."
         )
-        rich.print(f"[bold red]error[/bold red]: {msg}", file=sys.stderr)
+        err_console.print(f"[bold red]error[/bold red]: {msg}")
         return
 
     path = Path(notebook)
     if path.suffix != ".ipynb":
-        rich.print(
+        err_console.print(
             f"[bold red]error[/bold red]: `[cyan]{path}[/cyan]` is not a notebook",
-            file=sys.stderr,
         )
         return
 
     try:
         edit(path=path, editor=editor)
-        rich.print(f"Edited `[cyan]{notebook}[/cyan]`", file=sys.stderr)
+        err_console.print(f"Edited `[cyan]{notebook}[/cyan]`")
     except EditorAbortedError as e:
-        rich.print(f"[bold red]error[/bold red]: {e}", file=sys.stderr)
+        err_console.print(f"[bold red]error[/bold red]: {e}")
 
 
 def upgrade_legacy_jupyter_command(args: list[str]) -> None:
@@ -316,11 +313,10 @@ def upgrade_legacy_jupyter_command(args: list[str]) -> None:
     if len(args) >= 2:  # noqa: PLR2004
         command = args[1]
         if command.startswith(("lab", "notebook", "nbclassic")):
-            rich.print(
+            err_console.print(
                 f"[bold]warning[/bold]: The command '{command}' is deprecated. "
                 f"Please use 'run' with `--jupyter={command}` "
                 f"or set JUV_JUPYTER={command}",
-                file=sys.stderr,
             )
             os.environ["JUV_JUPYTER"] = command
             args[1] = "run"
@@ -368,9 +364,8 @@ def cat(*, notebook: str, script: bool, pager: str | None) -> None:
 
     path = Path(notebook)
     if path.suffix != ".ipynb":
-        rich.print(
+        err_console.print(
             f"[bold red]error[/bold red]: `[cyan]{path}[/cyan]` is not a notebook",
-            file=sys.stderr,
         )
         sys.exit(1)
 
@@ -404,7 +399,7 @@ def stamp(  # noqa: PLR0913
 ) -> None:
     """Stamp a notebook or script with a reproducible timestamp."""
     if sys.version_info < (3, 9):
-        rich.print(
+        err_console.print(
             "[bold red]error[/bold red] "
             "Python 3.9 or latest is required for `juv stamp`",
         )
@@ -412,14 +407,14 @@ def stamp(  # noqa: PLR0913
 
     from ._stamp import CreateAction, DeleteAction, UpdateAction, stamp
 
-    console = Console(file=sys.stderr, highlight=False)
     path = Path(file)
 
     # time, rev, latest, and clear are mutually exclusive
     if sum([bool(timestamp), bool(rev), bool(date), latest, clear]) > 1:
-        console.print(
+        err_console.print(
             "[bold red]Error:[/bold red] "
             "Only one of --timestamp, --date, --rev, --latest, or --clear may be used",
+            highlight=False,
         )
         sys.exit(1)
 
@@ -433,7 +428,7 @@ def stamp(  # noqa: PLR0913
             date=date,
         )
     except ValueError as e:
-        console.print(f"[bold red]error[/bold red]: {e.args[0]}")
+        err_console.print(f"[bold red]error[/bold red]: {e.args[0]}", highlight=False)
         sys.exit(1)
 
     path = os.path.relpath(path.resolve(), Path.cwd())
@@ -441,18 +436,23 @@ def stamp(  # noqa: PLR0913
     if isinstance(action, DeleteAction):
         if action.previous is None:
             # there was no previosu timestamp, so ok but no-op
-            console.print(f"No timestamp found in `[cyan]{path}[/cyan]`")
+            err_console.print(
+                f"No timestamp found in `[cyan]{path}[/cyan]`", highlight=False
+            )
         else:
-            console.print(
+            err_console.print(
                 f"Removed [green]{action.previous}[/green] from `[cyan]{path}[/cyan]`",
+                highlight=False,
             )
     elif isinstance(action, CreateAction):
-        console.print(
+        err_console.print(
             f"Stamped `[cyan]{path}[/cyan]` with [green]{action.value}[/green]",
+            highlight=False,
         )
     elif isinstance(action, UpdateAction):
-        console.print(
+        err_console.print(
             f"Updated `[cyan]{path}[/cyan]` with [green]{action.value}[/green]",
+            highlight=False,
         )
 
 
@@ -473,9 +473,9 @@ def remove(
             packages=packages,
         )
         path = os.path.relpath(Path(file).resolve(), Path.cwd())
-        rich.print(f"Updated `[cyan]{path}[/cyan]`")
+        console.print(f"Updated `[cyan]{path}[/cyan]`")
     except RuntimeError as e:
-        rich.print(e, file=sys.stderr)
+        err_console.print(e)
         sys.exit(1)
 
 
@@ -494,11 +494,11 @@ def lock(
         lock(path=Path(file), clear=clear)
         path = os.path.relpath(Path(file).resolve(), Path.cwd())
         if clear:
-            rich.print(f"Cleared lockfile `[cyan]{path}[/cyan]`")
+            console.print(f"Cleared lockfile `[cyan]{path}[/cyan]`")
         else:
-            rich.print(f"Locked `[cyan]{path}[/cyan]`")
+            console.print(f"Locked `[cyan]{path}[/cyan]`")
     except RuntimeError as e:
-        rich.print(e, file=sys.stderr)
+        err_console.print(e)
         sys.exit(1)
 
 
@@ -566,7 +566,7 @@ def venv(
             no_kernel=no_kernel,
         )
     except RuntimeError as e:
-        rich.print(e, file=sys.stderr)
+        err_console.print(e)
         sys.exit(1)
 
 
@@ -626,7 +626,7 @@ def sync(
             no_kernel=no_kernel,
         )
     except RuntimeError as e:
-        rich.print(e, file=sys.stderr)
+        err_console.print(e)
         sys.exit(1)
 
 
