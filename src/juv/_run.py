@@ -67,6 +67,10 @@ def run(  # noqa: PLR0913
 
     target = path.resolve()
 
+    # In managed mode, suppress Jupyter's default logging since juv controls the UI
+    if mode == "managed":
+        jupyter_args = ("--log-level=CRITICAL", *jupyter_args)
+
     script, args = prepare_run_script_and_uv_run_args(
         runtime=runtime,
         target=target,
