@@ -69,7 +69,8 @@ def setup(notebook: str, jupyter: str, run_mode: str) -> None:  # noqa: D103
         import importlib.metadata
 
         version = importlib.metadata.version(jupyter)
-        print(f"JUV_MANGED={jupyter},{version}", file=sys.stderr)  # noqa: T201
+        pkg_count = len(list(importlib.metadata.distributions()))
+        print(f"JUV_MANGED={jupyter},{version},{pkg_count}", file=sys.stderr)  # noqa: T201
 
     # wire up juptyer dirs for this enviroment
     jupyter_paths, jupyter_config_paths = find_jupyter_paths()

@@ -16,12 +16,16 @@ import tempfile
 import time
 from pathlib import Path
 from queue import Queue
-from threading import Thread
+from threading import Event, Thread
 
 from uv import find_uv_bin
 
 from ._console import console
 from ._version import __version__
+
+_SELECTING_RE = re.compile(r"^DEBUG Selecting: (.+?)==")
+
+_PKG_CHANGE_RE = re.compile(r"^\s*[+~-]\s+(.+?)==")
 
 
 def extract_url(log_line: str) -> str:
@@ -38,25 +42,98 @@ def format_url(url: str, path: str) -> str:
     return f"[cyan]{re.sub(r':\d+', r'[b]\g<0>[/b]', url)}{path}[/cyan]"
 
 
-def process_output(
+def _cycle_names(status: object, names: list[str], stop: Event) -> None:
+    """Continuously cycle through package names in the spinner status."""
+    i = 0
+    while not stop.wait(0.1):
+        if names:
+            status.update(f"[dim]{names[i % len(names)]}[/dim]")  # type: ignore[union-attr]
+            i += 1
+
+
+def process_output(  # noqa: C901, PLR0912, PLR0915
     filename: str,
     output_queue: Queue,
 ) -> None:
-    status = console.status("Running uv...", spinner="dots")
+    status = console.status("[dim]Resolving dependencies...[/dim]", spinner="dots")
     status.start()
     start = time.time()
+
+    packages: list[str] = []
+    log_lines: list[str] = []
+    pkg_count = 0
+    stop_cycling = Event()
+    cycling = False
 
     name_version: None | tuple[str, str] = None
 
     while name_version is None:
         line = output_queue.get()
-        if line.startswith("Reading inline script"):
+        if line is None:
+            break
+        line = line.strip()
+        if not line or line.startswith(("Reading inline script", "DEBUG Reading")):
             continue
 
+        # Keep all non-debug lines for error reporting
+        if not line.startswith("DEBUG"):
+            log_lines.append(line)
+
         if line.startswith("JUV_MANGED="):
-            name_version = line[len("JUV_MANGED=") :].split(",")
-        else:
-            console.print(line)
+            parts = line[len("JUV_MANGED=") :].split(",")
+            name_version = (parts[0], parts[1])
+            if len(parts) > 2:  # noqa: PLR2004
+                pkg_count = int(parts[2])
+            continue
+
+        # Collect individual package names as they're selected
+        if match := _SELECTING_RE.match(line):
+            name = match.group(1)
+            packages.append(name)
+            # Start the cycling animation once we have a few names
+            if not cycling and len(packages) >= 2:  # noqa: PLR2004
+                cycling = True
+                stop_cycling.clear()
+                Thread(
+                    target=_cycle_names,
+                    args=(status, packages, stop_cycling),
+                    daemon=True,
+                ).start()
+            elif not cycling:
+                status.update(f"[dim]{name}[/dim]")
+            continue
+
+        # Per-package install lines (+ name==ver) — collect and keep cycling
+        if match := _PKG_CHANGE_RE.match(line):
+            name = match.group(1)
+            if name not in packages:
+                packages.append(name)
+            continue
+
+        # Skip download progress lines
+        if line.startswith(("Downloading ", "Downloaded ")):
+            continue
+
+        # Skip verbose log lines (DEBUG, WARN, etc.)
+        if line.startswith(("DEBUG", "WARN")):
+            continue
+
+        # Show summary lines (Resolved, Prepared, Installed, etc.)
+        # and pause the cycling animation while they're displayed
+        stop_cycling.set()
+        cycling = False
+        status.update(f"[dim]{line}[/dim]")
+
+    stop_cycling.set()
+
+    if name_version is None:
+        status.stop()
+        from ._console import err_console
+
+        err_console.print("[bold red]error[/bold red]: setup failed")
+        for log_line in log_lines:
+            err_console.print(f"  {log_line}", highlight=False)
+        return
 
     jupyter, version = name_version
 
@@ -76,12 +153,19 @@ def process_output(
             else f"[b]{elapsed_ms / 1000:.1f}[/b] s"
         )
 
+        env_line = ""
+        if pkg_count > 0:
+            env_line = (
+                f"\n  [dim][green b]➜[/green b]  [b]Env:[/b]"
+                f"      {pkg_count} packages[/dim]"
+            )
+
         console.print(
             f"""
   [green][b]juv[/b] v{__version__}[/green] [dim]ready in[/dim] [white]{time_str}[/white]
 
   [green b]➜[/green b]  [b]Local:[/b]    {url}
-  [dim][green b]➜[/green b]  [b]Jupyter:[/b]  {jupyter} v{version}[/dim]
+  [dim][green b]➜[/green b]  [b]Jupyter:[/b]  {jupyter} v{version}[/dim]{env_line}
   """,
             highlight=False,
             no_wrap=True,
@@ -92,16 +176,27 @@ def process_output(
 
     while url is None:
         line = output_queue.get()
+        if line is None:
+            break
 
         if line.startswith("[") and not server_started:
-            status.update("Jupyter server started", spinner="dots")
+            status.update("[dim]Starting Jupyter server...[/dim]")
             server_started = True
 
         if "http://" in line:
             url = format_url(extract_url(line), path)
 
     status.stop()
-    display(url)
+    if url:
+        display(url)
+
+    # Only pass through critical Jupyter server errors
+    while True:
+        line = output_queue.get()
+        if line is None:
+            break
+        if line.startswith("[C"):
+            console.print(line.rstrip(), highlight=False)
 
 
 def run(
@@ -111,7 +206,7 @@ def run(
     lockfile_contents: str | None,
     dir: Path,  # noqa: A002
 ) -> None:
-    output_queue = Queue()
+    output_queue: Queue[str | None] = Queue()
 
     with tempfile.NamedTemporaryFile(
         mode="w+",
@@ -132,7 +227,7 @@ def run(
             env["JUV_LOCKFILE_PATH"] = str(lockfile)
 
         process = subprocess.Popen(  # noqa: S603
-            [os.fsdecode(find_uv_bin()), *args, f.name],
+            [os.fsdecode(find_uv_bin()), "-v", *args, f.name],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             preexec_fn=os.setsid,  # noqa: PLW1509
